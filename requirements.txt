@@ -6,3 +6,6 @@ dj-database-url
 requests
 whitenoise # -> upgrade to django-storages
 django-allauth[socialaccount]
+django-allauth-ui
+django-widget-tweaks
+slippers
