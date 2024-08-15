@@ -89,10 +89,9 @@ class SubscriptionPrice(models.Model):
         ordering = ['subscription__order', 'order', 'featured', '-updated']
 
     def get_checkout_url(self):
-        return []
-        #return reverse("sub-price-checkout", 
-        #    kwargs = {"price_id": self.id}  
-        #    )
+        return reverse("sub-price-checkout", 
+            kwargs = {"price_id": self.id}  
+            )
 
     @property
     def display_features_list(self):
