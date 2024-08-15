@@ -62,9 +62,13 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    #'allauth.socialaccount.providers.google',
     "widget_tweaks",
     "slippers",
     # my apps
+    'profiles',
+    'customers',
+    'subscriptions',
     'visits',
     'commando',
 ]

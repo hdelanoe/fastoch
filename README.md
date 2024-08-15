@@ -8,3 +8,4 @@ Stack :
     - Flowbite
     -TailwindCSS
     - Docker
+    - Stripe
