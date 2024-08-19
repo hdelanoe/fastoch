@@ -25,7 +25,9 @@ from .views import home_view
 urlpatterns = [
     path('', home_view, name='home'),
 
-     path('accounts/', include('allauth.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('accounts/billing', subscriptions_views.user_subscription_view, name='user_subscription'),
+    path('accounts/billing/cancel', subscriptions_views.user_subscription_cancel_view, name='user_subscription_cancel'),
 
     path('pricing/', subscriptions_views.subscription_price_view, name='pricing'),
     path("pricing/<str:interval>/", subscriptions_views.subscription_price_view, name='pricing_interval'),
