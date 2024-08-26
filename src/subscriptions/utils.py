@@ -1,8 +1,7 @@
 import helpers.billing
 
-from django.db.models import Q
 from customers.models import Customer
-from subscriptions.models import Subscription, UserSubscription, SubscriptionStatus
+from subscriptions.models import Subscription, UserSubscription
 
 
 def refresh_active_users_subscriptions(
