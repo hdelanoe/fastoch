@@ -6,6 +6,7 @@ USER pn
 WORKDIR /home/pn/app
 
 # Create a virtual environment
+RUN mkdir -p /opt/venv
 RUN python -m venv /opt/venv
 
 # Set the virtual environment as the current location
