@@ -45,11 +45,14 @@ COPY ./src /code
 # Install the Python project requirements
 RUN pip install -r /tmp/requirements.txt
 
-# installe nvm (Gestionnaire de version node)
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+# installe fnm (Fast Node Manager)
+RUN curl -fsSL https://fnm.vercel.app/install | bash
 
-# télécharger et installer Node.js (il peut être nécessaire de redémarrer le terminal)
-RUN nvm install 20
+# activer le fnm
+RUN source ~/.bashrc
+
+# télécharger et installer Node.js
+RUN fnm use --install-if-missing 20
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
