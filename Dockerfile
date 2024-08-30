@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.12-bullseye
+ARG PYTHON_VERSION=3.12-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     # for CairoSVG
     libcairo2 \
+    # for nvm
+    curl \
     # other
     gcc \
     && rm -rf /var/lib/apt/lists/*
@@ -44,10 +46,14 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
+ENV NODE_VERSION 20
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 
-# télécharger et installer Node.js (il peut être nécessaire de redémarrer le terminal)
-RUN nvm install 20
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
