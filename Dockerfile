@@ -44,7 +44,7 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installer brew
-RUN curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # télécharger et installer Node.js
 RUN brew install node@20
