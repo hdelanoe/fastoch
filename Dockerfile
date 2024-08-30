@@ -43,11 +43,11 @@ COPY ./src /code
 # Install the Python project requirements
 RUN pip install -r /tmp/requirements.txt
 
-# installer brew
-RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# installe nvm (Gestionnaire de version node)
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 
-# télécharger et installer Node.js
-RUN brew install node@20
+# télécharger et installer Node.js (il peut être nécessaire de redémarrer le terminal)
+RUN nvm install 20
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
