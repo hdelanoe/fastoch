@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /code
 
 # Set the working directory to that same code directory
-WORKDIR /code
+WORKDIR /code/staticfiles/tw/
 
 # Copy the requirements file into the container
 COPY requirements.txt /tmp/requirements.txt
@@ -69,7 +69,7 @@ RUN python manage.py collectstatic --noinput
 
 # build css theme
 COPY ./package.json /code
-COPY ./staticfiles /code
+COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
 RUN npm install -D tailwindcss  
 RUN echo $(ls -ls ./staticfiles)
 RUN npm run build  
