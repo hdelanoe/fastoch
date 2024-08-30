@@ -1,6 +1,9 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-FROM python3.12-nodejs22-slim
+FROM nikolaik/python-nodejs:python3.12-nodejs22-slim
+
+USER pn
+WORKDIR /home/pn/app
 
 # Create a virtual environment
 RUN python -m venv /opt/venv
