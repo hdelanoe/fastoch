@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     # for CairoSVG
     libcairo2 \
+    # for npm
+    curl gnupg \ 
     # other
     gcc \
     && rm -rf /var/lib/apt/lists/*
