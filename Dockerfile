@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.12-slim-bullseye
+ARG PYTHON_VERSION=3.12-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -24,8 +24,6 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     # for CairoSVG
     libcairo2 \
-    # for npm
-    curl gnupg unzip\ 
     # other
     gcc \
     && rm -rf /var/lib/apt/lists/*
@@ -45,14 +43,11 @@ COPY ./src /code
 # Install the Python project requirements
 RUN pip install -r /tmp/requirements.txt
 
-# installe fnm (Fast Node Manager)
-RUN curl -fsSL https://fnm.vercel.app/install | bash
-
-# activer le fnm
-RUN source ~/.bashrc
+# installer brew
+RUN curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
 
 # télécharger et installer Node.js
-RUN fnm use --install-if-missing 20
+RUN brew install node@20
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
