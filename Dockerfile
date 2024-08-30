@@ -1,12 +1,9 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-FROM nikolaik/python-nodejs:python3.12-nodejs22-slim
-
-USER pn
-WORKDIR /home/pn/app
+ARG PYTHON_VERSION=3.12-slim-bullseye
+FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
-RUN mkdir -p /opt/venv
 RUN python -m venv /opt/venv
 
 # Set the virtual environment as the current location
@@ -46,6 +43,12 @@ COPY ./src /code
 # Install the Python project requirements
 RUN pip install -r /tmp/requirements.txt
 
+# installe nvm (Gestionnaire de version node)
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+
+# télécharger et installer Node.js (il peut être nécessaire de redémarrer le terminal)
+RUN nvm install 20
+
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 
@@ -56,8 +59,8 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # run any other commands that do not need the database
 # such as:
 RUN python manage.py vendor_pull    
-RUN python manage.py collectstatic --noinput    
-RUN npm run build    
+RUN python manage.py collectstatic --noinput  
+RUN npm run build  
 # whitenoise -> s3
 
 
