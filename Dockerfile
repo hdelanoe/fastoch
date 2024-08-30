@@ -1,7 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.12-slim-bullseye
-FROM python:${PYTHON_VERSION}
+FROM python3.12-nodejs22-slim
 
 # Create a virtual environment
 RUN python -m venv /opt/venv
@@ -54,6 +53,7 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # such as:
 RUN python manage.py vendor_pull    
 RUN python manage.py collectstatic --noinput    
+RUN npm run build    
 # whitenoise -> s3
 
 
