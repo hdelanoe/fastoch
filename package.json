@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "watch": "tailwindcss -i src/staticfiles/tw/tailwind-input.css -o src/staticfiles/vendors/tailwind-out.css --watch",
-    "build": "tailwindcss -i src/staticfiles/tw/tailwind-input.css -o src/staticfiles/theme/sutoko.min.css --build --minify"
+    "watch": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/vendors/tailwind-out.css --watch",
+    "build": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/theme/sutoko.min.css --build --minify"
   },
   "devDependencies": {
     "flowbite": "^2.5.1",
