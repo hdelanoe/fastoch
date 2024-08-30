@@ -71,6 +71,7 @@ RUN python manage.py collectstatic --noinput
 COPY ./package.json /code
 COPY ./staticfiles /code
 RUN npm install -D tailwindcss  
+RUN echo $(ls -l)
 RUN npm run build  
 # whitenoise -> s3
 
