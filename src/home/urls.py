@@ -17,9 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from auth import views as auth_views
 from subscriptions import views as subscriptions_views
 from checkouts import views as checkout_views
+from dashboard import views as dashboard_views
 from .views import home_view
 
 urlpatterns = [

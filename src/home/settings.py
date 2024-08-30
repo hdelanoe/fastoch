@@ -70,8 +70,9 @@ INSTALLED_APPS = [
     'profiles',
     'customers',
     'subscriptions',
-    'visits',
     'commando',
+    'checkouts',
+    'dashboard',
 ]
 
 MIDDLEWARE = [

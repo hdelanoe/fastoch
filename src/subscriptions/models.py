@@ -166,7 +166,7 @@ class UserSubscriptionQuerySet(models.QuerySet):
         days_start_from_now = now + datetime.timedelta(days=days_start)
         days_end_from_now = now + datetime.timedelta(days=days_end)
         range_start = days_start_from_now.replace(hour=0, minute=0, second=0, microsecond=0)
-        range_end = days_end_from_now.replace(hour=23, minute=59, second=59, microsecond=59)
+        range_end = days_end_from_now.replace(hour=23, minute=59, second=59, microsecond=99)
         if verbose:
             print(f"Range is {range_start} to {range_end}")
         return self.filter(
