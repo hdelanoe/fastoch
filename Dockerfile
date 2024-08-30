@@ -46,14 +46,17 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
-ENV NODE_VERSION 20
+ENV NODE_VERSION 20.17.0
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
 RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
 RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
 RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
-ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
-
+ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+# verifies the right Node.js version is in the environment
+RUN node -v # should print `v20.17.0`
+# verifies the right npm version is in the environment
+RUN npm -v # should print `10.8.2
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
