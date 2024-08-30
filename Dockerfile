@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     # for CairoSVG
     libcairo2 \
     # for npm
-    curl gnupg \ 
+    curl gnupg unzip\ 
     # other
     gcc \
     && rm -rf /var/lib/apt/lists/*
