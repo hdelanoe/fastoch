@@ -67,7 +67,9 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 RUN python manage.py vendor_pull    
 RUN python manage.py collectstatic --noinput
 
-COPY ./package.json /code  
+# build css theme
+COPY ./package.json /code
+RUN npm install -D tailwindcss  
 RUN npm run build  
 # whitenoise -> s3
 
