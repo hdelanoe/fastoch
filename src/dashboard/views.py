@@ -3,4 +3,4 @@ from django.shortcuts import render
 
 @login_required
 def dashboard_view(request):
-    return render(request, "dashboard/main.html", {})
+    return render(request, "dashboard/dashboard.html", {})
