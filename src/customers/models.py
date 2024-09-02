@@ -1,5 +1,5 @@
 import helpers.billing
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from allauth.account.signals import (
@@ -7,7 +7,7 @@ from allauth.account.signals import (
     email_confirmed as allauth_email_confirmed
 )
 
-User = settings.AUTH_USER_MODEL # "auth.user"
+User = get_user_model()
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -28,7 +28,15 @@ class Customer(models.Model):
                         "username": self.user.username
                     }, raw=False)
                     self.stripe_id = stripe_id
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs)    
+
+    def get_customer_by_user_email(email_address):
+        qs = Customer.objects.get(
+            user=get_user_model().objects.get(
+            email=email_address
+            )
+        )
+        return qs    
 
 
 def allauth_user_signed_up_handler(request, user, *args, **kwargs):

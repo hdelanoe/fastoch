@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'commando',
     'checkouts',
     'dashboard',
+    'inventory',
 ]
 
 MIDDLEWARE = [

@@ -113,7 +113,7 @@ class SubscriptionPrice(models.Model):
     
     @property
     def stripe_currency(self):
-        return "usd"
+        return "eur"
     
     @property
     def stripe_price(self):
