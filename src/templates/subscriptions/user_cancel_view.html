@@ -4,7 +4,7 @@
 {% block head_title %}Your Subscription - {{ block.super }}{% endblock head_title %}
 
 
-{% block content %}
+{% block body %}
 
 {% if subscription.is_active_status  %}
 <h1 class="text-lg font-medium">Are you sure you want to cancel {{ subscription.plan_name }}?</h1>
@@ -19,4 +19,4 @@
 
 <h1 class="text-lg font-medium">Your membership is not longer active</h1>
 {% endif %}
-{% endblock content %}
+{% endblock body %}

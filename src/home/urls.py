@@ -19,11 +19,11 @@ from django.urls import path, include
 
 from subscriptions import views as subscriptions_views
 from checkouts import views as checkout_views
-from dashboard import views as dashboard_views
 from .views import home_view
 
 urlpatterns = [
     path('', home_view, name='home'),
+    path('dashboard/', include('dashboard.urls')),
 
     path('accounts/', include('allauth.urls')),
     path('accounts/billing', subscriptions_views.user_subscription_view, name='user_subscription'),
@@ -36,8 +36,6 @@ urlpatterns = [
     path("checkout/start/", checkout_views.checkout_redirect_view, name='stripe-checkout-start'),
     path("checkout/success/", checkout_views.checkout_finalize_view, name='stripe-checkout-end'),
 
-    path('hello-world/', home_view),
-   
     path('profiles/', include('profiles.urls')),
     
     path('admin/', admin.site.urls),

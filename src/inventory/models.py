@@ -18,6 +18,7 @@ class Product(models.Model):
 class Inventory(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
+    name = models.CharField(max_length=100, default="My Inventory")
 
 class StockEntry(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
