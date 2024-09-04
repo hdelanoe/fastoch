@@ -9,7 +9,6 @@
     {% include 'dashboard/sidebar.html' %}
     
     <main class="p-4 h-auto md:ml-64 pt-20">
-        <div id="drawer-main">
           <div class="h-screen mb-4"> 
             {% block content %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -30,8 +29,6 @@
 
                     </div>
                     {% endfor %}
-                {% include 'modal/new_inventory_modal.html '%}
-                  
                     <div
                         class="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-32 md:h-64"
                     ></div>
@@ -42,10 +39,10 @@
                         class="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-32 md:h-64"
                     ></div>
                 </div>
+            {% include 'modal/new_inventory_modal.html' %}
             {% endblock content %} 
           </div>
         </div>
     </main>
 </div>
-
 {% endblock body %}

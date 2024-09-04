@@ -10,13 +10,15 @@ from inventory.models import Inventory
 @login_required
 def inventory_view(request, name=None, *args, **kwargs):
     customer = Customer.get_customer_by_user_email(request.user.email)
-    inventory_obj = Inventory.objects.get(customer=customer)[0]
+    inventory_obj = Inventory.objects.get(customer=customer)
     context = {
         "entry_list": inventory_obj.products.all(),
+        "inventory_list": [inventory_obj],
     }
     return render(request, "inventory/inventory.html", context) 
 
-def upload(request):
+@login_required
+def upload_file(request):
     if request.method == 'POST':
         uploaded_file = request.FILES['document']
         fs = FileSystemStorage()
