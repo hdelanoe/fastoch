@@ -3,6 +3,7 @@ from customers.models import Customer
 
 
 class Product(models.Model):
+    attributes = models.CharField(blank=True, null=True)
     quantity = models.IntegerField(default=0)
     lot_id = models.CharField(max_length=10, default="L000000000")
     name = models.CharField(max_length=100, blank=True, null=True)
@@ -19,6 +20,7 @@ class Inventory(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
     name = models.CharField(max_length=100, default="My Inventory")
+    attributes = models.CharField(blank=True, null=True)
 
 class StockEntry(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

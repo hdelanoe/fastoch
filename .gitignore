@@ -2,6 +2,7 @@ staticfiles/theme/
 staticfiles/vendors/
 local-cdn/
 node_modules/
+media/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
