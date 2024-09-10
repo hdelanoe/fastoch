@@ -25,7 +25,6 @@ def dashboard_view(request):
 def create_inventory(request):
     if request.method=='POST':
         form = NameForm(request.POST)
-        print(form.data)
         try:
             customer = Customer.get_customer_by_user_email(request.user.email)
             Inventory.objects.create(customer=customer, name=form.data['name'])
