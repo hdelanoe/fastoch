@@ -1,6 +1,21 @@
 from django.db import models
 from customers.models import Customer
 
+
+Pronatura_dictionary = {
+    "name": "Nom",
+    "quantity": "Nb Colis / Pièce",
+    "lot_id": "N° lot",
+    "description": "Désignation",
+    "weight": "Poids net / brut",
+    "price": "Prix",
+    "discount": "% remise",
+    "net_price": "Prix Net",
+    "unit": "U",
+    "tva": "% TVA",
+    "net": "Montant net H.T.",
+}
+
 class InventoryDataType(models.Model):
     class DataTypeChoices(models.TextChoices):
         QUANTITY = "quantity", "Quantity"
@@ -40,7 +55,22 @@ class Product(models.Model):
     extra_field_2 = models.CharField(max_length=100, blank=True, null=True)
     
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.price}'
+    
+    def to_dict(self):
+        return {
+            Pronatura_dictionary.get('quantity'): self.quantity,
+            Pronatura_dictionary.get('lot_id'): self.lot_id,
+            Pronatura_dictionary.get('name'): self.name,
+            Pronatura_dictionary.get('description'): self.description,
+            Pronatura_dictionary.get('weight'): self.weight,
+            Pronatura_dictionary.get('price'): self.price,
+            Pronatura_dictionary.get('discount'): self.discount,
+            Pronatura_dictionary.get('net_price'): self.net_price,
+            Pronatura_dictionary.get('unit'): self.unit,
+            Pronatura_dictionary.get('tva'): self.tva,
+            Pronatura_dictionary.get('net'): self.net,
+        }
 
 class StockEntry(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

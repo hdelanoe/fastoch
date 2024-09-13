@@ -1,3 +1,6 @@
+import os
+from django.conf import settings
+from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas
 import camelot
@@ -11,21 +14,8 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from customers.models import Customer
-from inventory.models import Inventory, Product, StockEntry
+from inventory.models import Inventory, Product, StockEntry, Pronatura_dictionary
 
-
-Pronatura_dictionary = {
-    "quantity": "Nb Colis / Pièce",
-    "lot_id": "N° lot",
-    "description": "Désignation",
-    "weight": "Poids net / brut",
-    "price": "Prix",
-    "discount": "% remise",
-    "net_price": "Prix Net",
-    "unit": "U",
-    "tva": "% TVA",
-    "net": "Montant net H.T.",
-}
 
 @login_required
 def inventory_view(request, id=None, data_types=None, *args, **kwargs):
@@ -72,8 +62,6 @@ def upload_file(request, id=None, *args, **kwargs):
                 try:
                     inventory_obj = Inventory.objects.get(id=id)
                     inventory_obj.dtypes_array = pcstr[1:]
-                    tmp_product_list = []
-                    tmp_entry_list = []
                     for values in data_df.iloc:
                         product = Product.objects.create(
                             lot_id=values[Pronatura_dictionary.get('lot_id')],
@@ -96,16 +84,14 @@ def upload_file(request, id=None, *args, **kwargs):
                         try: product.net = float(values[Pronatura_dictionary.get('net')].replace(',', '.'))
                         except: None
 
-                        tmp_product_list.append(product)
+                        product.save()
                         entry = StockEntry.objects.create(
                             product=product,
                             quantity=product.quantity
                         )
-                        tmp_entry_list.append(entry)
-                    for e in tmp_entry_list:
-                        inventory_obj.entry_list.add(e)
-                    for p in tmp_product_list:
-                        inventory_obj.products.add(p)  
+                        entry.save()
+                        inventory_obj.products.add(product)
+                        inventory_obj.entry_list.add(entry)
                     inventory_obj.save()
 
                     messages.success(request, "Your inventory has been updated.")
@@ -117,6 +103,22 @@ def upload_file(request, id=None, *args, **kwargs):
         except Exception as e:
             messages.error(request, f"Error while upload file. {e}")    
     return redirect(reverse("inventory", args=[id]))
+
+@login_required
+def export_file(request, id=None, data_types=None, *args, **kwargs):
+    inventory_obj = Inventory.objects.get(id=id)
+    columns = inventory_obj.get_dtypes_as_list()
+    columns.insert(0, Pronatura_dictionary.get('name'))
+    df = pandas.DataFrame([p.to_dict() for p in inventory_obj.products.all()], columns = columns)
+    file_path = f'{settings.MEDIA_ROOT}/{inventory_obj.name}.xlsx'
+    df.to_excel(file_path)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
+
 
 def get_inventory_with_email(email):
     customer = Customer.get_customer_by_user_email(email)
