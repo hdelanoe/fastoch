@@ -13,3 +13,6 @@ stripe
 camelot-py[base]
 setuptools
 opencv-python
+ffmpeg
+libsm6
+libxext6
