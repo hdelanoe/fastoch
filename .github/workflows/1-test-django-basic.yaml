@@ -29,6 +29,10 @@ jobs:
       - name: Install Neon CLI
         run: |
           npm install -g neonctl
+       - name: Delete previous branch
+        continue-on-error: true
+        run: |
+          neonctl branches delete "${{ env.NEON_GITHUB_BRANCH }}" --project-id "${{ env.NEON_PROJECT_ID }}"
       - name: Create new Github Actions branch
         run: |
           neonctl branches create --name "${{ env.NEON_GITHUB_BRANCH }}" --parent "${{ env.NEON_PROD_BRANCH }}" --project-id "${{ env.NEON_PROJECT_ID }}"
