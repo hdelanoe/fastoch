@@ -11,4 +11,5 @@ django-widget-tweaks
 slippers
 stripe
 camelot-py[base]
-opencv-python-headless==4.5.3.56
+setuptools
+opencv-python
