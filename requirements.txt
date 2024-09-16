@@ -12,6 +12,4 @@ slippers
 stripe
 camelot-py[base]
 setuptools
-opencv-python
-ffmpeg
-libgl1
+opencv-python-headless
