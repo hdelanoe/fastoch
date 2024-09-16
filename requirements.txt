@@ -11,4 +11,4 @@ django-widget-tweaks
 slippers
 stripe
 camelot-py[base]
-setuptools
+opencv-python
