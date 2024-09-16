@@ -23,7 +23,7 @@ class InventoryDataType(models.Model):
         WEIGHT = "weight", "Weight"
         PRICE = "price", "Price"
     
-    data_type = models.CharField(choices=DataTypeChoices)
+    data_type = models.CharField(max_length=20, choices=DataTypeChoices)
 
 class Product(models.Model):
      
@@ -49,7 +49,7 @@ class Product(models.Model):
     tva = models.FloatField(blank=True, null=True)
     net = models.FloatField(blank=True, null=True)
 
-    incremental_option = models.CharField(choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
+    incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
     
     extra_field_1 = models.CharField(max_length=100, blank=True, null=True)
     extra_field_2 = models.CharField(max_length=100, blank=True, null=True)
