@@ -64,10 +64,8 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # build css theme
 COPY ./package.json /code
 COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
-# No build test
-#RUN npm install -D tailwindcss  
-#RUN echo $(ls -ls ./staticfiles)
-#RUN npm run build  
+RUN npm install -D tailwindcss
+RUN npm run build  
 
 # database isn't available during build
 # run any other commands that do not need the database
@@ -89,7 +87,6 @@ RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
-EXPOSE 8000
 
 # make the bash script executable
 RUN chmod +x paracord_runner.sh
