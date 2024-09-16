@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from decouple import config
 
@@ -196,11 +197,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = BASE_DIR.parent / "staticfiles"
-STATICFILES_BASE_DIR = BASE_DIR.parent / "staticfiles"
+STATIC_URL = os.path.join(BASE_DIR.parent, "staticfiles")
+STATICFILES_BASE_DIR = os.path.join(BASE_DIR.parent, "staticfiles")
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
-STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
+STATICFILES_VENDOR_DIR = os.path.join(STATICFILES_BASE_DIR, "vendors")
 
 # source(s) for python manage.py collectstatic
 STATICFILES_DIRS = [
