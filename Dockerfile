@@ -63,7 +63,7 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 # build css theme
 COPY ./package.json /code
-COPY ./staticfiles/tw/tailwind-input.css /staticfiles/tw
+COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
 RUN npm install -D tailwindcss
 RUN npm run build  
 
