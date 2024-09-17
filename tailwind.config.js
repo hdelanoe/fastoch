@@ -2,8 +2,9 @@
 const colors = require('tailwindcss/colors')
 
 module.exports = {
+  important: true,
   content: [
-    "./src/templates/**/*.{html,js}",
+    "./templates/**/*.{html,js}",
     "./node_modules/flowbite/**/*.js"
   ],
   darkMode: 'class',

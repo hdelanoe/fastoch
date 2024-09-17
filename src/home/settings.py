@@ -159,6 +159,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED=True
 ACCOUNT_EMAIL_VERIFICATION='mandatory'
 LOGIN_REDIRECT_URL='/'
+
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
@@ -197,18 +198,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_BASE_DIR = BASE_DIR.parent / "staticfiles"
+STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
-# source(s) for python manage.py collectstatic
+# source(s) for python manage.py collectstatic 
 STATICFILES_DIRS = [
     STATICFILES_BASE_DIR
 ]
 
-# output for python manage.py collectstatic
+# output for python manage.py collectstatic 
 # local cdn
-STATIC_ROOT = BASE_DIR.parent / "local-cdn"
+STATIC_ROOT = BASE_DIR / "local-cdn"
+
+
 #if not DEBUG:
 #    STATIC_ROOT = BASE_DIR / 'prod-cdn'
 MEDIA_URL = '/media/'
@@ -230,8 +233,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Security settings
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = 'Strict'
-CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
+
+CSRF_TRUSTED_ORIGINS = ['https://sutoko-production.up.railway.app',]
+
 # For production, set these lines to True
 # CSRF_COOKIE_HTTPONLY = True
 # SESSION_COOKIE_HTTPONLY = True

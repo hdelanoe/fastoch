@@ -1,5 +1,5 @@
-staticfiles/theme/
-staticfiles/vendors/
+src/staticfiles/theme
+src/staticfiles/vendors/
 local-cdn/
 node_modules/
 media/
