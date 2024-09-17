@@ -65,13 +65,9 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 # build css theme
 COPY ./package.json /code
-COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
-COPY ./staticfiles/favicon.png /code/staticfiles/favicon.png
 COPY ./tailwind.config.js /code
 RUN npm install -D tailwindcss
 RUN npm run build  
-
-COPY ./staticfiles/theme/sutoko.min.css /code/staticfiles/theme
 
 # database isn't available during build
 # run any other commands that do not need the database

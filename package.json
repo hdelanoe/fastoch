@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "watch": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/vendors/tailwind-out.css --watch",
+    "watch": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/tw/tailwind-out.css --watch",
     "build": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/theme/sutoko.min.css --build --minify"
   },
   "devDependencies": {
