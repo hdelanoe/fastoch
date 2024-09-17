@@ -67,12 +67,13 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # database isn't available during build
 # run any other commands that do not need the database
 # such as:
-    RUN python manage.py vendor_pull    
-    RUN python manage.py collectstatic --noinput
+RUN python manage.py vendor_pull    
+RUN python manage.py collectstatic --noinput
 
 # build css theme
 COPY ./package.json /code
 COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
+COPY ./staticfiles/favicon.png /code/staticfiles/favicon.png
 COPY ./tailwind.config.js /code
 RUN npm install -D tailwindcss
 RUN npm run build  
