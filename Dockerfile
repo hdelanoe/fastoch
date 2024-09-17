@@ -62,11 +62,11 @@ ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 # build css theme
-COPY ./package.json /code
-COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
-COPY ./tailwind.config.js /code
-RUN npm install -D tailwindcss
-RUN npm run build  
+#COPY ./package.json /code
+#COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
+#COPY ./tailwind.config.js /code
+#RUN npm install -D tailwindcss
+#RUN npm run build  
 
 # database isn't available during build
 # run any other commands that do not need the database
