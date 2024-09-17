@@ -13,8 +13,8 @@ ENV PATH=/opt/venv/bin:$PATH
 RUN pip install --upgrade pip
 
 # Set Python-related environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install os dependencies for our mini vm
 RUN apt-get update && apt-get install -y \
@@ -47,7 +47,7 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
-ENV NODE_VERSION 20.17.0
+ENV NODE_VERSION=20.17.0
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
 RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
@@ -63,13 +63,6 @@ ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 
-
-# database isn't available during build
-# run any other commands that do not need the database
-# such as:
-RUN python manage.py vendor_pull    
-RUN python manage.py collectstatic --noinput
-
 # build css theme
 COPY ./package.json /code
 COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
@@ -80,7 +73,11 @@ RUN npm run build
 
 COPY ./staticfiles/theme/sutoko.min.css /code/staticfiles/theme
 
-
+# database isn't available during build
+# run any other commands that do not need the database
+# such as:
+    RUN python manage.py vendor_pull    
+    RUN python manage.py collectstatic --noinput
 
 # whitenoise -> s3
 
@@ -108,4 +105,4 @@ RUN apt-get remove --purge -y \
 
 # Run the Django project via the runtime script
 # when the container starts
-CMD ./paracord_runner.sh
+CMD "./paracord_runner.sh"
