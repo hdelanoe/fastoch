@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
+RUN mkdir -p /code/staticfiles/theme/
 RUN mkdir -p /code/staticfiles/tw/
 
 # Set the working directory to that same code directory
@@ -62,11 +63,10 @@ ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 
-# copy staticfiles dir
-ADD ./staticfiles /code/staticfiles
 
 # build css theme
 COPY ./package.json /code
+COPY ./staticfiles/theme/sutoko.min.css /code/staticfiles/theme
 COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
 COPY ./tailwind.config.js /code
 RUN npm install -D tailwindcss
