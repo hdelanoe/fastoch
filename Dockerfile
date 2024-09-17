@@ -61,6 +61,10 @@ ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
+
+# copy staticfiles dir
+ADD ./staticfiles /code/staticfiles
+
 # build css theme
 #COPY ./package.json /code
 #COPY ./staticfiles/tw/tailwind-input.css /code/staticfiles/tw
