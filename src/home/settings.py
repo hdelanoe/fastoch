@@ -204,12 +204,13 @@ STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
 # source(s) for python manage.py collectstatic
 STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR
+    STATICFILES_BASE_DIR,
+    BASE_DIR / "templates"
 ]
 
 # output for python manage.py collectstatic
 # local cdn
-STATIC_ROOT = BASE_DIR.parent / "local-cdn"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 #if not DEBUG:
 #    STATIC_ROOT = BASE_DIR / 'prod-cdn'
 MEDIA_URL = '/media/'
