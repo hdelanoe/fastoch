@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-import os
 from pathlib import Path
 from decouple import config
 
@@ -232,10 +231,10 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Security settings
-#CSRF_COOKIE_SAMESITE = 'Strict'
-#SESSION_COOKIE_SAMESITE = 'Strict'
-#CSRF_COOKIE_HTTPONLY = True
-#SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
 
 CSRF_TRUSTED_ORIGINS = ['https://sutoko-production.up.railway.app',]
 
