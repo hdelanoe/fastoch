@@ -13,3 +13,4 @@ stripe
 camelot-py[base]
 setuptools
 opencv-python-headless
+PyPDF2<3.0
