@@ -15,6 +15,7 @@ from django.contrib import messages
 
 from customers.models import Customer
 from inventory.models import Inventory, Product, StockEntry, Pronatura_dictionary
+from inventory.parsers import Column_Parser
 
 
 @login_required
@@ -38,13 +39,16 @@ def upload_file(request, id=None, *args, **kwargs):
             filename = fs.save(uploaded_file.name, uploaded_file)
             try:
                 file_path = fs.path(filename)
-                tables = camelot.read_pdf(file_path, pages='all')
+                tables = camelot.read_pdf(file_path, pages='all', flavor='stream')
                 df_list = []
                 for table in tables: 
                     df_list.append(table.df)
                 
                 # concatenate df
                 df = pandas.concat(df_list)
+                print(df)
+
+
                 df.dropna(axis=1, inplace=True)
                 # get columns
                 parse_columns = numpy.strings.replace(numpy.array(df.iloc[0], dtype=StringDType()), '\n', '')
@@ -62,13 +66,15 @@ def upload_file(request, id=None, *args, **kwargs):
                 try:
                     inventory_obj = Inventory.objects.get(id=id)
                     inventory_obj.dtypes_array = pcstr[1:]
+                    parser = Column_Parser()
                     for values in data_df.iloc:
-                        product = Product.objects.create(
-                            lot_id=values[Pronatura_dictionary.get('lot_id')],
-                            description=values[Pronatura_dictionary.get('description')],
-                            unit=values[Pronatura_dictionary.get('unit')],
-                            name = values[Pronatura_dictionary.get('description')][:20]
-                        )
+                        product = Product.objects.create()
+                        for d in parser.description:
+                            if (values[d]):
+                                product.description=values[d]
+
+                        unit=values[Pronatura_dictionary.get('unit')],
+                        name = values[Pronatura_dictionary.get('description')][:20]
                         try: product.quantity = int(values[Pronatura_dictionary.get('quantity')])
                         except: None
                         try: product.weight = float(re.split('\n', values[Pronatura_dictionary.get('weight')].replace(',', '.'))[0])
