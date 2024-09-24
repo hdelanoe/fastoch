@@ -7,23 +7,27 @@ import camelot
 import numpy
 import re
 from numpy.dtypes import StringDType
-from django.core.files.storage import FileSystemStorage
 
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
+from helpers import mistral
+from .forms import QuestionForm
 from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
 
 
 @login_required
-def inventory_view(request, id=None, *args, **kwargs):
+def inventory_view(request, id=None, response=0, *args, **kwargs):
     inventory_obj = Inventory.objects.get(id=id)
     inventory_list = Inventory.objects.all()
     context = {
         "inventory": inventory_obj,
         "inventory_list": inventory_list,
         "columns": Kesia2_column_names.values(),
+        "response": response,
+
         
     }
     return render(request, "inventory/inventory.html", context) 
@@ -117,3 +121,26 @@ def export_file(request, id=None, data_types=None, *args, **kwargs):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
+
+@login_required
+def ask_question(request, id=None, *args, **kwargs):
+    inventory_obj = Inventory.objects.get(id=id)
+    if request.method == 'POST':
+        api = mistral.__init__()
+        print(api.model)
+        form = QuestionForm(request.POST)
+        print(form.data['question'])
+        chat_response = api.client.chat.complete(
+            model= api.model,
+            messages = [
+                {
+                    "role": "user",
+                    "content": f'{form.data['question']}, {inventory_obj.__str__()}',
+                },
+            ]
+        )
+        print(chat_response.choices[0].message.content)
+        inventory_obj.last_response = chat_response.choices[0].message.content
+        inventory_obj.save()
+    print(inventory_obj.last_response)    
+    return redirect(reverse("inventory", args=[id, 1]))

@@ -25,6 +25,8 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('dashboard/', include('dashboard.urls')),
 
+    path('accounts/', include('allauth.urls')),
+    
     path('admin/', admin.site.urls),
 ]
 

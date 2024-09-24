@@ -60,3 +60,7 @@ class Inventory(models.Model):
     name = models.CharField(max_length=100, default="My Inventory")
     products = models.ManyToManyField(Product)
     transaction_list = models.ManyToManyField(StockTransaction)
+    last_response =  models.TextField(default="Comment puis-je vous aider ?")
+
+    def __str__(self):
+        return f'name:{self.name}, products:{self.products.all()}'
