@@ -7,11 +7,14 @@
 
     </head>
     <body>
-        {% include 'header.html' %}
         {% include 'base/messages.html' with messages=messages %}
-        {% block body %}
-        {% endblock body %}
-        {% include 'footer.html' %}
+        <div class="flex flex-col h-screen">
+            {% include 'header.html' %}
+            {% block body %}
+            {% endblock body %}
+            {% include 'footer.html' %}
+        </div>
+       
         {% include 'base/js.html' %}
     </body>
 </html>
