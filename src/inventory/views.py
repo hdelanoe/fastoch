@@ -14,18 +14,18 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from customers.models import Customer
-from inventory.models import Inventory, Product, StockEntry, Pronatura_dictionary
+from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
 
 
 @login_required
-def inventory_view(request, id=None, data_types=None, *args, **kwargs):
-    inventory_obj = get_inventory_with_email(request.user.email)
-    context = {
-        "products": inventory_obj.products.all(),
-        "inventory_list": [inventory_obj],
-        "inventory_name": inventory_obj.name,
-        "id": inventory_obj.id,
-        "data_types":inventory_obj.get_dtypes_as_list(),
+def inventory_view(request, id=None, *args, **kwargs):
+    inventory_obj = Inventory.objects.get(id=id)
+    inventory_list = Inventory.objects.all()
+    context = {#
+        "inventory": inventory_obj,
+        "inventory_list": inventory_list,
+        "columns": Kesia2_column_names.values(),
+        
     }
     return render(request, "inventory/inventory.html", context) 
 
@@ -64,34 +64,34 @@ def upload_file(request, id=None, *args, **kwargs):
                     inventory_obj.dtypes_array = pcstr[1:]
                     for values in data_df.iloc:
                         product = Product.objects.create(
-                            lot_id=values[Pronatura_dictionary.get('lot_id')],
-                            description=values[Pronatura_dictionary.get('description')],
-                            unit=values[Pronatura_dictionary.get('unit')],
-                            name = values[Pronatura_dictionary.get('description')][:20]
+                            lot_id=values[Kesia2_column_names.get('lot_id')],
+                            description=values[Kesia2_column_names.get('description')],
+                            unit=values[Kesia2_column_names.get('unit')],
+                            name = values[Kesia2_column_names.get('description')][:20]
                         )
-                        try: product.quantity = int(values[Pronatura_dictionary.get('quantity')])
+                        try: product.quantity = int(values[Kesia2_column_names.get('quantity')])
                         except: None
-                        try: product.weight = float(re.split('\n', values[Pronatura_dictionary.get('weight')].replace(',', '.'))[0])
+                        try: product.weight = float(re.split('\n', values[Kesia2_column_names.get('weight')].replace(',', '.'))[0])
                         except: None  
-                        try: product.price = float(values[Pronatura_dictionary.get('price')].replace(',', '.'))
+                        try: product.price = float(values[Kesia2_column_names.get('price')].replace(',', '.'))
                         except: None
-                        try: product.discount = float(values[Pronatura_dictionary.get('discount')].replace(',', '.'))
+                        try: product.discount = float(values[Kesia2_column_names.get('discount')].replace(',', '.'))
                         except: None  
-                        try: product.net_price = float(values[Pronatura_dictionary.get('net_price')].replace(',', '.'))
+                        try: product.net_price = float(values[Kesia2_column_names.get('net_price')].replace(',', '.'))
                         except: None
-                        try: product.tva = float(values[Pronatura_dictionary.get('tva')].replace(',', '.'))
+                        try: product.tva = float(values[Kesia2_column_names.get('tva')].replace(',', '.'))
                         except: None
-                        try: product.net = float(values[Pronatura_dictionary.get('net')].replace(',', '.'))
+                        try: product.net = float(values[Kesia2_column_names.get('net')].replace(',', '.'))
                         except: None
 
                         product.save()
-                        entry = StockEntry.objects.create(
+                        transaction = StockTransaction.objects.create(
                             product=product,
                             quantity=product.quantity
                         )
-                        entry.save()
+                        transaction.save()
                         inventory_obj.products.add(product)
-                        inventory_obj.entry_list.add(entry)
+                        inventory_obj.transaction_list.add(transaction)
                     inventory_obj.save()
 
                     messages.success(request, "Your inventory has been updated.")
@@ -108,7 +108,7 @@ def upload_file(request, id=None, *args, **kwargs):
 def export_file(request, id=None, data_types=None, *args, **kwargs):
     inventory_obj = Inventory.objects.get(id=id)
     columns = inventory_obj.get_dtypes_as_list()
-    columns.insert(0, Pronatura_dictionary.get('name'))
+    columns.insert(0, Kesia2_column_names.get('name'))
     df = pandas.DataFrame([p.to_dict() for p in inventory_obj.products.all()], columns = columns)
     file_path = f'{settings.MEDIA_ROOT}/{inventory_obj.name}.xlsx'
     df.to_excel(file_path)

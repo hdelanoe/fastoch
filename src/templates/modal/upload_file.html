@@ -13,7 +13,7 @@
 </button>
 {% endblock close_button %}
 {% block body %}
-<form action="{% url 'upload_file' id=id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="{% url 'upload_file' id=inventory.id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
     <div class="space-y-4 ">
         <div>
         <!---    <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label> --->
