@@ -8,4 +8,4 @@ Stack :
     - Flowbite
     -TailwindCSS
     - Docker
-    - Stripe
+    - MistralAI

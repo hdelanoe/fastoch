@@ -62,16 +62,10 @@ INSTALLED_APPS = [
     'allauth_ui',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    #'allauth.socialaccount.providers.google',
     "widget_tweaks",
     "slippers",
     # my apps
-    'profiles',
-    'customers',
-    'subscriptions',
     'commando',
-    'checkouts',
     'dashboard',
     'inventory',
 ]
@@ -167,19 +161,6 @@ AUTHENTICATION_BACKENDS = [
     # `allauth` specific authentication methods, such as login by email
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
-        'APP': {
-            'client_id': '123',
-            'secret': '456',
-            'key': ''
-        }
-    }
-}
 
 
 # Internationalization

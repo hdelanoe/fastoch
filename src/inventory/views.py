@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from customers.models import Customer
 from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
 
 
@@ -21,7 +20,7 @@ from inventory.models import Inventory, Product, StockTransaction, Kesia2_column
 def inventory_view(request, id=None, *args, **kwargs):
     inventory_obj = Inventory.objects.get(id=id)
     inventory_list = Inventory.objects.all()
-    context = {#
+    context = {
         "inventory": inventory_obj,
         "inventory_list": inventory_list,
         "columns": Kesia2_column_names.values(),
@@ -118,8 +117,3 @@ def export_file(request, id=None, data_types=None, *args, **kwargs):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
-
-
-def get_inventory_with_email(email):
-    customer = Customer.get_customer_by_user_email(email)
-    return Inventory.objects.get(customer=customer)
