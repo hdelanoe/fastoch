@@ -5,7 +5,10 @@ psycopg[binary]
 dj-database-url
 requests
 whitenoise # -> upgrade to django-storages
+django-allauth
 django-allauth-ui
 django-widget-tweaks
 slippers
+pandas
 mistralai
+pdf2image

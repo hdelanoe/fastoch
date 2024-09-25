@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     # other
     gcc \
+    poppler-utils \ 
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
