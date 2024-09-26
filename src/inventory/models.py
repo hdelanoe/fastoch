@@ -22,9 +22,9 @@ class Product(models.Model):
         PIECE = "PIECE", "Piece"
         KG = "KG", "Kg"  
 
-    fournisseur = models.TextField(blank=True, null=True)
-    ean = models.CharField(max_length=13, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
+    fournisseur = models.TextField(max_length=50, blank=True, null=True)
+    ean = models.BigIntegerField(blank=True, null=True)
+    description = models.CharField(max_length=50, blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
     achat_brut = models.FloatField(blank=True, null=True)
     achat_net = models.FloatField(blank=True, null=True)
@@ -36,7 +36,7 @@ class Product(models.Model):
     incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
     
     def __str__(self):
-        return f'{self.description} {self.quantity}'
+        return f'{self.fournisseur} {self.ean} {self.description} {self.quantity}'
 
 class StockTransaction(models.Model):
 

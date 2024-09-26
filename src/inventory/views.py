@@ -11,7 +11,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Mistral_API, format_content_from_image_path
-from .forms import QuestionForm
+from .forms import FileForm, QuestionForm, ProductForm
 from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
 
 
@@ -50,9 +50,12 @@ def upload_pdf(request, id=None, *args, **kwargs):
                 try:
                     json_data = api.extract_json_from_image(image_content)
                     for jd in json_data:
+                        ean = str(jd.get('ean')).replace(' ', '')
+                        if not ean.isdigit():
+                            ean = None
                         product = Product.objects.create(
                             fournisseur=jd.get('fournisseur'),
-                            ean=jd.get('ean'),
+                            ean=ean,
                             description=jd.get('description'),
                             quantity=jd.get('quantity'),
                             achat_brut=jd.get('achat_brut'),
@@ -69,17 +72,17 @@ def upload_pdf(request, id=None, *args, **kwargs):
                         inventory.transaction_list.add(transaction)
                     inventory.save()
                     messages.success(request, "Your inventory has been updated.")
-                finally:
-                    for count, page in enumerate(pages):
-                        jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                        fs.delete(jpg_path)
+                except Exception as e:
+                    messages.error(request, f'error while extracting {e}')
+                for count, page in enumerate(pages):
+                    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                    fs.delete(jpg_path)
 
-            finally:
-                None
+            except Exception as e:
+                messages.error(request, f'error while parsing {e}')
             fs.delete(pdf_path)
-        finally:
-            None
-        # messages.error(request, f"Error while upload file. {e}")    
+        except Exception as e:
+            messages.error(request, f'error while saving {e}')
     return redirect(reverse("inventory", args=[id, 0]))
 
 @login_required
@@ -97,12 +100,21 @@ def export_file(request, id=None, data_types=None, *args, **kwargs):
     raise Http404
 
 @login_required
+def update_product(request, inventory=None, product=None, *args, **kwargs):
+    if request.method == 'POST':
+        product_obj = Product.objects.get(id=product)
+        form = ProductForm(request.POST)
+        product_obj.description = form.data['description']
+        product_obj.save()
+    return redirect(reverse("inventory", args=[id, 1]))    
+
+@login_required
 def ask_question(request, id=None, *args, **kwargs):
     inventory_obj = Inventory.objects.get(id=id)
     if request.method == 'POST':
         api = Mistral_API()
         form = QuestionForm(request.POST)
-        inventory_obj.last_response = api.chat(form.data['question'])
+        inventory_obj.last_response = api.chat(form.data['question'], inventory_obj.products.all())
         inventory_obj.save()
     print(inventory_obj.last_response)    
     return redirect(reverse("inventory", args=[id, 1]))
