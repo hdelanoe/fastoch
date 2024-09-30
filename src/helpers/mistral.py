@@ -3,6 +3,40 @@ import json
 from decouple import config
 from mistralai import Mistral
 
+class Codestral_Mamba():
+    
+    mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
+    model = "open-mistral-nemo"
+    client = Mistral(api_key=mistral_api_key)
+
+    def chat(self, message, products):
+        print(products)
+        content=[
+            {message},
+            {str(products)}
+        ]
+        chat_response = self.client.chat.complete(
+            model= self.model,
+            messages = [
+                {
+                    "role": "system",
+                    "content": '''
+                                Le message de l'utilisateur sera toujours accompagné par un DataFrame pandas.
+                                Ce Dataframe correspond a une liste de produits dans un inventaire.
+                                N'oublie pas que le DataFrame commence avec l'index 0.
+                                Extrais-en les éléments demandées par l'utilisateur puis repond uniquement avec la réponse et quelques détails.
+                                
+                                ''',
+                },
+                {
+                    "role": "user",
+                    "content": f'{content}',
+                },
+              
+            ]
+        )
+        return chat_response.choices[0].message.content
+
 class Mistral_API():
 
     mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
@@ -47,13 +81,12 @@ class Mistral_API():
                         Voici un bon de livraison. Il contient un tableau qui décrit tout les produits livrés.
                         Je veux que tu extrais les données et que tu construises une liste de produits, avec les données ci-dessous :
                     
-                        fournisseur - le nom du fournisseur
-                        ean - le code EAN du produit, le cas échéant. Il consiste en une suite de 13 chiffres sans espaces.
+                        fournisseur - L'émetteur du bon de livraison.
+                        ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                         description - le nom ou la description du produit
                         quantity - la quantité totale du produit
                         achat_brut - Le prix unitaire HT
                         achat_tva - la TVA du produit en %. Souvent égale ou aux alentours de 20%. Si cette colonne n'existe pas, cherche a extraire la TVA TOTALE de la livraison.
-                        achat_net -  Le prix unitaire TTC a calculer. La formule est : achat_brut + (achat_brut x TVA)
 
                     '''
                 }]
@@ -69,7 +102,7 @@ class Mistral_API():
                             "type": "text",
                             "text" : '''
                                     Extrait les éléments du bon de livraison décrits par l'utilisateur.
-                                    Retourne les données formatées en une liste json, en un liste de produits comme ceci : 
+                                    Retourne les données formatées en une liste json comme ceci : 
                                     [
                                     {
                                         fournisseur : value,
@@ -78,7 +111,6 @@ class Mistral_API():
                                         quantity : value,
                                         achat_brut : value,
                                         achat_tva : value,
-                                        achat_net : value
                                     },
                                     {
                                         fournisseur : value,
@@ -87,7 +119,6 @@ class Mistral_API():
                                         quantity : value,
                                         achat_brut : value,
                                         achat_tva : value,
-                                        achat_net : value
                                     },
                                     etc...
                                     ]
@@ -103,7 +134,7 @@ class Mistral_API():
             response_format = {"type": "json_object"}
         )
         print(chat_response.choices[0].message.content)
-        return json.loads(chat_response.choices[0].message.content)
+        return json.loads(chat_response.choices[0].message.content, strict=False)
 
 def format_content_from_image_path(image_path):
     try:

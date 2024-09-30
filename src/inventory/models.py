@@ -23,7 +23,7 @@ class Product(models.Model):
         KG = "KG", "Kg"  
 
     fournisseur = models.TextField(max_length=50, blank=True, null=True)
-    ean = models.BigIntegerField(blank=True, null=True)
+    ean = models.BigIntegerField(unique=True, blank=True, null=True)
     description = models.CharField(max_length=50, blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
     achat_brut = models.FloatField(blank=True, null=True)
@@ -37,6 +37,19 @@ class Product(models.Model):
     
     def __str__(self):
         return f'{self.fournisseur} {self.ean} {self.description} {self.quantity}'
+    
+    def as_Kesia2_dict(self):
+        return {
+            "NOM_FOURNISSEUR": self.fournisseur,
+            "EAN": self.ean,
+            "DEF": self.description,
+            "STOCK": self.quantity,
+            "BaseHT": self.achat_brut,
+            "TAUX_TVA_ACHAT": self.achat_tva,
+            "PRIX_ACHAT_TTC": self.achat_net,
+            "PRIX_TTC": self.vente_net,
+            "TAUX_TVA_VENTE": self.vente_tva,
+        }
 
 class StockTransaction(models.Model):
 
@@ -50,7 +63,7 @@ class StockTransaction(models.Model):
     date_transaction = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.product.name} {self.quantity} {self.transaction_type} {self.date_transaction}'
+        return f'{self.product.description} {self.quantity} {self.transaction_type} {self.date_transaction}'
     
 class Inventory(models.Model):
     name = models.CharField(max_length=100, default="My Inventory")

@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from helpers.mistral import Mistral_API, format_content_from_image_path
+from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import FileForm, QuestionForm, ProductForm
 from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
 
@@ -38,7 +38,7 @@ def upload_pdf(request, id=None, *args, **kwargs):
             fs = FileSystemStorage()
             filename = fs.save(uploaded_file.name, uploaded_file)
             pdf_path = fs.path(filename)
-            pages = convert_from_path(pdf_path, 100)
+            pages = convert_from_path(pdf_path, 800, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
             inventory = Inventory.objects.get(id=id)
             api = Mistral_API()
             image_content = []
@@ -53,36 +53,65 @@ def upload_pdf(request, id=None, *args, **kwargs):
                         ean = str(jd.get('ean')).replace(' ', '')
                         if not ean.isdigit():
                             ean = None
-                        product = Product.objects.create(
-                            fournisseur=jd.get('fournisseur'),
-                            ean=ean,
-                            description=jd.get('description'),
-                            quantity=jd.get('quantity'),
-                            achat_brut=jd.get('achat_brut'),
-                            achat_tva=jd.get('achat_tva'),
-                            achat_net=jd.get('achat_net'),
-                        )
+                            try:
+                                product = Product.objects.get(description=jd.get('description'))
+                                product.quantity+=jd.get('quantity')
+                                product.achat_brut=jd.get('achat_brut'),
+                                product.achat_tva=jd.get('achat_tva'),
+                                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+                            except Product.DoesNotExist:
+                                product = Product.objects.create(
+                                fournisseur=jd.get('fournisseur'),
+                                description=jd.get('description'),
+                                quantity=jd.get('quantity'),
+                                achat_brut=jd.get('achat_brut'),
+                                achat_tva=jd.get('achat_tva'),
+                                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+                            )    
+                        else:
+                            try:
+                                product = Product.objects.get(ean=ean)
+                                product.quantity+=jd.get('quantity')
+                                product.achat_brut=jd.get('achat_brut'),
+                                product.achat_tva=jd.get('achat_tva'),
+                                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+                            except Product.DoesNotExist: 
+                                product = Product.objects.create(
+                                fournisseur=jd.get('fournisseur'),
+                                ean=ean,
+                                description=jd.get('description'),
+                                quantity=jd.get('quantity'),
+                                achat_brut=jd.get('achat_brut'),
+                                achat_tva=jd.get('achat_tva'),
+                                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+                            )
                         product.save()
                         transaction = StockTransaction.objects.create(
                             product=product,
-                            quantity=product.quantity
+                            quantity=jd.get('quantity')
                         )
                         transaction.save()
                         inventory.products.add(product)
                         inventory.transaction_list.add(transaction)
                     inventory.save()
                     messages.success(request, "Your inventory has been updated.")
-                except Exception as e:
-                    messages.error(request, f'error while extracting {e}')
-                for count, page in enumerate(pages):
-                    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                    fs.delete(jpg_path)
+                #except Exception as e:
+                finally:
+                    None
+                    #messages.error(request, f'error while extracting {e}')
+                #for count, page in enumerate(pages):
+                #    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                #    fs.delete(jpg_path)
 
-            except Exception as e:
-                messages.error(request, f'error while parsing {e}')
+            #except Exception as e:
+            finally:
+                None
+                #messages.error(request, f'error while parsing {e}')
             fs.delete(pdf_path)
-        except Exception as e:
-            messages.error(request, f'error while saving {e}')
+        #except Exception as e:
+        finally:
+            None
+            #messages.error(request, f'error while saving {e}')
     return redirect(reverse("inventory", args=[id, 0]))
 
 @login_required
@@ -112,9 +141,10 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
 def ask_question(request, id=None, *args, **kwargs):
     inventory_obj = Inventory.objects.get(id=id)
     if request.method == 'POST':
-        api = Mistral_API()
+        api = Codestral_Mamba()
         form = QuestionForm(request.POST)
-        inventory_obj.last_response = api.chat(form.data['question'], inventory_obj.products.all())
+        df = pd.DataFrame([x.as_Kesia2_dict() for x in inventory_obj.products.all()])
+        inventory_obj.last_response = api.chat(form.data['question'], df)
         inventory_obj.save()
     print(inventory_obj.last_response)    
     return redirect(reverse("inventory", args=[id, 1]))
