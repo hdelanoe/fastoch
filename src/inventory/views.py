@@ -50,70 +50,104 @@ def upload_pdf(request, id=None, *args, **kwargs):
                     image_content.append(format_content_from_image_path(jpg_path))
                 try:
                     json_data = api.extract_json_from_image(image_content)
-                    for jd in json_data:
-                        ean = str(jd.get('ean')).replace(' ', '')
-                        if not ean.isdigit():
-                            ean = None
-                            try:
-                                product = Product.objects.get(description=jd.get('description'))
-                                product.quantity+=jd.get('quantity')
-                                product.achat_brut=jd.get('achat_brut'),
-                                product.achat_tva=jd.get('achat_tva'),
-                                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-                            except Product.DoesNotExist:
-                                product = Product.objects.create(
-                                fournisseur=jd.get('fournisseur'),
-                                description=jd.get('description'),
-                                quantity=jd.get('quantity'),
-                                achat_brut=jd.get('achat_brut'),
-                                achat_tva=jd.get('achat_tva'),
-                                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-                            )    
-                        else:
-                            try:
-                                product = Product.objects.get(ean=ean)
-                                product.quantity+=jd.get('quantity')
-                                product.achat_brut=jd.get('achat_brut'),
-                                product.achat_tva=jd.get('achat_tva'),
-                                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-                            except Product.DoesNotExist: 
-                                product = Product.objects.create(
-                                fournisseur=jd.get('fournisseur'),
-                                ean=ean,
-                                description=jd.get('description'),
-                                quantity=jd.get('quantity'),
-                                achat_brut=jd.get('achat_brut'),
-                                achat_tva=jd.get('achat_tva'),
-                                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-                            )
-                        product.save()
-                        transaction = StockTransaction.objects.create(
-                            product=product,
-                            quantity=jd.get('quantity')
-                        )
-                        transaction.save()
-                        inventory.products.add(product)
-                        inventory.transaction_list.add(transaction)
-                    inventory.save()
+                    json_to_db(json_data, inventory)
                     messages.success(request, "Your inventory has been updated.")
-                #except Exception as e:
-                finally:
-                    None
-                    #messages.error(request, f'error while extracting {e}')
-                #for count, page in enumerate(pages):
-                #    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                #    fs.delete(jpg_path)
+                except Exception as e:
+                    messages.error(request, f'error while extracting {e}')
+                for count, page in enumerate(pages):
+                    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                    fs.delete(jpg_path)
 
-            #except Exception as e:
-            finally:
-                None
-                #messages.error(request, f'error while parsing {e}')
+            except Exception as e:
+                messages.error(request, f'error while parsing {e}')
             fs.delete(pdf_path)
-        #except Exception as e:
-        finally:
-            None
-            #messages.error(request, f'error while saving {e}')
+        except Exception as e:
+            messages.error(request, f'error while saving {e}')
     return redirect(reverse("inventory", args=[id, 0]))
+
+@login_required
+def upload_xml(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        try:
+            uploaded_file = request.FILES['document']
+            fs = FileSystemStorage()
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            xml_path = fs.path(filename)
+            inventory = Inventory.objects.get(id=id)
+            df = pd.read_xml(xml_path)
+            json_data = df.to_json(orient='records')
+            json_to_db(json_data, inventory)
+            messages.success(request, "Your inventory has been updated.")
+        except Exception as e:
+                messages.error(request, f'error while parsing {e}')
+        fs.delete(xml_path)
+    return redirect(reverse("inventory", args=[id, 0]))
+
+@login_required
+def upload_csv(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        try:
+            uploaded_file = request.FILES['document']
+            fs = FileSystemStorage()
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            csv_path = fs.path(filename)
+            inventory = Inventory.objects.get(id=id)
+            df = pd.read_csv(csv_path)
+            json_data = df.to_json(orient='records')
+            json_to_db(json_data, inventory)
+            messages.success(request, "Your inventory has been updated.")
+        except Exception as e:
+                messages.error(request, f'error while parsing {e}')
+        fs.delete(csv_path)
+    return redirect(reverse("inventory", args=[id, 0]))
+
+def json_to_db(json_data, inventory):
+    for jd in json_data:
+        ean = str(jd.get('ean')).replace(' ', '')
+        if not ean.isdigit():
+            ean = None
+            try:
+                product = Product.objects.get(description=jd.get('description'))
+                product.quantity+=jd.get('quantity')
+                product.achat_brut=jd.get('achat_brut'),
+                product.achat_tva=jd.get('achat_tva'),
+                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+            except Product.DoesNotExist:
+                product = Product.objects.create(
+                fournisseur=jd.get('fournisseur'),
+                description=jd.get('description'),
+                quantity=jd.get('quantity'),
+                achat_brut=jd.get('achat_brut'),
+                achat_tva=jd.get('achat_tva'),
+                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+            )    
+        else:
+            try:
+                product = Product.objects.get(ean=ean)
+                product.quantity+=jd.get('quantity')
+                product.achat_brut=jd.get('achat_brut'),
+                product.achat_tva=jd.get('achat_tva'),
+                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+            except Product.DoesNotExist: 
+                product = Product.objects.create(
+                fournisseur=jd.get('fournisseur'),
+                ean=ean,
+                description=jd.get('description'),
+                quantity=jd.get('quantity'),
+                achat_brut=jd.get('achat_brut'),
+                achat_tva=jd.get('achat_tva'),
+                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
+            )
+        product.save()
+        transaction = StockTransaction.objects.create(
+            product=product,
+            quantity=jd.get('quantity')
+        )
+        transaction.save()
+        inventory.products.add(product)
+        inventory.transaction_list.add(transaction)
+    inventory.save()
+
 
 @login_required
 def update_product(request, inventory=None, product=None, *args, **kwargs):
