@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'commando',
     'dashboard',
     'inventory',
+    'backup',
 ]
 
 MIDDLEWARE = [
@@ -151,7 +152,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Django Allauth Config
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED=True
-ACCOUNT_EMAIL_VERIFICATION='mandatory'
 LOGIN_REDIRECT_URL='/'
 
 AUTHENTICATION_BACKENDS = [

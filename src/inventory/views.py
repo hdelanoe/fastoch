@@ -13,6 +13,7 @@ from django.contrib import messages
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import FileForm, QuestionForm, ProductForm
 from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
+from backup.models import Backup
 
 
 @login_required
@@ -115,25 +116,14 @@ def upload_pdf(request, id=None, *args, **kwargs):
     return redirect(reverse("inventory", args=[id, 0]))
 
 @login_required
-def export_file(request, id=None, data_types=None, *args, **kwargs):
-    inventory_obj = Inventory.objects.get(id=id)
-    columns = Kesia2_column_names.values()
-    df = pd.DataFrame([p.to_dict() for p in inventory_obj.products.all()], columns = columns)
-    file_path = f'{settings.MEDIA_ROOT}/{inventory_obj.name}.xlsx'
-    df.to_excel(file_path)
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-            return response
-    raise Http404
-
-@login_required
 def update_product(request, inventory=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
         form = ProductForm(request.POST)
+        product_obj.fournisseur = form.data['fournisseur']
         product_obj.description = form.data['description']
+        product_obj.price_net = form.data['price_net']
+        product_obj.price_tva = form.data['price_tva']
         product_obj.save()
     return redirect(reverse("inventory", args=[id, 1]))    
 
@@ -148,3 +138,34 @@ def ask_question(request, id=None, *args, **kwargs):
         inventory_obj.save()
     print(inventory_obj.last_response)    
     return redirect(reverse("inventory", args=[id, 1]))
+
+@login_required
+def backup_inventory(request, id=None, *args, **kwargs):
+    inventory_obj = Inventory.objects.get(id=id)
+    save_backup(inventory_obj)
+    messages.success(request, "Your inventory has been backup.")
+    return redirect(reverse("inventory", args=[id, 0]))
+
+@login_required
+def export_inventory(request, id=None, *args, **kwargs):
+    inventory_obj = Inventory.objects.get(id=id)
+    backup = save_backup(inventory_obj)
+    columns = Kesia2_column_names.values()
+    df = pd.DataFrame([p.as_Kesia2_dict() for p in inventory_obj.products.all()], columns = columns,)
+    file_path = f'{settings.MEDIA_ROOT}/{backup.inventory_name}_{str(backup.date_creation)[:10]}.xlsx'
+    df.to_excel(file_path, index=False)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
+
+def save_backup(inventory):
+    backup = Backup(
+        inventory_name=inventory.name,
+        products_backup = pd.DataFrame([x.as_Kesia2_dict() for x in inventory.products.all()]),
+        transactions_backup = pd.DataFrame([x.as_dict() for x in inventory.transaction_list.all()])
+    )
+    backup.save()
+    return(backup)

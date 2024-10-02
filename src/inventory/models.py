@@ -62,14 +62,25 @@ class StockTransaction(models.Model):
     transaction_type = models.CharField(max_length=3, choices=TransctionType, default=TransctionType.IN)
     date_transaction = models.DateTimeField(auto_now_add=True)
 
+    def as_dict(self):
+        return {
+            "product": self.product,
+            "quantity": self.quantity,
+            "transaction_type": self.transaction_type,
+            "date_transaction": self.date_transaction,
+        }
+
     def __str__(self):
         return f'{self.product.description} {self.quantity} {self.transaction_type} {self.date_transaction}'
     
+    
 class Inventory(models.Model):
-    name = models.CharField(max_length=100, default="My Inventory")
+    name = models.CharField(max_length=50, default="My Inventory", unique=True)
     products = models.ManyToManyField(Product)
     transaction_list = models.ManyToManyField(StockTransaction)
     last_response =  models.TextField(default="Comment puis-je vous aider ?")
 
     def __str__(self):
         return f'name:{self.name}'
+    
+ 
