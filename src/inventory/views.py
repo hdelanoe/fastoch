@@ -32,7 +32,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     return render(request, "inventory/inventory.html", context) 
 
 @login_required
-def upload_pdf(request, id=None, *args, **kwargs):
+def add_from_pdf(request, id=None, *args, **kwargs):
     if request.method == 'POST':
         try:
             uploaded_file = request.FILES['document']
@@ -66,7 +66,7 @@ def upload_pdf(request, id=None, *args, **kwargs):
     return redirect(reverse("inventory", args=[id, 0]))
 
 @login_required
-def upload_xml(request, id=None, *args, **kwargs):
+def add_from_xml(request, id=None, *args, **kwargs):
     if request.method == 'POST':
         try:
             uploaded_file = request.FILES['document']
@@ -84,7 +84,7 @@ def upload_xml(request, id=None, *args, **kwargs):
     return redirect(reverse("inventory", args=[id, 0]))
 
 @login_required
-def upload_csv(request, id=None, *args, **kwargs):
+def add_from_csv(request, id=None, *args, **kwargs):
     if request.method == 'POST':
         try:
             uploaded_file = request.FILES['document']
@@ -101,14 +101,84 @@ def upload_csv(request, id=None, *args, **kwargs):
         fs.delete(csv_path)
     return redirect(reverse("inventory", args=[id, 0]))
 
-def json_to_db(json_data, inventory):
+@login_required
+def remove_from_pdf(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        try:
+            uploaded_file = request.FILES['document']
+            fs = FileSystemStorage()
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            pdf_path = fs.path(filename)
+            pages = convert_from_path(pdf_path, 800, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
+            inventory = Inventory.objects.get(id=id)
+            api = Mistral_API()
+            image_content = []
+            try:
+                for count, page in enumerate(pages):
+                    page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
+                    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                    image_content.append(format_content_from_image_path(jpg_path))
+                try:
+                    json_data = api.extract_json_from_image(image_content)
+                    json_to_db(json_data, inventory, -1)
+                    messages.success(request, "Your inventory has been updated.")
+                except Exception as e:
+                    messages.error(request, f'error while extracting {e}')
+                for count, page in enumerate(pages):
+                    jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                    fs.delete(jpg_path)
+
+            except Exception as e:
+                messages.error(request, f'error while parsing {e}')
+            fs.delete(pdf_path)
+        except Exception as e:
+            messages.error(request, f'error while saving {e}')
+    return redirect(reverse("inventory", args=[id, 0]))
+
+@login_required
+def remove_from_xml(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        try:
+            uploaded_file = request.FILES['document']
+            fs = FileSystemStorage()
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            xml_path = fs.path(filename)
+            inventory = Inventory.objects.get(id=id)
+            df = pd.read_xml(xml_path)
+            json_data = df.to_json(orient='records')
+            json_to_db(json_data, inventory, -1)
+            messages.success(request, "Your inventory has been updated.")
+        except Exception as e:
+                messages.error(request, f'error while parsing {e}')
+        fs.delete(xml_path)
+    return redirect(reverse("inventory", args=[id, 0]))
+
+@login_required
+def remove_from_csv(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        try:
+            uploaded_file = request.FILES['document']
+            fs = FileSystemStorage()
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            csv_path = fs.path(filename)
+            inventory = Inventory.objects.get(id=id)
+            df = pd.read_csv(csv_path)
+            json_data = df.to_json(orient='records')
+            json_to_db(json_data, inventory, -1)
+            messages.success(request, "Your inventory has been updated.")
+        except Exception as e:
+                messages.error(request, f'error while parsing {e}')
+        fs.delete(csv_path)
+    return redirect(reverse("inventory", args=[id, 0]))
+
+def json_to_db(json_data, inventory, operator=1):
     for jd in json_data:
         ean = str(jd.get('ean')).replace(' ', '')
         if not ean.isdigit():
             ean = None
             try:
                 product = Product.objects.get(description=jd.get('description'))
-                product.quantity+=jd.get('quantity')
+                product.quantity+=jd.get('quantity')*operator
                 product.achat_brut=jd.get('achat_brut'),
                 product.achat_tva=jd.get('achat_tva'),
                 product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
@@ -116,7 +186,7 @@ def json_to_db(json_data, inventory):
                 product = Product.objects.create(
                 fournisseur=jd.get('fournisseur'),
                 description=jd.get('description'),
-                quantity=jd.get('quantity'),
+                quantity=jd.get('quantity')*operator,
                 achat_brut=jd.get('achat_brut'),
                 achat_tva=jd.get('achat_tva'),
                 achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
@@ -133,7 +203,7 @@ def json_to_db(json_data, inventory):
                 fournisseur=jd.get('fournisseur'),
                 ean=ean,
                 description=jd.get('description'),
-                quantity=jd.get('quantity'),
+                quantity=jd.get('quantity')*operator,
                 achat_brut=jd.get('achat_brut'),
                 achat_tva=jd.get('achat_tva'),
                 achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
@@ -141,7 +211,7 @@ def json_to_db(json_data, inventory):
         product.save()
         transaction = StockTransaction.objects.create(
             product=product,
-            quantity=jd.get('quantity')
+            quantity=jd.get('quantity')*operator
         )
         transaction.save()
         inventory.products.add(product)

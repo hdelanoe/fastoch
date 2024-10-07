@@ -17,7 +17,7 @@
             </div>
             <!-- Modal body -->
             <div class="p-4 md:p-5 space-y-4">
-                <form action="{% url 'upload_xml' id=inventory.id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <form action="{% url 'add_from_xml' id=inventory.id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
                     <div class="space-y-4 ">
                         <div>
                         <!---    <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label> --->
