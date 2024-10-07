@@ -9,6 +9,9 @@ urlpatterns = [
     path('<str:id>/add_from_pdf', inventory_views.add_from_pdf, name='add_from_pdf'),
     path('<str:id>/add_from_xml', inventory_views.add_from_xml, name='add_from_xml'),
     path('<str:id>/add_from_csv', inventory_views.add_from_csv, name='add_from_csv'),
+    path('<str:id>/remove_from_pdf', inventory_views.remove_from_pdf, name='remove_from_pdf'),
+    path('<str:id>/remove_from_xml', inventory_views.remove_from_xml, name='remove_from_xml'),
+    path('<str:id>/remove_from_csv', inventory_views.remove_from_csv, name='remove_from_csv'),
     path('<str:id>/backup_inventory', inventory_views.backup_inventory, name='backup_inventory'),
     path('<str:id>/export_inventory', inventory_views.export_inventory, name='export_inventory'),
 
