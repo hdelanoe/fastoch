@@ -78,16 +78,28 @@ class Mistral_API():
         content = [{
                     "type": "text",
                     "text": '''
-                        Voici un bon de livraison. Il contient un tableau qui décrit tout les produits livrés.
-                        Je veux que tu extrais les données et que tu construises une liste de produits, avec les données ci-dessous :
-                    
-                        fournisseur - L'émetteur du bon de livraison.
-                        ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
-                        description - le nom ou la description du produit
-                        quantity - la quantité totale du produit
-                        achat_brut - Le prix unitaire HT
-                        achat_tva - la TVA du produit en %. Souvent égale ou aux alentours de 20%. Si cette colonne n'existe pas, cherche a extraire la TVA TOTALE de la livraison.
-
+                        Voici le bon de livraison. Extrait les éléments et retourne les données dans un fichier JSON formatées comme ci-dessous :
+                        
+                        {
+                            fournisseur : {
+                                name: value,
+                                n_tva: value 
+                            },
+                            produits : [
+                                {
+                                    ean : value,
+                                    description : value,
+                                    quantity : value,
+                                    achat_brut : value
+                                },
+                                {
+                                    ean : value,
+                                    description : value,
+                                    quantity : value,
+                                    achat_brut : value
+                                }
+                            ]
+                        }
                     '''
                 }]
         for fi in formatted_images:
@@ -101,27 +113,35 @@ class Mistral_API():
                         {
                             "type": "text",
                             "text" : '''
-                                    Extrait les éléments du bon de livraison décrits par l'utilisateur.
-                                    Retourne les données formatées en une liste json comme ceci : 
-                                    [
-                                    {
-                                        fournisseur : value,
-                                        ean : value,
-                                        description : value,
-                                        quantity : value,
-                                        achat_brut : value,
-                                        achat_tva : value,
-                                    },
-                                    {
-                                        fournisseur : value,
-                                        ean : value,
-                                        description : value,
-                                        quantity : value,
-                                        achat_brut : value,
-                                        achat_tva : value,
-                                    },
-                                    etc...
-                                    ]
+                                    L'utilisateur fourni une ou des images correspondants a un  bon de livraison. Ce dernier comporte un tableau détaillant chaque produit.
+                                    Le but est de créer un fichier JSON, avec pour le fournisseur :
+                                        - name
+                                        - n_tva 
+                                    Et pour chaque produits : 
+                                        - ean
+                                        - description
+                                        - quantity
+                                        - achat_brut
+
+
+                                    Pour ce faire, tu vas réaliser plusieurs étapes.
+
+                                    ETAPE 1 - Identifier les données fournisseur suivants :
+                                        - name - C'est le nom du fournisseur
+                                        - n_tva - C'est le numéro TVA Intracommunautaire. Souvent N° TVA Intra.
+
+                                    ETAPE 2 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
+                                        - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
+                                        - description - le nom ou la description du produit
+                                        - quantity - La colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'
+                                        - achat_brut - La colonne 'PU HT' ou 'PU H.T.'  
+
+                                    ETAPE 3 - Construire le JSON
+                                        - Le fichier correspond a un objet JSON, contenant le fournisseur et les produits.
+                                        - Le JSON est un objet, pas une liste.
+                                    
+                                    ETAPE 4 - Renvoyer le JSON
+                                        - Ta réponse ne doit comporter UNIQUEMENT le JSON et rien d'autre. Ne soit pas verbeux.
                                     '''
                         }
                     ]

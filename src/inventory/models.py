@@ -12,6 +12,11 @@ Kesia2_column_names = {
     "vente_tva": "TAUX_TVA_VENTE",
 }
 
+class Provider(models.Model):
+    name = models.CharField(max_length=50, blank=True, null=True)
+    n_tva = models.CharField(max_length=13, unique=True, blank=True, null=True)
+    tva = models.FloatField(default=20.0, blank=True, null=True)
+
 class Product(models.Model):
      
     class IncrementalChoices(models.TextChoices):
@@ -22,9 +27,9 @@ class Product(models.Model):
         PIECE = "PIECE", "Piece"
         KG = "KG", "Kg"  
 
-    fournisseur = models.TextField(max_length=50, blank=True, null=True)
+    fournisseur = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
-    description = models.CharField(max_length=50, blank=True, null=True)
+    description = models.CharField(max_length=100, blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
     achat_brut = models.FloatField(blank=True, null=True)
     achat_net = models.FloatField(blank=True, null=True)
@@ -40,7 +45,7 @@ class Product(models.Model):
     
     def as_Kesia2_dict(self):
         return {
-            "NOM_FOURNISSEUR": self.fournisseur,
+            "NOM_FOURNISSEUR": self.fournisseur.name,
             "EAN": self.ean,
             "DEF": self.description,
             "STOCK": self.quantity,

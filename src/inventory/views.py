@@ -3,6 +3,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas as pd
+import re
 from pdf2image import convert_from_path
 
 from django.core.files.storage import FileSystemStorage
@@ -12,7 +13,7 @@ from django.contrib import messages
 
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import FileForm, QuestionForm, ProductForm
-from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
+from inventory.models import Inventory, Product, Provider, StockTransaction, Kesia2_column_names
 from backup.models import Backup
 
 
@@ -39,7 +40,7 @@ def add_from_pdf(request, id=None, *args, **kwargs):
             fs = FileSystemStorage()
             filename = fs.save(uploaded_file.name, uploaded_file)
             pdf_path = fs.path(filename)
-            pages = convert_from_path(pdf_path, 800, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
+            pages = convert_from_path(pdf_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
             inventory = Inventory.objects.get(id=id)
             api = Mistral_API()
             image_content = []
@@ -50,8 +51,13 @@ def add_from_pdf(request, id=None, *args, **kwargs):
                     image_content.append(format_content_from_image_path(jpg_path))
                 try:
                     json_data = api.extract_json_from_image(image_content)
-                    json_to_db(json_data, inventory)
-                    messages.success(request, "Your inventory has been updated.")
+                    print(json_data.get('fournisseur'))
+                    print(json_data.get('produits'))
+                    error_list = json_to_db(json_data.get('fournisseur'), json_data.get('produits'), inventory)
+                    if not error_list:
+                        messages.success(request, "Your inventory has been updated.")
+                    else:
+                        messages.error(request, f'Error while extracting : {error_list}')
                 except Exception as e:
                     messages.error(request, f'error while extracting {e}')
                 for count, page in enumerate(pages):
@@ -76,8 +82,11 @@ def add_from_xml(request, id=None, *args, **kwargs):
             inventory = Inventory.objects.get(id=id)
             df = pd.read_xml(xml_path)
             json_data = df.to_json(orient='records')
-            json_to_db(json_data, inventory)
-            messages.success(request, "Your inventory has been updated.")
+            error_list = json_to_db(json_data, inventory)
+            if not error_list:
+                messages.success(request, "Your inventory has been updated.")
+            else:
+                messages.error(request, f'Error while extracting : {error_list}')
         except Exception as e:
                 messages.error(request, f'error while parsing {e}')
         fs.delete(xml_path)
@@ -94,8 +103,11 @@ def add_from_csv(request, id=None, *args, **kwargs):
             inventory = Inventory.objects.get(id=id)
             df = pd.read_csv(csv_path)
             json_data = df.to_json(orient='records')
-            json_to_db(json_data, inventory)
-            messages.success(request, "Your inventory has been updated.")
+            error_list = json_to_db(json_data, inventory)
+            if not error_list:
+                messages.success(request, "Your inventory has been updated.")
+            else:
+                messages.error(request, f'Error while extracting : {error_list}')
         except Exception as e:
                 messages.error(request, f'error while parsing {e}')
         fs.delete(csv_path)
@@ -120,10 +132,13 @@ def remove_from_pdf(request, id=None, *args, **kwargs):
                     image_content.append(format_content_from_image_path(jpg_path))
                 try:
                     json_data = api.extract_json_from_image(image_content)
-                    json_to_db(json_data, inventory, -1)
-                    messages.success(request, "Your inventory has been updated.")
                 except Exception as e:
                     messages.error(request, f'error while extracting {e}')
+                error_list = json_to_db(json_data.get('fournisseur'), json_data.get('produits'), inventory, -1)
+                if not error_list:
+                    messages.success(request, "Your inventory has been updated.")
+                else:
+                    messages.error(request, f'Erreur dans le parsing json : {error_list}')
                 for count, page in enumerate(pages):
                     jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
                     fs.delete(jpg_path)
@@ -146,8 +161,11 @@ def remove_from_xml(request, id=None, *args, **kwargs):
             inventory = Inventory.objects.get(id=id)
             df = pd.read_xml(xml_path)
             json_data = df.to_json(orient='records')
-            json_to_db(json_data, inventory, -1)
-            messages.success(request, "Your inventory has been updated.")
+            error_list = json_to_db(json_data, inventory, -1)
+            if not error_list:
+                messages.success(request, "Your inventory has been updated.")
+            else:
+                messages.error(request, f'Erreur dans le parsing json : {error_list}')
         except Exception as e:
                 messages.error(request, f'error while parsing {e}')
         fs.delete(xml_path)
@@ -164,59 +182,82 @@ def remove_from_csv(request, id=None, *args, **kwargs):
             inventory = Inventory.objects.get(id=id)
             df = pd.read_csv(csv_path)
             json_data = df.to_json(orient='records')
-            json_to_db(json_data, inventory, -1)
-            messages.success(request, "Your inventory has been updated.")
+            error_list = json_to_db(json_data, inventory, -1)
+            if not error_list:
+                messages.success(request, "Your inventory has been updated.")
+            else:
+                messages.error(request, f'Error while extracting : {error_list}')
         except Exception as e:
                 messages.error(request, f'error while parsing {e}')
         fs.delete(csv_path)
     return redirect(reverse("inventory", args=[id, 0]))
 
-def json_to_db(json_data, inventory, operator=1):
-    for jd in json_data:
-        ean = str(jd.get('ean')).replace(' ', '')
-        if not ean.isdigit():
-            ean = None
-            try:
-                product = Product.objects.get(description=jd.get('description'))
-                product.quantity+=jd.get('quantity')*operator
-                product.achat_brut=jd.get('achat_brut'),
-                product.achat_tva=jd.get('achat_tva'),
-                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-            except Product.DoesNotExist:
-                product = Product.objects.create(
-                fournisseur=jd.get('fournisseur'),
-                description=jd.get('description'),
-                quantity=jd.get('quantity')*operator,
-                achat_brut=jd.get('achat_brut'),
-                achat_tva=jd.get('achat_tva'),
-                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-            )    
-        else:
-            try:
-                product = Product.objects.get(ean=ean)
-                product.quantity+=jd.get('quantity')
-                product.achat_brut=jd.get('achat_brut'),
-                product.achat_tva=jd.get('achat_tva'),
-                product.achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-            except Product.DoesNotExist: 
-                product = Product.objects.create(
-                fournisseur=jd.get('fournisseur'),
-                ean=ean,
-                description=jd.get('description'),
-                quantity=jd.get('quantity')*operator,
-                achat_brut=jd.get('achat_brut'),
-                achat_tva=jd.get('achat_tva'),
-                achat_net=jd.get('achat_brut') + (jd.get('achat_brut')*(jd.get('achat_tva')*0.01)),
-            )
-        product.save()
-        transaction = StockTransaction.objects.create(
-            product=product,
-            quantity=jd.get('quantity')*operator
+def json_to_db(json_provider, json_products, inventory, operator=1):
+    error_list = []
+    pat = re.compile('([0-9]+.?[0-9]+)')
+    n_tva = str(json_provider.get('n_tva')).replace(' ', '')
+    try:
+        provider = Provider.objects.get(n_tva=n_tva)
+    except Provider.DoesNotExist:
+        provider = Provider.objects.create(
+            name=json_provider.get('name'),
+            n_tva=json_provider.get('n_tva')
         )
-        transaction.save()
-        inventory.products.add(product)
-        inventory.transaction_list.add(transaction)
+    provider.save()
+    for jd in json_products:
+        try:
+            ean = str(jd.get('ean')).replace(' ', '')
+            achat_brut = float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
+            print(achat_brut)
+            if not ean.isdigit():
+                ean = None
+                try:
+                    product = Product.objects.get(description=jd.get('description'))
+                    product.quantity+=int(jd.get('quantity'))*operator
+                    product.achat_brut=achat_brut,
+                    product.achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                except Product.DoesNotExist:
+                    product = Product.objects.create(
+                    fournisseur=provider,
+                    description=jd.get('description'),
+                    quantity=int(jd.get('quantity'))*operator,
+                    achat_brut=achat_brut,
+                    achat_tva=provider.tva,
+                    achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                )
+                except Exception as e:
+                    error_list.append(f'{jd.get('description')} - {e}')
+                        
+            else:
+                try:
+                    product = Product.objects.get(ean=ean)
+                    product.quantity+=int(jd.get('quantity'))*operator
+                    product.achat_brut=achat_brut,
+                    product.achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                except Product.DoesNotExist: 
+                    product = Product.objects.create(
+                    fournisseur=provider,
+                    ean=ean,
+                    description=jd.get('description'),
+                    quantity=int(jd.get('quantity'))*operator,
+                    achat_brut=achat_brut,
+                    achat_tva=provider.tva,
+                    achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                )
+                except Exception as e:
+                    error_list.append(f'{jd.get('description')} - {e}')    
+            product.save()
+            transaction = StockTransaction.objects.create(
+                product=product,
+                quantity=int(jd.get('quantity'))*operator
+            )
+            transaction.save()
+            inventory.products.add(product)
+            inventory.transaction_list.add(transaction)
+        except Exception as e:
+            error_list.append(f'{jd.get('description')} - {e}')
     inventory.save()
+    return error_list
 
 
 @login_required

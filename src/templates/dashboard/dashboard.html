@@ -8,26 +8,25 @@
 {% include 'dashboard/sidebar.html' %}
     <div class="h-auto mb-4 "> 
         {% block content %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
                 {% for inventory in inventory_list %}
-                <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
-                    <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">{{inventory.name}}</h2>
-                    <a href="{% url 'inventory' id=inventory.id response=0 %}" class="inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
-                </div>
+                    <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
+                        <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">{{inventory.name}}</h2>
+                        <a href="{% url 'inventory' id=inventory.id response=0 %}" class="inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
+                    </div>
                 {% empty %}
-                <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
-                    <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">You have no inventory yet</h2>
-                    <button
-                        data-modal-target="new-inventory-modal"
-                        data-modal-toggle="new-inventory-modal"
-                        class="inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                        <a href="#">Let's create one!</a>    
-                    </button>
-                </div>
+                    <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
+                        <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">You have no inventory yet</h2>
+                        <button
+                            data-modal-target="new-inventory-modal"
+                            data-modal-toggle="new-inventory-modal"
+                            class="inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                            <a href="#">Let's create one!</a>    
+                        </button>
+                    </div>
                 {% endfor %}
                 {% include 'modal/new_inventory_modal.html' %}
-                <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                    Sorry, you don't have any products yet
+                <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
                 </div>
             </div>
         {% endblock content %} 
