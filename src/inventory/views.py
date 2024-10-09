@@ -13,7 +13,8 @@ from django.contrib import messages
 
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import FileForm, QuestionForm, ProductForm
-from inventory.models import Inventory, Product, Provider, StockTransaction, Kesia2_column_names
+from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
+from provider.models import Provider
 from backup.models import Backup
 
 
@@ -51,8 +52,6 @@ def add_from_pdf(request, id=None, *args, **kwargs):
                     image_content.append(format_content_from_image_path(jpg_path))
                 try:
                     json_data = api.extract_json_from_image(image_content)
-                    print(json_data.get('fournisseur'))
-                    print(json_data.get('produits'))
                     error_list = json_to_db(json_data.get('fournisseur'), json_data.get('produits'), inventory)
                     if not error_list:
                         messages.success(request, "Your inventory has been updated.")
@@ -215,7 +214,7 @@ def json_to_db(json_provider, json_products, inventory, operator=1):
                     product = Product.objects.get(description=jd.get('description'))
                     product.quantity+=int(jd.get('quantity'))*operator
                     product.achat_brut=achat_brut,
-                    product.achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                    product.achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01))),
                 except Product.DoesNotExist:
                     product = Product.objects.create(
                     fournisseur=provider,
@@ -223,7 +222,7 @@ def json_to_db(json_provider, json_products, inventory, operator=1):
                     quantity=int(jd.get('quantity'))*operator,
                     achat_brut=achat_brut,
                     achat_tva=provider.tva,
-                    achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                    achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01))),
                 )
                 except Exception as e:
                     error_list.append(f'{jd.get('description')} - {e}')
@@ -233,7 +232,7 @@ def json_to_db(json_provider, json_products, inventory, operator=1):
                     product = Product.objects.get(ean=ean)
                     product.quantity+=int(jd.get('quantity'))*operator
                     product.achat_brut=achat_brut,
-                    product.achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                    product.achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01))),
                 except Product.DoesNotExist: 
                     product = Product.objects.create(
                     fournisseur=provider,
@@ -242,7 +241,7 @@ def json_to_db(json_provider, json_products, inventory, operator=1):
                     quantity=int(jd.get('quantity'))*operator,
                     achat_brut=achat_brut,
                     achat_tva=provider.tva,
-                    achat_net=achat_brut + (achat_brut*(provider.tva*0.01)),
+                    achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01))),
                 )
                 except Exception as e:
                     error_list.append(f'{jd.get('description')} - {e}')    
@@ -265,7 +264,6 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
         form = ProductForm(request.POST)
-        product_obj.fournisseur = form.data['fournisseur']
         product_obj.description = form.data['description']
         product_obj.price_net = form.data['price_net']
         product_obj.price_tva = form.data['price_tva']

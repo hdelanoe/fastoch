@@ -5,11 +5,8 @@
             <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
         </div>
     </td>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-            <input size="50" min="1" max="50" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="fournisseur" type="text" name="fournisseur" value="{{product.fournisseur.name}}" placeholder="{{product.fournisseur.name}}" required="">
-        </form>
-    </td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.fournisseur.name}}</td>
+    
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.ean}}</td>
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}

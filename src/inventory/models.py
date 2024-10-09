@@ -1,5 +1,7 @@
 from django.db import models
 
+from provider.models import Provider
+
 Kesia2_column_names = {
     "fournisseur": "NOM_FOURNISSEUR",
     "ean": "EAN",
@@ -11,11 +13,6 @@ Kesia2_column_names = {
     "vente_net": "PRIX_TTC",
     "vente_tva": "TAUX_TVA_VENTE",
 }
-
-class Provider(models.Model):
-    name = models.CharField(max_length=50, blank=True, null=True)
-    n_tva = models.CharField(max_length=13, unique=True, blank=True, null=True)
-    tva = models.FloatField(default=20.0, blank=True, null=True)
 
 class Product(models.Model):
      
