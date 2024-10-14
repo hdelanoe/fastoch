@@ -6,6 +6,7 @@ from django.urls import reverse
 from inventory.models import Inventory
 from backup.models import Backup
 from provider.models import Provider
+from delivery.models import Delivery
 from .forms import NameForm
 
 @login_required
@@ -38,8 +39,13 @@ def init_context():
         backup_list = Backup.objects.all()
     except Backup.DoesNotExist:
         backup_list = None    
+    try:
+        delivery_list = Delivery.objects.all()
+    except Delivery.DoesNotExist:
+        delivery_list = None        
     return {
         "inventory_list": inventory_list,
         "backup_list": backup_list,
         "provider_list": provider_list,
+        "delivery_list": delivery_list,
     }

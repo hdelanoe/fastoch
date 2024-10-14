@@ -7,12 +7,13 @@
     <div class="grid grid-cols-1 gap-4 mb-4">
         <section class="bg-gray-50 dark:bg-gray-900 p-5 ">
             <div class="px-4 lg:px-12">
+                
                 <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg overflow-x-auto w-full h-0">
-                    {% if backup_list %}
-                        {% include 'backup/table.html' %}
+                    {% if delivery_list %}
+                        {% include 'delivery/delivery_list/table.html' %}
                     {% else %}
                         <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            Sorry, you don't have any backups yet
+                            Vous n'avez pas encore été livré
                         </div>
                     {% endif %}
                 </div>

@@ -8,6 +8,7 @@ urlpatterns = [
     path('inventory/', include('inventory.urls')),
     path('backup/', include('backup.urls')),
     path('provider/', include('provider.urls')),
+    path('delivery/', include('delivery.urls')),
 
     path('create_inventory/', dashboard_views.create_inventory),
 

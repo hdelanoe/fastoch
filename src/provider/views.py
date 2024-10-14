@@ -5,7 +5,6 @@ from django.urls import reverse
 from dashboard.views import init_context
 from .models import Provider, provider_columns
 from .forms import ProviderForm
-from inventory import Product
 
 @login_required
 def provider_view(request, *args, **kwargs):

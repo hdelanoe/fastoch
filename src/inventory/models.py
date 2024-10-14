@@ -28,12 +28,16 @@ class Product(models.Model):
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
-    achat_brut = models.FloatField(blank=True, null=True)
+    achat_brut = models.FloatField(default=0.00)
     achat_net = models.FloatField(blank=True, null=True)
     achat_tva = models.FloatField(blank=True, null=True)
     coef_marge = models.FloatField(blank=True, null=True)
     vente_net = models.FloatField(blank=True, null=True)
     vente_tva = models.FloatField(blank=True, null=True)
+
+    internal_code = models.CharField(max_length=16, unique=True, blank=True, null=True)
+
+    has_changed=models.BooleanField(default=False)
 
     incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
     
@@ -74,15 +78,20 @@ class StockTransaction(models.Model):
 
     def __str__(self):
         return f'{self.product.description} {self.quantity} {self.transaction_type} {self.date_transaction}'
-    
-    
-class Inventory(models.Model):
-    name = models.CharField(max_length=50, default="My Inventory", unique=True)
+
+class ProductList(models.Model):
     products = models.ManyToManyField(Product)
+
+    class Meta:
+        abstract = True
+    
+    
+class Inventory(ProductList):
+    name = models.CharField(max_length=50, default="My Inventory", unique=True)
     transaction_list = models.ManyToManyField(StockTransaction)
     last_response =  models.TextField(default="Comment puis-je vous aider ?")
+    code_nomenclature = models.CharField(max_length=3, default="DFT", unique=True)
 
     def __str__(self):
         return f'name:{self.name}'
     
- 
