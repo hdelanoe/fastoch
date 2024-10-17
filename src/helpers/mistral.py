@@ -80,26 +80,20 @@ class Mistral_API():
                     "text": '''
                         Voici le bon de livraison. Extrait les éléments et retourne les données dans un fichier JSON formatées comme ci-dessous :
                         
-                        {
-                            fournisseur : {
-                                name: value,
-                                n_tva: value 
+                        [
+                            {
+                                ean : value,
+                                description : value,
+                                quantity : value,
+                                achat_brut : value
                             },
-                            produits : [
-                                {
-                                    ean : value,
-                                    description : value,
-                                    quantity : value,
-                                    achat_brut : value
-                                },
-                                {
-                                    ean : value,
-                                    description : value,
-                                    quantity : value,
-                                    achat_brut : value
-                                }
-                            ]
-                        }
+                            {
+                                ean : value,
+                                description : value,
+                                quantity : value,
+                                achat_brut : value
+                            }
+                        ]
                     '''
                 }]
         for fi in formatted_images:
@@ -114,10 +108,7 @@ class Mistral_API():
                             "type": "text",
                             "text" : '''
                                     L'utilisateur fourni une ou des images correspondants a un  bon de livraison. Ce dernier comporte un tableau détaillant chaque produit.
-                                    Le but est de créer un fichier JSON, avec pour le fournisseur :
-                                        - name
-                                        - n_tva 
-                                    Et pour chaque produits : 
+                                    Le but est de créer un fichier JSON, avec pour chaque produits : 
                                         - ean
                                         - description
                                         - quantity
@@ -126,21 +117,17 @@ class Mistral_API():
 
                                     Pour ce faire, tu vas réaliser plusieurs étapes.
 
-                                    ETAPE 1 - Identifier les données fournisseur suivants :
-                                        - name - C'est le nom du fournisseur
-                                        - n_tva - C'est le numéro TVA Intracommunautaire. Souvent N° TVA Intra.
-
-                                    ETAPE 2 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
+                                    ETAPE 1 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
                                         - quantity - La colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'
                                         - achat_brut - La colonne 'PU HT' ou 'PU H.T.'  
 
-                                    ETAPE 3 - Construire le JSON
-                                        - Le fichier correspond a un objet JSON, contenant le fournisseur et les produits.
-                                        - Le JSON est un objet, pas une liste.
+                                    ETAPE 2 - Construire le JSON
+                                        - Le fichier correspond a une liste JSON, contenant les produits.
+                                        - Le JSON est une liste.
                                     
-                                    ETAPE 4 - Renvoyer le JSON
+                                    ETAPE 3 - Renvoyer le JSON
                                         - Ta réponse ne doit comporter UNIQUEMENT le JSON et rien d'autre. Ne soit pas verbeux.
                                     '''
                         }

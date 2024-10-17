@@ -12,6 +12,7 @@ Kesia2_column_names = {
     "achat_net": "PRIX_ACHAT_TTC",
     "vente_net": "PRIX_TTC",
     "vente_tva": "TAUX_TVA_VENTE",
+
 }
 
 class Product(models.Model):
