@@ -7,3 +7,4 @@ class Provider(models.Model):
     #n_tva = models.CharField(max_length=13, unique=True, blank=True, null=True)
     #tva = models.FloatField(default=20.0, blank=True, null=True)
     code = models.CharField(max_length=3, unique=True, blank=True, null=True)
+    columns = ['Nom', 'Code']

@@ -3,13 +3,15 @@
         <tr class="bg-mate">
             {% for column in columns %}
                 <th scope="col" class="px-4 py-3">{{column}}</th>
-            {% endfor %}    
+            {% endfor %}
+            <th scope="col" class="px-4 py-3">ACTION</th>
         </tr>
     </thead>
     <tbody>
         <!--Products entries-->
         {% for provider in provider_list %}
             {% include 'provider/entry.html' with object=provider %}
+            {% include 'modal/confirm_delete_provider.html' %}
         {% endfor %}
     </tbody>
 </table>

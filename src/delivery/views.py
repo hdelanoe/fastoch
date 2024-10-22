@@ -7,7 +7,7 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Kesia2_column_names
+from inventory.models import Inventory
 from .models import Delivery, delivery_columns
 from dashboard.views import init_context
 
@@ -18,11 +18,13 @@ def delivery_view(request, *args, **kwargs):
     return render(request, "delivery/delivery_list/delivery.html", context) 
 
 @login_required
-def last_delivery_view(request, id=None, *args, **kwargs):
+def last_delivery_view(request, inv_id=None, id=None, *args, **kwargs):
     context = init_context()
     delivery = Delivery.objects.get(id=id)
+    inventory = Inventory.objects.get(id=inv_id)
     context["delivery"] = delivery
-    context["columns"] = Kesia2_column_names.values()
+    context["inventory"] = inventory
+    context["columns"] = settings.KESIA_COLUMS_NAMES.values()
     context["products"] = delivery.products.all()
     return render(request, "delivery/delivery.html", context)
 

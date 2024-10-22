@@ -16,25 +16,27 @@
                 </button>
             </div>
             <!-- Modal body -->
-             
-            <div class="p-4 md:p-5 space-y-4">
+            <div class="p-4 md:p-5">
                 <form action="{% url 'move_from_file' id=inventory.id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-                    <div>
-                        <label for="provider">Fournisseur</label>
-                        <input type="text" name="provider" list="providername" size="50" min="1" max="50">
-                        <datalist id="providername">
-                            {% for provider in provider_list %}
-                                <option value="{{ provider.name }}">
-                            {% empty %}        
-                            {% endfor %}        
-                        </datalist>
-                        <br><br>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="provider">Fournisseur</label>
+                            <input type="text" name="provider" list="providername" size="50" min="1" max="50" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <datalist id="providername">
+                                {% for provider in provider_list %}
+                                    <option value="{{ provider.name }}">
+                                {% empty %}        
+                                {% endfor %}        
+                            </datalist>
+                            <br><br>
+                        </div>
                     </div>
                     <div>
                         <input type="radio" id="in" name="move_type" value="1">
                         <label for="in">Entrée</label><br>
                         <input type="radio" id="out" name="move_type" value="-1">
                         <label for="out">Sortie</label><br>
+                        <br><br>
                     </div>
                     
                     <div class="space-y-4 ">

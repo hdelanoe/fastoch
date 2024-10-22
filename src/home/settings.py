@@ -224,3 +224,16 @@ CSRF_TRUSTED_ORIGINS = ['https://sutoko-production.up.railway.app',]
 # For production, set these lines to True
 # CSRF_COOKIE_HTTPONLY = True
 # SESSION_COOKIE_HTTPONLY = True
+
+KESIA2_COLUMNS_NAME = {
+    "fournisseur": "NOM_FOURNISSEUR",
+    "code_interne": "CODE_NC",
+    "ean": "EAN",
+    "description": "DEF",
+    "quantité": "STOCK",
+    "achat brut": "BaseHT",
+    #"achat_tva": "TAUX_TVA_ACHAT",
+    #"achat_net": "PRIX_ACHAT_TTC",
+    "vente_net": "PRIX_TTC",
+    #"vente_tva": "TAUX_TVA_VENTE",
+}

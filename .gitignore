@@ -4,6 +4,8 @@ local-cdn/
 node_modules/
 media/
 
+*tailwind-out.css
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

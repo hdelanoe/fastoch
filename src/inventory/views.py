@@ -28,7 +28,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     context = init_context()
     inventory_obj = Inventory.objects.get(id=id)
     context["inventory"] = inventory_obj
-    context["columns"] = Kesia2_column_names.values()
+    context["columns"] = settings.KESIA2_COLUMNS_NAME.keys()
     context["response"] = response
     context["products"] = inventory_obj.products.all()
     return render(request, "inventory/inventory.html", context) 
@@ -82,7 +82,7 @@ def move_from_file(request, id=None, *args, **kwargs):
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')     
                 fs.delete(file_path)
-                return redirect(reverse(last_delivery_view, args=[delivery_obj.id]))
+                return redirect(reverse(last_delivery_view, args=[id, delivery_obj.id]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')  
         except Exception as e:

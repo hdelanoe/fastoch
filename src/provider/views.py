@@ -1,6 +1,8 @@
 from django.shortcuts import redirect, render
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.db.models import ProtectedError
 
 from dashboard.views import init_context
 from .models import Provider, provider_columns
@@ -22,4 +24,19 @@ def update_provider(request, id=None, *args, **kwargs):
         #provider.tva = form.data['tva']
         provider.save()
         
-    return redirect(reverse("provider"))  
+    return redirect(reverse("provider"))
+
+@login_required
+def delete_provider(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        try:
+            provider = Provider.objects.get(id=id)
+            name = provider.name
+            provider.delete()
+            messages.success(request, f'Le fournisseur {name} a bien été supprimé.')
+        except ProtectedError:
+            messages.error(request, f'Il existe encore des produits avec ce fournisseur. Supprimez les d\'abord.')   
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression du fournisseur : {e}')   
+        
+    return redirect(reverse("provider"))   
