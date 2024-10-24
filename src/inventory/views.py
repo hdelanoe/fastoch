@@ -3,7 +3,6 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas as pd
-import re
 from pdf2image import convert_from_path
 
 from django.core.files.storage import FileSystemStorage
@@ -13,8 +12,8 @@ from django.contrib import messages
 
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import ImportForm, QuestionForm, ProductForm
-from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
-from provider.models import Provider
+from .parsers import json_to_db
+from inventory.models import Inventory, Product, Kesia2_column_names
 from backup.models import Backup
 from delivery.models import Delivery
 from delivery.views import last_delivery_view
@@ -89,78 +88,7 @@ def move_from_file(request, id=None, *args, **kwargs):
             messages.error(request, f'error while saving {e}')
     return redirect(reverse("inventory", args=[id, 0]))
 
-def json_to_db(providername, json_data, inventory, operator=1):
-    delivery_obj = Delivery.objects.create(inventory_name=inventory.name)
-    return_obj = {
-        'delivery_obj': delivery_obj, 
-        'error_list': []
-        }
-    try:
-        provider = Provider.objects.get(name=providername)
-    except Provider.DoesNotExist:
-        provider = Provider.objects.create(
-            name=providername,
-            code=str(providername).replace(' ', '')[:3].upper(),
-        )
-    provider.save()
-    for jd in json_data:
-        try:
-            ean = str(jd.get('ean')).replace(' ', '')
-            if not ean.isdigit():
-                ean = None
-                try:
-                    product = Product.objects.get(description=jd.get('description'))
-                    product.quantity+=int(jd.get('quantity'))*operator
-                    product.achat_brut= float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
-                    product.has_changed = True
-                
-                    #product.achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01)), 2),
-                except Product.DoesNotExist:
-                    product = Product.objects.create(
-                    fournisseur=provider,
-                    description=jd.get('description'),
-                    quantity=int(jd.get('quantity'))*operator,
-                    achat_brut= float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
-                    #achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01)), 2),
-                )
-                except Exception as e:
-                    return_obj['error_list'].append(f'{'ligne 237'} - {e}')
-                        
-            else:
-                try:
-                    product = Product.objects.get(ean=ean)
-                    product.quantity+=int(jd.get('quantity'))*operator
-                    product.achat_brut= float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
-                    product.has_changed = True
-                    #product.achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01)), 2),
-                except Product.DoesNotExist: 
-                    product = Product.objects.create(
-                    fournisseur=provider,
-                    ean=ean,
-                    description=jd.get('description'),
-                    quantity=int(jd.get('quantity'))*operator,
-                    achat_brut= float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
-                    #achat_net=round(achat_brut + (achat_brut*(provider.tva*0.01)), 2),
-                )
-                except Exception as e:
-                    return_obj['error_list'].append(f'{'ligne 257'} - {e}')    
-            product.save()
-            transaction = StockTransaction.objects.create(
-                product=product,
-                quantity=int(jd.get('quantity'))*operator
-            )
-            transaction.save()
-            delivery_obj.products.add(product)
-            inventory.products.add(product)
-            inventory.transaction_list.add(transaction)
-        except Exception as e:
-            return_obj['error_list'].append(f'{'ligne 268'} - {e}')
-        #finally:
-        #    None
-    inventory.save()
-    delivery_obj.save()
-    return_obj['delivery_obj'] = delivery_obj
-    return return_obj
+
 
 
 @login_required

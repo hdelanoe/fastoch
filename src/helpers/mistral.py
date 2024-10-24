@@ -82,12 +82,14 @@ class Mistral_API():
                         
                         [
                             {
+                                code_art : value,
                                 ean : value,
                                 description : value,
                                 quantity : value,
                                 achat_brut : value
                             },
                             {
+                                code_art : value,
                                 ean : value,
                                 description : value,
                                 quantity : value,
@@ -109,25 +111,30 @@ class Mistral_API():
                             "text" : '''
                                     L'utilisateur fourni une ou des images correspondants a un  bon de livraison. Ce dernier comporte un tableau détaillant chaque produit.
                                     Le but est de créer un fichier JSON, avec pour chaque produits : 
+                                        - code_art
                                         - ean
                                         - description
                                         - quantity
                                         - achat_brut
 
 
-                                    Pour ce faire, tu vas réaliser plusieurs étapes.
+                                    Pour ce faire, tu vas réaliser plusieurs étapes :
 
-                                    ETAPE 1 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
+                                    ETAPE 1 - Vérifier si toute les colonnes existent :
+                                        - si la colonne n'existe pas, ne l'inclue pas dans le JSON final.
+
+                                    ETAPE 2 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
+                                        - code_art - un code unique identifiant le produit. La colonne 'Code art.', 'Réf.' ou 'REF'
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
-                                        - quantity - La colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'
+                                        - quantité - La colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'
                                         - achat_brut - La colonne 'PU HT' ou 'PU H.T.'  
 
-                                    ETAPE 2 - Construire le JSON
+                                    ETAPE 3 - Construire le JSON
                                         - Le fichier correspond a une liste JSON, contenant les produits.
                                         - Le JSON est une liste.
                                     
-                                    ETAPE 3 - Renvoyer le JSON
+                                    ETAPE 4 - Renvoyer le JSON
                                         - Ta réponse ne doit comporter UNIQUEMENT le JSON et rien d'autre. Ne soit pas verbeux.
                                     '''
                         }

@@ -226,8 +226,8 @@ CSRF_TRUSTED_ORIGINS = ['https://sutoko-production.up.railway.app',]
 # SESSION_COOKIE_HTTPONLY = True
 
 KESIA2_COLUMNS_NAME = {
-    "fournisseur": "NOM_FOURNISSEUR",
     "code_interne": "CODE_NC",
+    "fournisseur": "NOM_FOURNISSEUR",
     "ean": "EAN",
     "description": "DEF",
     "quantité": "STOCK",

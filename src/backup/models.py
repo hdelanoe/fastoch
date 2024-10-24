@@ -1,6 +1,6 @@
 from django.db import models
 
-backup_columns = ['from_inventory', 'creation_date']
+backup_columns = ['inventaire', 'date']
 
 class Backup(models.Model):
     inventory_name = models.CharField(max_length=50)

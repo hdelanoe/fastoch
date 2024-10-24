@@ -1,4 +1,19 @@
 <tr class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"></tr>
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{backup.inventory_name}}</td>
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{backup.date_creation}}</td>
+    <td class="px-4 py-2">
+        <form action="{% url 'delete_backup' id=backup.id %}" method="post">{% csrf_token %}
+            <button type="submit" 
+                class="items-center justify-center px-2 py-1 text-sm font-medium text-white rounded-lg bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
+                SUPPRIMER
+            </button>
+        </form>
+    
+        <!--<button type="button" 
+        data-modal-target="confirm-delete-backup"
+        data-modal-toggle="confirm-delete-backup" 
+        class="items-center justify-center px-2 py-1 text-sm font-medium text-white rounded-lg bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
+            SUPPRIMER
+        </button>-->
+    </td>
 </tr>

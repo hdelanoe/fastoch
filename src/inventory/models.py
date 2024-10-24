@@ -29,7 +29,7 @@ class Product(models.Model):
     fournisseur = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
-    quantity = models.IntegerField(blank=True, null=True)
+    quantity = models.IntegerField(default=0)
     achat_brut = models.FloatField(default=0.00)
     achat_net = models.FloatField(blank=True, null=True)
     achat_tva = models.FloatField(blank=True, null=True)
