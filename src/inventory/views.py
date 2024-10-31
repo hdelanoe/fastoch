@@ -13,10 +13,9 @@ from django.contrib import messages
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import ImportForm, QuestionForm, ProductForm
 from .parsers import json_to_db
-from inventory.models import Inventory, Product, Kesia2_column_names
+from inventory.models import Inventory, Product
 from backup.models import Backup
 from delivery.models import Delivery
-from delivery.views import last_delivery_view
 
 from dashboard.views import init_context
 
@@ -27,13 +26,14 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     context = init_context()
     inventory_obj = Inventory.objects.get(id=id)
     context["inventory"] = inventory_obj
-    context["columns"] = settings.KESIA2_COLUMNS_NAME.keys()
+    context["columns"] = settings.KESIA2_COLUMNS_NAME.values()
     context["response"] = response
     context["products"] = inventory_obj.products.all()
     return render(request, "inventory/inventory.html", context) 
 
 @login_required
 def move_from_file(request, id=None, *args, **kwargs):
+    redirect_url = reverse("inventory", args=[id, 0])
     if request.method == 'POST':
         try:
             form = ImportForm(request.POST)
@@ -41,7 +41,6 @@ def move_from_file(request, id=None, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            print(file_extension)
             if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".csv":
                 fs = FileSystemStorage()
                 filename = fs.save(uploaded_file.name, uploaded_file)
@@ -78,15 +77,15 @@ def move_from_file(request, id=None, *args, **kwargs):
                 delivery_obj = return_obj.get('delivery_obj')
                 if not error_list:
                     messages.success(request, "Your inventory has been updated.")
+                    redirect_url = reverse('last_delivery', args=[id, delivery_obj.id])
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')     
                 fs.delete(file_path)
-                return redirect(reverse(last_delivery_view, args=[id, delivery_obj.id]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')  
         except Exception as e:
             messages.error(request, f'error while saving {e}')
-    return redirect(reverse("inventory", args=[id, 0]))
+    return redirect(redirect_url)
 
 
 
@@ -124,7 +123,7 @@ def backup_inventory(request, id=None, *args, **kwargs):
 def export_inventory(request, id=None, *args, **kwargs):
     inventory_obj = Inventory.objects.get(id=id)
     backup = save_backup(inventory_obj)
-    columns = Kesia2_column_names.values()
+    columns = settings.KESIA2_COLUMNS_NAME.values()
     df = pd.DataFrame([p.as_Kesia2_dict() for p in inventory_obj.products.all()], columns = columns,)
     file_path = f'{settings.MEDIA_ROOT}/{backup.inventory_name}_{str(backup.date_creation)[:10]}.xlsx'
     df.to_excel(file_path, index=False)

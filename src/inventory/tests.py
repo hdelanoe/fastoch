@@ -1,6 +1,6 @@
 from django.test import TestCase
 import json
-from inventory.models import Inventory, Product, StockTransaction, Kesia2_column_names
+from inventory.models import Inventory, Product, Transaction
 from inventory.views import json_to_db
 
 
@@ -75,7 +75,7 @@ class InventoryTestCase(TestCase):
                 achat_net=jd.get('achat_net'),
             )
             product.save()
-            transaction = StockTransaction.objects.create(
+            transaction = Transaction.objects.create(
                 product=product,
                 quantity=product.quantity
             )

@@ -2,20 +2,6 @@ from django.db import models
 
 from provider.models import Provider
 
-Kesia2_column_names = {
-    "fournisseur": "NOM_FOURNISSEUR",
-    "ean": "EAN",
-    "description": "DEF",
-    "quantity": "STOCK",
-    "achat_brut": "BaseHT",
-    "achat_tva": "TAUX_TVA_ACHAT",
-    "achat_net": "PRIX_ACHAT_TTC",
-    "vente_net": "PRIX_TTC",
-    "vente_tva": "TAUX_TVA_VENTE",
-    "code_interne": "CODE_NC",
-
-}
-
 class Product(models.Model):
      
     class IncrementalChoices(models.TextChoices):
@@ -37,7 +23,7 @@ class Product(models.Model):
     vente_net = models.FloatField(blank=True, null=True)
     vente_tva = models.FloatField(blank=True, null=True)
 
-    internal_code = models.CharField(max_length=16, unique=True, blank=True, null=True)
+    code_art = models.CharField(max_length=16, unique=True, blank=True, null=True)
 
     has_changed=models.BooleanField(default=False)
 
@@ -59,7 +45,7 @@ class Product(models.Model):
             "TAUX_TVA_VENTE": self.vente_tva,
         }
 
-class StockTransaction(models.Model):
+class Transaction(models.Model):
 
     class TransctionType(models.TextChoices):
         IN = "in", "In"
@@ -86,11 +72,17 @@ class ProductList(models.Model):
 
     class Meta:
         abstract = True
+
+class TransactionList(models.Model):
+    transactions = models.ManyToManyField(Transaction)
+
+    class Meta:
+        abstract = True        
     
     
 class Inventory(ProductList):
     name = models.CharField(max_length=50, default="My Inventory", unique=True)
-    transaction_list = models.ManyToManyField(StockTransaction)
+    transaction_list = models.ManyToManyField(Transaction)
     last_response =  models.TextField(default="Comment puis-je vous aider ?")
     code_nomenclature = models.CharField(max_length=3, default="DFT", unique=True)
 

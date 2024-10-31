@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, StockEntry, StockTransaction
+from .models import Product, StockEntry, Transaction
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,7 +11,7 @@ class StockEntrySerializer(serializers.ModelSerializer):
         model = StockEntry
         fields = '__all__'
 
-class StockTransactionSerializer(serializers.ModelSerializer):
+class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = StockTransaction
+        model = Transaction
         fields = '__all__'

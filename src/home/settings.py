@@ -119,18 +119,6 @@ DATABASES = {
     }
 }
 
-CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
-DATABASE_URL = config("DATABASE_URL", default=None)
-
-if DATABASE_URL is not None:
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=CONN_MAX_AGE,
-            conn_health_checks=True,
-        )
-    }
 
 
 # Password validation
@@ -226,14 +214,14 @@ CSRF_TRUSTED_ORIGINS = ['https://sutoko-production.up.railway.app',]
 # SESSION_COOKIE_HTTPONLY = True
 
 KESIA2_COLUMNS_NAME = {
-    "code_interne": "CODE_NC",
-    "fournisseur": "NOM_FOURNISSEUR",
+    "code_art": "CODE ART",
+    "fournisseur": "FOURNISSEUR",
     "ean": "EAN",
     "description": "DEF",
     "quantité": "STOCK",
-    "achat brut": "BaseHT",
+    "achat brut": "BASE HT",
     #"achat_tva": "TAUX_TVA_ACHAT",
     #"achat_net": "PRIX_ACHAT_TTC",
-    "vente_net": "PRIX_TTC",
+    "vente_net": "PRIX TTC",
     #"vente_tva": "TAUX_TVA_VENTE",
 }

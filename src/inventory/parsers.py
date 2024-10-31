@@ -1,6 +1,6 @@
 import re
 
-from inventory.models import Product, StockTransaction
+from inventory.models import Product, Transaction
 from provider.models import Provider
 from delivery.models import Delivery
 
@@ -19,8 +19,10 @@ def json_to_db(providername, json_data, inventory, operator=1):
     for jd in json_data:
         try:
             #format values
-            code_art = str(jd.get('code_art')).replace(' ', '')
-            ean = str(jd.get('ean')).replace(' ', '')
+            p = re.compile('\w+')
+            code_art = str(jd.get('code_art')).replace(provider.code, '')
+            code_art = ''.join(p.findall(code_art)).upper()
+            ean = ''.join(p.findall(str(jd.get('ean')))).upper()
             description = jd.get('description')
             quantity = int(jd.get('quantity'))*operator
             achat_brut = float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
@@ -34,7 +36,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
             except Product.DoesNotExist:
                 try:
                     if code_art is not None:
-                        product = Product.objects.get(code_art=code_art)
+                        product = Product.objects.get(code_art=f'{provider.code}{code_art}')
                     else:
                         raise Product.DoesNotExist('No code article')         
                 except Product.DoesNotExist:
@@ -44,15 +46,19 @@ def json_to_db(providername, json_data, inventory, operator=1):
             product.quantity+=quantity       
             if product.achat_brut != achat_brut:
                 product.has_changed=True
+            else:
+                product.has_changed=False    
             product.achat_brut=achat_brut
+            # test #
+            product.code_art = f'{provider.code}{code_art}'
+            #      #
             product.save()
-
-            transaction = StockTransaction.objects.create(
+            transaction = Transaction.objects.create(
                 product=product,
                 quantity=quantity
             )
             transaction.save()
-            delivery_obj.products.add(product)
+            delivery_obj.products.add(transaction)
             inventory.products.add(product)
             inventory.transaction_list.add(transaction)
         except Exception as e:

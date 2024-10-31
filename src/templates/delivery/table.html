@@ -9,7 +9,7 @@
     </thead>
     <tbody>
         <!--Products entries-->
-        {% for product in products %}
+        {% for transaction in transactions %}
             {% include 'delivery/entry.html' with object=entry %}
         {% endfor %}
     </tbody>

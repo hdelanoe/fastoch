@@ -11,8 +11,8 @@
             <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
                 <div class="flex items-center flex-1 space-x-4">
                     <h5>
-                        <span class="text-gray-500">All Products:</span>
-                        <span class="dark:text-white">{{ products|length }}</span>
+                        <span class="text-gray-500">Toutes les transactions:</span>
+                        <span class="dark:text-white">{{ transactions|length }}</span>
                     </h5>
                 </div>
                 <div class="flex flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3">
@@ -27,11 +27,11 @@
                 </div>
             </div>
             <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg overflow-x-auto w-full">
-                {% if products %}
+                {% if transactions %}
                     {% include 'delivery/table.html' %}
                 {% else %}
                     <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                        Sorry, you don't have any products yet
+                        Aucune livraison ici !
                     </div>
                 {% endif %}
             </div>

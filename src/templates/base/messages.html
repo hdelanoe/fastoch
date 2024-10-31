@@ -6,6 +6,11 @@
                     role="alert">
                     <p>{{ message }}</p>
                 </div>
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+            <div class="flex items-center px-4 py-3 text-sm font-bold text-white bg-yellow-500"
+                role="alert">
+                <p>{{ message }}</p>
+            </div>    
             {% else %}
                 <div class="flex items-center px-4 py-3 text-sm font-bold text-white bg-blue-500"
                     role="alert">
