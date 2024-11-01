@@ -1,5 +1,5 @@
 <tr class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"></tr>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{backup.inventory_name}}</td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{backup.inventory.name}}</td>
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{backup.date_creation}}</td>
     <td class="px-4 py-2">
         <form action="{% url 'delete_backup' id=backup.id %}" method="post">{% csrf_token %}

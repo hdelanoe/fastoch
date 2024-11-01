@@ -7,14 +7,15 @@ from delivery.models import Delivery
 
 def json_to_db(providername, json_data, inventory, operator=1):
     # format return obj
-    delivery_obj = Delivery.objects.create(inventory_name=inventory.name)
-    return_obj = {'delivery_obj': delivery_obj, 'error_list': []}
+    delivery = Delivery.objects.create(inventory=inventory)
+    return_obj = {'delivery': delivery, 'error_list': []}
     
     # get or create provider
     provider, created = Provider.objects.get_or_create(
         name=providername,
         code=str(providername).replace(' ', '')[:3].upper())
-    provider.save()
+    if created:
+        provider.save()
 
     for jd in json_data:
         try:
@@ -41,29 +42,30 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         raise Product.DoesNotExist('No code article')         
                 except Product.DoesNotExist:
                     product = product = Product.objects.create(
+                        code_art=f'{provider.code}{code_art}',
                         fournisseur=provider,
-                        description=description)
+                        description=description,
+                        ean=ean)
             product.quantity+=quantity       
-            if product.achat_brut != achat_brut:
+            if product.achat_brut != achat_brut or product:
                 product.has_changed=True
             else:
                 product.has_changed=False    
             product.achat_brut=achat_brut
-            # test #
-            product.code_art = f'{provider.code}{code_art}'
-            #      #
             product.save()
+
+
             transaction = Transaction.objects.create(
                 product=product,
                 quantity=quantity
             )
             transaction.save()
-            delivery_obj.products.add(transaction)
+            delivery.transactions.add(transaction)
             inventory.products.add(product)
             inventory.transaction_list.add(transaction)
         except Exception as e:
             return_obj['error_list'].append(f'{e}')
     inventory.save()
-    delivery_obj.save()
-    return_obj['delivery_obj'] = delivery_obj
+    delivery.save()
+    return_obj['delivery'] = delivery
     return return_obj
