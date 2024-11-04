@@ -11,4 +11,5 @@ urlpatterns = [
     path('<str:id>/export_inventory', inventory_views.export_inventory, name='export_inventory'),
 
     path('<int:inventory>/update_product/<int:product>', inventory_views.update_product, name='update_product'),
+    path('<int:inventory>/delete_product/<int:product>', inventory_views.delete_product, name='delete_product'),
 ]

@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.conf import settings
 import os
 
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.http import Http404, HttpResponse
 
 
@@ -34,6 +35,21 @@ def last_delivery_view(request, inv_id=None, id=None, *args, **kwargs):
             message_list.append(f'Le prix de {transaction.product.description} a changé !')
     messages.warning(request, f'error while parsing {message_list}')      
     return render(request, "delivery/delivery.html", context)
+
+@login_required
+def validate_delivery(request, id=None, *args, **kwargs):
+    delivery = Delivery.objects.get(id=id)
+    inventory = delivery.inventory
+    for transaction in delivery.transactions:
+        product = transaction.product
+        product.quantity += transaction.quantity
+        product.save()
+        inventory.products.add(product)
+        inventory.transaction_list.add(transaction)
+    inventory.save()
+    delivery.is_validated = True
+    delivery.save()
+    redirect(reverse("last_delivery", args=[inventory.id, delivery.id]))     
 
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):

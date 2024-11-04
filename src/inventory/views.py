@@ -51,7 +51,6 @@ def move_from_file(request, id=None, *args, **kwargs):
                     pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
                     api = Mistral_API()
                     image_content = []
-                    delivery = Delivery.objects.create()
                     try:
                         for count, page in enumerate(pages):
                             page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
@@ -98,7 +97,14 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
         product_obj.description = form.data['description']
         product_obj.price_net = form.data['price_net']
         product_obj.save()
-    return redirect(reverse("inventory", args=[id, 1]))    
+    return redirect(reverse("inventory", args=[inventory, 0])) 
+
+@login_required
+def delete_product(request, inventory=None, product=None, *args, **kwargs):
+    if request.method == 'POST':
+        product_obj = Product.objects.get(id=product)
+        product_obj.delete()
+    return redirect(reverse("inventory", args=[inventory, 0]))     
 
 @login_required
 def ask_question(request, id=None, *args, **kwargs):

@@ -128,7 +128,7 @@ class Mistral_API():
                                         - code_art - un code unique identifiant le produit. La colonne 'Code art.', 'Réf.' ou 'REF'. Prend bien toute la chaine de caracteres.
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
-                                        - quantité - La colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
+                                        - quantity - La quantité du produit. Correspond a la colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
                                         - achat_brut - Le prix unitaire hors taxe. Souvent la colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'  
 
                                     ETAPE 3 - Considérer les doublons :

@@ -7,3 +7,4 @@ delivery_columns = ['from_inventory', 'creation_date']
 class Delivery(TransactionList):
     inventory = models.ForeignKey(Inventory, on_delete=models.PROTECT, null=True)
     date_creation = models.DateTimeField(auto_now_add=True)
+    is_validated = models.BooleanField(default=False)

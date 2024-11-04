@@ -29,6 +29,9 @@ class Product(models.Model):
 
     incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
     
+    def get_achat_brut(self):
+        return format(self.achat_brut, '.2f')
+    
     def __str__(self):
         return f'{self.fournisseur} {self.ean} {self.description} {self.quantity}'
     

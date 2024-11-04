@@ -21,8 +21,11 @@ def json_to_db(providername, json_data, inventory, operator=1):
         try:
             #format values
             p = re.compile('\w+')
-            code_art = str(jd.get('code_art')).replace(provider.code, '')
-            code_art = ''.join(p.findall(code_art)).upper()
+            code_art = jd.get('code_art')
+            if code_art is not None:
+                code_art = str(jd.get('code_art')).replace(provider.code, '')
+                code_art = ''.join(p.findall(code_art)).upper()
+                code_art = f'{provider.code}{code_art}'
             ean = ''.join(p.findall(str(jd.get('ean')))).upper()
             description = jd.get('description')
             quantity = int(jd.get('quantity'))*operator
@@ -37,16 +40,14 @@ def json_to_db(providername, json_data, inventory, operator=1):
             except Product.DoesNotExist:
                 try:
                     if code_art is not None:
-                        product = Product.objects.get(code_art=f'{provider.code}{code_art}')
+                        product = Product.objects.get(code_art=code_art)
                     else:
                         raise Product.DoesNotExist('No code article')         
                 except Product.DoesNotExist:
                     product = product = Product.objects.create(
-                        code_art=f'{provider.code}{code_art}',
+                        code_art = f'{provider.code}{product.id}',
                         fournisseur=provider,
-                        description=description,
-                        ean=ean)
-            product.quantity+=quantity       
+                        description=description)
             if product.achat_brut != achat_brut or product:
                 product.has_changed=True
             else:
@@ -61,11 +62,8 @@ def json_to_db(providername, json_data, inventory, operator=1):
             )
             transaction.save()
             delivery.transactions.add(transaction)
-            inventory.products.add(product)
-            inventory.transaction_list.add(transaction)
         except Exception as e:
             return_obj['error_list'].append(f'{e}')
-    inventory.save()
     delivery.save()
     return_obj['delivery'] = delivery
     return return_obj
