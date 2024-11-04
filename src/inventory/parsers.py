@@ -44,11 +44,14 @@ def json_to_db(providername, json_data, inventory, operator=1):
                     else:
                         raise Product.DoesNotExist('No code article')         
                 except Product.DoesNotExist:
-                    product = product = Product.objects.create(
-                        code_art = f'{provider.code}{product.id}',
+                    product = Product.objects.create(
                         fournisseur=provider,
                         description=description)
-            if product.achat_brut != achat_brut or product:
+                    if code_art is None:
+                        code_art = f'{provider.code}{product.id}'
+                    product.code_art = code_art
+                    
+            if product.achat_brut != achat_brut:
                 product.has_changed=True
             else:
                 product.has_changed=False    

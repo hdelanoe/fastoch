@@ -76,7 +76,7 @@ def move_from_file(request, id=None, *args, **kwargs):
                 delivery = return_obj.get('delivery')
                 if not error_list:
                     messages.success(request, "Your inventory has been updated.")
-                    redirect_url = reverse('last_delivery', args=[id, delivery.id])
+                    redirect_url = reverse('last_delivery', args=[delivery.id])
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')     
                 fs.delete(file_path)

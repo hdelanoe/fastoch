@@ -16,9 +16,9 @@
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.quantity}}</td>
     <!-- Achat brut -->
     {% if product.has_changed %}
-        <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">{{product.get_achat_brut}} €</td>
+        <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">{{product.get_format_achat_brut}} €</td>
     {% else %}
-        <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.get_achat_brut}} €</td>
+        <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.get_format_achat_brut}} €</td>
     {% endif %}
     <!-- Vente Net -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">

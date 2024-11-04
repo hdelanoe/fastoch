@@ -120,16 +120,18 @@ class Mistral_API():
 
                                     Pour ce faire, tu vas réaliser plusieurs étapes :
 
-                                    ETAPE 1 - Vérifier si toute les colonnes existent :
-                                        - si la colonne n'existe pas, ne l'inclue pas dans le JSON final.
-
-
-                                    ETAPE 2 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
-                                        - code_art - un code unique identifiant le produit. La colonne 'Code art.', 'Réf.' ou 'REF'. Prend bien toute la chaine de caracteres.
+                                    ETAPE 1 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
+                                        - code_art - un code unique identifiant le produit. Prend bien toute la chaine de caracteres.
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
-                                        - quantity - La quantité du produit. Correspond a la colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
-                                        - achat_brut - Le prix unitaire hors taxe. Souvent la colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'  
+                                        - quantity - La quantité du produit. 
+                                        - achat_brut - Le prix unitaire hors taxe.
+
+                                    ETAPE 2 - Vérifier l'intégrité des ensembles clé/valeurs :
+                                        - Si la colonne d'une clé n'existe pas dans le tableau, ne l'iinvente pas et ne l'inclue pas dans le JSON final.
+                                        - 'code_art' ne peux correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
+                                        - 'quantity' ne peux correspondre qu'avec une colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
+                                        - 'achat_brut' ne peux correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
 
                                     ETAPE 3 - Considérer les doublons :
                                         - Si un produit est en double sur plusieurs lignes du tableau, tu dois les traiter comme deux produits différents et donc l'inclure plusieurs fois.
@@ -140,10 +142,10 @@ class Mistral_API():
 
                                     ETAPE 5 - Construire le JSON
                                         - Le fichier correspond a une liste JSON, contenant les produits.
-                                        - Le JSON est une liste.
+                                        - Le JSON est une liste, pas un objet contenant une liste.
                                     
                                     ETAPE 6 - Renvoyer le JSON
-                                        - Ta réponse ne doit comporter UNIQUEMENT le JSON et rien d'autre. Ne soit pas verbeux.
+                                        - Ta réponse ne doit comporter UNIQUEMENT la liste JSON et rien d'autre. Ne soit pas verbeux.
                                     '''
                         }
                     ]

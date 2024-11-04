@@ -20,10 +20,10 @@ def delivery_view(request, *args, **kwargs):
     return render(request, "delivery/delivery_list/delivery.html", context) 
 
 @login_required
-def last_delivery_view(request, inv_id=None, id=None, *args, **kwargs):
+def last_delivery_view(request, id=None, *args, **kwargs):
     context = init_context()
     delivery = Delivery.objects.get(id=id)
-    inventory = Inventory.objects.get(id=inv_id)
+    inventory = delivery.inventory
     transactions = delivery.transactions.all()
     context["delivery"] = delivery
     context["inventory"] = inventory
@@ -38,18 +38,22 @@ def last_delivery_view(request, inv_id=None, id=None, *args, **kwargs):
 
 @login_required
 def validate_delivery(request, id=None, *args, **kwargs):
-    delivery = Delivery.objects.get(id=id)
-    inventory = delivery.inventory
-    for transaction in delivery.transactions:
-        product = transaction.product
-        product.quantity += transaction.quantity
-        product.save()
-        inventory.products.add(product)
-        inventory.transaction_list.add(transaction)
-    inventory.save()
-    delivery.is_validated = True
-    delivery.save()
-    redirect(reverse("last_delivery", args=[inventory.id, delivery.id]))     
+    try:
+        delivery = Delivery.objects.get(id=id)
+        inventory = delivery.inventory
+        for transaction in delivery.transactions.all():
+            product = transaction.product
+            product.quantity += transaction.quantity
+            product.save()
+            inventory.products.add(product)
+            inventory.transaction_list.add(transaction)
+        inventory.save()
+        delivery.is_validated = True
+        delivery.save()
+        messages.success(request, f'Livraison validé et ajouté a l\'inventaire')    
+    except Exception as e:
+        messages.error(request, f'Error while validate {e}')    
+    return redirect(reverse("last_delivery", args=[delivery.id]))     
 
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
@@ -67,3 +71,10 @@ def export_delivery(request, id=None, *args, **kwargs):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
+
+@login_required
+def delete_delivery(request, id=None, *args, **kwargs):
+    delivery = Delivery.objects.get(id=id)
+    delivery.delete()
+    messages.success(request, f'la livraison a bien été supprimé. ')
+    return redirect(reverse("delivery"))  

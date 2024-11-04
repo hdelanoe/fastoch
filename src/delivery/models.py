@@ -2,7 +2,7 @@ from django.db import models
 
 from inventory.models import Inventory, TransactionList
 
-delivery_columns = ['from_inventory', 'creation_date']
+delivery_columns = ['inventaire', 'date de création', 'validé ?']
 
 class Delivery(TransactionList):
     inventory = models.ForeignKey(Inventory, on_delete=models.PROTECT, null=True)
