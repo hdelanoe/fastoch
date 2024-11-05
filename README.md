@@ -1,4 +1,4 @@
-Sutoko SaaS app for Stock Management
+Fastoch SaaS app for Stock Management
 
 Stack : 
     - Django
