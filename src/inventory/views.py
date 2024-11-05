@@ -118,19 +118,69 @@ def ask_question(request, id=None, *args, **kwargs):
     print(inventory.last_response)    
     return redirect(reverse("inventory", args=[id, 1]))
 
+"""
 @login_required
-def backup_inventory(request, id=None, *args, **kwargs):
-    inventory = Inventory.objects.get(id=id)
-    save_backup(inventory)
-    messages.success(request, "Your inventory has been backup.")
-    return redirect(reverse("inventory", args=[id, 0]))
+def import_inventory(request, id=None, *args, **kwargs):
+    redirect_url = reverse("inventory", args=[id, 0])
+    if request.method == 'POST':
+        try:
+            form = ImportForm(request.POST)
+            uploaded_file = request.FILES['document']
+            filename, file_extension = os.path.splitext(uploaded_file.name)
+            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".csv":
+                fs = FileSystemStorage()
+                filename = fs.save(uploaded_file.name, uploaded_file)
+                file_path = fs.path(filename)
+                inventory = Inventory.objects.get(id=id)
+
+                if file_extension == ".pdf":
+                    pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
+                    api = Mistral_API()
+                    image_content = []
+                    try:
+                        for count, page in enumerate(pages):
+                            page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
+                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                            image_content.append(format_content_from_image_path(jpg_path))
+                        try:
+                            json_data = api.extract_json_from_image(image_content)
+                        except Exception as e:
+                            messages.error(request, f'error while extracting {e}')
+                        for count, page in enumerate(pages):
+                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                            fs.delete(jpg_path)
+                    except Exception as e:
+                        messages.error(request, f'error while parsing {e}')
+                else:
+                    if file_extension == ".xml":
+                        df = pd.read_xml(file_path)
+                    if file_extension == ".csv":
+                        df = pd.read_csv(file_path)  
+                    json_data = df.to_json(orient='records')
+                return_obj = json_to_db(providername, json_data, inventory, move_type)
+                error_list = return_obj.get('error_list')
+                delivery = return_obj.get('delivery')
+                if not error_list:
+                    messages.success(request, "Your inventory has been updated.")
+                    redirect_url = reverse('last_delivery', args=[delivery.id])
+                else:
+                    messages.error(request, f'Error while extracting : {error_list}')     
+                fs.delete(file_path)
+            else:
+                messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')  
+        except Exception as e:
+            messages.error(request, f'error while saving {e}')
+    return redirect(redirect_url)
+    """
 
 @login_required
 def export_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     backup = save_backup(inventory)
-    columns = settings.KESIA2_COLUMNS_NAME.values()
-    df = pd.DataFrame([p.as_Kesia2_dict() for p in inventory.products.all()], columns = columns,)
+    df = pd.DataFrame.from_dict(
+        [p.as_Kesia2_dict() for p in inventory.products.all()], 
+        orient='columns'
+        )
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
@@ -139,6 +189,13 @@ def export_inventory(request, id=None, *args, **kwargs):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
+
+@login_required
+def backup_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(id=id)
+    save_backup(inventory)
+    messages.success(request, "Your inventory has been backup.")
+    return redirect(reverse("inventory", args=[id, 0]))
 
 def save_backup(inventory):
     backup = Backup(

@@ -58,12 +58,11 @@ def validate_delivery(request, id=None, *args, **kwargs):
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
-    columns = settings.KESIA2_COLUMNS_NAME.values()
-    products = []
-    for t in delivery.transactions.all():
-        products.append(t.product)
-    df = pd.DataFrame([p.as_Kesia2_dict() for p in products], columns = columns,)
-    file_path = f'{settings.MEDIA_ROOT}/{delivery.inventory.name}_{str(delivery.date_creation)[:10]}.xlsx'
+    df = pd.DataFrame.from_dict(
+        [t.product.as_Kesia2_dict() for t in delivery.transactions.all()], 
+        orient='columns'
+        )
+    file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_creation)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:

@@ -37,15 +37,16 @@ class Product(models.Model):
     
     def as_Kesia2_dict(self):
         return {
+            "IDART": self.code_art,
             "NOM_FOURNISSEUR": self.fournisseur.name,
             "EAN": self.ean,
             "DEF": self.description,
             "STOCK": self.quantity,
             "BaseHT": self.achat_brut,
-            "TAUX_TVA_ACHAT": self.achat_tva,
-            "PRIX_ACHAT_TTC": self.achat_net,
+            #"TAUX_TVA_ACHAT": self.achat_tva,
+            #"PRIX_ACHAT_TTC": self.achat_net,
             "PRIX_TTC": self.vente_net,
-            "TAUX_TVA_VENTE": self.vente_tva,
+            #"TAUX_TVA_VENTE": self.vente_tva,
         }
 
 class Transaction(models.Model):

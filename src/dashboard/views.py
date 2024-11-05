@@ -40,7 +40,7 @@ def init_context():
     except Backup.DoesNotExist:
         backup_list = None    
     try:
-        delivery_list = Delivery.objects.all()
+        delivery_list = Delivery.objects.all()[::-1]
     except Delivery.DoesNotExist:
         delivery_list = None        
     return {
