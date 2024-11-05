@@ -86,16 +86,20 @@ class Mistral_API():
                                 ean : value,
                                 description : value,
                                 quantity : value,
-                                achat_brut : value
+                                achat_brut : value,
+                                discount : value,
                             },
                             {
                                 code_art : value,
                                 ean : value,
                                 description : value,
                                 quantity : value,
-                                achat_brut : value
+                                achat_brut : value,
+                                discount : value
                             }
                         ]
+
+                        Si aucun élément du tableau ne correspond a une clé, ne l'ajoute pas.
                     '''
                 }]
         for fi in formatted_images:
@@ -116,6 +120,7 @@ class Mistral_API():
                                         - description
                                         - quantity
                                         - achat_brut
+                                        - discount
 
 
                                     Pour ce faire, tu vas réaliser plusieurs étapes :
@@ -124,19 +129,23 @@ class Mistral_API():
                                         - code_art - un code unique identifiant le produit. Prend bien toute la chaine de caracteres.
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
-                                        - quantity - La quantité du produit. 
+                                        - quantity - La quantité du produit.
+                                        - discount - La remise sur le produit. 
                                         - achat_brut - Le prix unitaire hors taxe.
 
                                     ETAPE 2 - Vérifier l'intégrité des ensembles clé/valeurs :
-                                        - Si la colonne d'une clé n'existe pas dans le tableau, ne l'iinvente pas et ne l'inclue pas dans le JSON final.
-                                        - 'code_art' ne peux correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
-                                        - 'quantity' ne peux correspondre qu'avec une colonne 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
-                                        - 'achat_brut' ne peux correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
+                                        - 'code_art' ne peut correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
+                                        - 'ean' ne peut correspondre qu'avec une colonne 'ean' ou 'EAN'
+                                        - 'quantity' ne peut correspondre qu'avec une colonne, dans l'ordre des priorités, 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
+                                        - 'discount' ne peut correspondre qu'avec une colonne 'Remise'
+                                        - 'achat_brut' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
 
                                     ETAPE 3 - Considérer les doublons :
                                         - Si un produit est en double sur plusieurs lignes du tableau, tu dois les traiter comme deux produits différents et donc l'inclure plusieurs fois.
                                             
                                     ETAPE 4 - Prend en compte les affirmations suivantes : 
+                                        - Si la colonne d'une clé n'existe pas dans le tableau, ne l'invente pas et ne l'inclue pas dans le JSON final. Par example, si il n'y a pas de colonne EAN, ne l'ajoute pas.
+                                        ne fait pas non plus correspondre le PU HT au poids. 
                                         - 'code_art' et 'ean' sont deux identifiants différents.
                                         - 'achat_brut' est le prix unitaire hors taxe, pas le prix total.    
 

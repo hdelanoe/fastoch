@@ -28,8 +28,8 @@ def json_to_db(providername, json_data, inventory, operator=1):
                 code_art = f'{provider.code}{code_art}'
             ean = ''.join(p.findall(str(jd.get('ean')))).upper()
             description = jd.get('description')
-            quantity = int(jd.get('quantity'))*operator
-            achat_brut = float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut'))).group(1))
+            quantity = int(float(str(jd.get('quantity')).replace(',', '.')))*operator
+            achat_brut = float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut')).replace(',', '.')).group(1))
 
             # get or create product
             try:
@@ -50,6 +50,8 @@ def json_to_db(providername, json_data, inventory, operator=1):
                     if code_art is None:
                         code_art = f'{provider.code}{product.id}'
                     product.code_art = code_art
+                    if ean.isdigit():
+                        product.ean = ean
                     
             if product.achat_brut != achat_brut:
                 product.has_changed=True
