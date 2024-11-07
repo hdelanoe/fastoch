@@ -215,13 +215,13 @@ CSRF_TRUSTED_ORIGINS = ['https://fastoch-production.up.railway.app',]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
-    "fournisseur": "FOURNISSEUR",
+    "fournisseur": "NOM_FOURNISSEUR",
     "ean": "EAN",
     "description": "DEF",
-    "quantité": "STOCK",
-    "achat brut": "BASE HT",
+    "quantity": "STOCK",
+    "achat_brut": "BaseHT",
     #"achat_tva": "TAUX_TVA_ACHAT",
     #"achat_net": "PRIX_ACHAT_TTC",
-    "vente_net": "PRIX TTC",
+    "vente_net": "PRIX_TTC",
     #"vente_tva": "TAUX_TVA_VENTE",
 }

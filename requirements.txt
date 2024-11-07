@@ -13,3 +13,4 @@ pandas
 mistralai
 pdf2image
 openpyxl
+lxml

@@ -1,3 +1,4 @@
+import json
 import os
 from django.conf import settings
 from django.http import Http404, HttpResponse
@@ -41,7 +42,7 @@ def move_from_file(request, id=None, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".csv":
+            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
                 fs = FileSystemStorage()
                 filename = fs.save(uploaded_file.name, uploaded_file)
                 file_path = fs.path(filename)
@@ -66,16 +67,17 @@ def move_from_file(request, id=None, *args, **kwargs):
                     except Exception as e:
                         messages.error(request, f'error while parsing {e}')
                 else:
-                    if file_extension == ".xml":
-                        df = pd.read_xml(file_path)
+                    if file_extension == ".xml" or file_extension == ".xlsx":
+                        df = pd.read_xml(file_path, encoding='utf-8')
                     if file_extension == ".csv":
-                        df = pd.read_csv(file_path)  
-                    json_data = df.to_json(orient='records')
+                        df = pd.read_csv(file_path, encoding='utf-8')  
+                    json_data = json.loads(df.to_json(orient='records'))
+                    print(json_data)
                 return_obj = json_to_db(providername, json_data, inventory, move_type)
                 error_list = return_obj.get('error_list')
                 delivery = return_obj.get('delivery')
                 if not error_list:
-                    messages.success(request, "Your inventory has been updated.")
+                    messages.success(request, "Livraison bien enregistrée.")
                     redirect_url = reverse('last_delivery', args=[delivery.id])
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')     
@@ -181,7 +183,7 @@ def export_inventory(request, id=None, *args, **kwargs):
         [p.as_Kesia2_dict() for p in inventory.products.all()], 
         orient='columns'
         )
-    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
+    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xml'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:

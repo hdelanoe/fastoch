@@ -6,7 +6,7 @@
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.quantity}}</td>
     {% if transaction.product.has_changed %}
-        <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">{{transaction.product.get_format_achat_brut}}€</td>
+        <td class="px-4 py-2 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.get_format_achat_brut}}€</td>
     {% else %}
         <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.get_format_achat_brut}}€</td>
     {% endif %}

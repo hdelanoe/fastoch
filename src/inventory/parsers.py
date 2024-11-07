@@ -1,8 +1,10 @@
 import re
 
+from django.conf import settings
 from inventory.models import Product, Transaction
 from provider.models import Provider
 from delivery.models import Delivery
+
 
 
 def json_to_db(providername, json_data, inventory, operator=1):
@@ -21,15 +23,20 @@ def json_to_db(providername, json_data, inventory, operator=1):
         try:
             #format values
             p = re.compile('\w+')
-            code_art = jd.get('code_art')
+            code_art = kesia_get(jd, 'code_art')
             if code_art is not None:
-                code_art = str(jd.get('code_art')).replace(provider.code, '')
+                code_art = str(kesia_get(jd, 'code_art')).replace(provider.code, '')
                 code_art = ''.join(p.findall(code_art)).upper()
                 code_art = f'{provider.code}{code_art}'
-            ean = ''.join(p.findall(str(jd.get('ean')))).upper()
-            description = jd.get('description')
-            quantity = int(float(str(jd.get('quantity')).replace(',', '.')))*operator
-            achat_brut = float(re.search(r'([0-9]+.?[0-9]+)', str(jd.get('achat_brut')).replace(',', '.')).group(1))
+
+            ean = ''.join(p.findall(str(kesia_get(jd, 'ean')))).upper()
+            description = kesia_get(jd, 'description')
+            quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
+            achat_brut = float(
+                re.search(
+                    r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_brut')).replace(',', '.')
+                    ).group(1)
+                )
 
             # get or create product
             try:
@@ -52,7 +59,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
                     product.code_art = code_art
                     if ean.isdigit():
                         product.ean = ean
-                    
+
             if product.achat_brut != achat_brut:
                 product.has_changed=True
             else:
@@ -67,8 +74,17 @@ def json_to_db(providername, json_data, inventory, operator=1):
             )
             transaction.save()
             delivery.transactions.add(transaction)
+            delivery.providers.add(product.fournisseur)
         except Exception as e:
             return_obj['error_list'].append(f'{e}')
-    delivery.save()
-    return_obj['delivery'] = delivery
+
+    if not return_obj['error_list']:           
+        delivery.save()
+        return_obj['delivery'] = delivery
     return return_obj
+
+def kesia_get(jd, key):
+    value = jd.get(key)
+    if value is None:
+        return jd.get(settings.KESIA2_COLUMNS_NAME.get(key))
+    return value

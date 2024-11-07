@@ -25,6 +25,7 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
     inventory = delivery.inventory
     transactions = delivery.transactions.all()
+    warning = False
     context["delivery"] = delivery
     context["inventory"] = inventory
     context["columns"] = settings.KESIA2_COLUMNS_NAME.values()
@@ -33,7 +34,9 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     for transaction in transactions:
         if transaction.product.has_changed:
             message_list.append(f'Le prix de {transaction.product.description} a changé !')
-    messages.warning(request, f'error while parsing {message_list}')      
+            warning = True
+    if warning:        
+        messages.warning(request, f'{message_list}')      
     return render(request, "delivery/delivery.html", context)
 
 @login_required
@@ -50,7 +53,7 @@ def validate_delivery(request, id=None, *args, **kwargs):
         inventory.save()
         delivery.is_validated = True
         delivery.save()
-        messages.success(request, f'Livraison validé et ajouté a l\'inventaire')    
+        messages.success(request, f'Livraison validée et ajoutée a l\'inventaire')    
     except Exception as e:
         messages.error(request, f'Error while validate {e}')    
     return redirect(reverse("last_delivery", args=[delivery.id]))     
@@ -59,11 +62,11 @@ def validate_delivery(request, id=None, *args, **kwargs):
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
     df = pd.DataFrame.from_dict(
-        [t.product.as_Kesia2_dict() for t in delivery.transactions.all()], 
+        [t.product.as_Kesia2_dict(t.quantity) for t in delivery.transactions.all()], 
         orient='columns'
         )
-    file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_creation)[:10]}.xlsx'
-    df.to_excel(file_path, index=False)
+    file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_creation)[:10]}.xml'
+    df.to_xml(file_path, index=False, encoding='utf-8')
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")

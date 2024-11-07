@@ -48,6 +48,20 @@ class Product(models.Model):
             "PRIX_TTC": self.vente_net,
             #"TAUX_TVA_VENTE": self.vente_tva,
         }
+    
+    def as_Kesia2_dict(self, quantity):
+        return {
+            "IDART": self.code_art,
+            "NOM_FOURNISSEUR": self.fournisseur.name,
+            "EAN": self.ean,
+            "DEF": self.description,
+            "STOCK": quantity,
+            "BaseHT": self.achat_brut,
+            #"TAUX_TVA_ACHAT": self.achat_tva,
+            #"PRIX_ACHAT_TTC": self.achat_net,
+            "PRIX_TTC": self.vente_net,
+            #"TAUX_TVA_VENTE": self.vente_tva,
+        }
 
 class Transaction(models.Model):
 
@@ -88,7 +102,6 @@ class Inventory(ProductList):
     name = models.CharField(max_length=50, default="My Inventory", unique=True)
     transaction_list = models.ManyToManyField(Transaction)
     last_response =  models.TextField(default="Comment puis-je vous aider ?")
-    code_nomenclature = models.CharField(max_length=3, default="DFT", unique=True)
 
     def __str__(self):
         return f'name:{self.name}'
