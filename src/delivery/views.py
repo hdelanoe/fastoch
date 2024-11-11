@@ -62,7 +62,7 @@ def validate_delivery(request, id=None, *args, **kwargs):
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
     df = pd.DataFrame.from_dict(
-        [t.product.as_Kesia2_dict(t.quantity) for t in delivery.transactions.all()], 
+        [t.product.as_Kesia2_dict_with_quantity(t.quantity) for t in delivery.transactions.all()], 
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_creation)[:10]}.xml'

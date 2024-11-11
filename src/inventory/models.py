@@ -49,7 +49,7 @@ class Product(models.Model):
             #"TAUX_TVA_VENTE": self.vente_tva,
         }
     
-    def as_Kesia2_dict(self, quantity):
+    def as_Kesia2_dict_with_quantity(self, quantity):
         return {
             "IDART": self.code_art,
             "NOM_FOURNISSEUR": self.fournisseur.name,
