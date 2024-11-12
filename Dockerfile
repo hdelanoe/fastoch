@@ -59,6 +59,9 @@ ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+ENV DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+ENV DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+ENV DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
 
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
@@ -77,7 +80,7 @@ RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 RUN python manage.py makemigrations
 RUN python manage.py migrate
-RUN python manage.py createsuperuser --noinput --username $DJANGO_SUPERUSER_USERNAME --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
+RUN python manage.py createsuperuser --noinput --username $DJANGO_SUPERUSER_USERNAME
 
 # whitenoise -> s3
 
