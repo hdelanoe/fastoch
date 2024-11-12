@@ -220,7 +220,7 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://fastoch-production.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
 
 # For production, set these lines to True
 # CSRF_COOKIE_HTTPONLY = True
