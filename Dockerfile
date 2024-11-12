@@ -79,6 +79,7 @@ RUN npm run build
 RUN python manage.py vendor_pull    
 RUN python manage.py collectstatic --noinput
 
+
 # whitenoise -> s3
 
 
@@ -93,7 +94,7 @@ RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "python manage.py makemigrations\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate\n" >> ./paracord_runner.sh && \
     printf "python manage.py createcachetable\n" >> ./paracord_runner.sh && \
-    printf "python manage.py create_superuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
+    printf "python manage.py createsuperuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
 
