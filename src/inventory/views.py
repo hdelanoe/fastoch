@@ -66,10 +66,12 @@ def move_from_file(request, id=None, *args, **kwargs):
                     except Exception as e:
                         messages.error(request, f'error while parsing {e}')
                 else:
-                    if file_extension == ".xml" or file_extension == ".xlsx":
+                    if file_extension == ".xlsx":
                         df = pd.read_excel(file_path)
+                    if file_extension == ".xml":
+                        df = pd.read_xml(file_path, encoding='utf-8')
                     if file_extension == ".csv":
-                        df = pd.read_csv(file_path, encoding='utf-8')
+                        df = pd.read_csv(file_path, encoding='utf-8')    
                     json_data = json.loads(df.to_json(orient='records'))
                     print(json_data)
                 return_obj = json_to_db(providername, json_data, inventory, move_type)
