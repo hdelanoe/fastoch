@@ -99,7 +99,7 @@ class Mistral_API():
                             }
                         ]
 
-                        Si aucun élément du tableau ne correspond a une clé, ne l'ajoute pas.
+                        Si aucun élément du tableau ne correspond a une clé, ne l'ajoute pas. Si un produit est en double, compte le deux fois.
                     '''
                 }]
         for fi in formatted_images:
@@ -123,8 +123,10 @@ class Mistral_API():
                                         - discount
 
 
-                                    Pour ce faire, tu vas réaliser plusieurs étapes :
+                                    Pour ce faire, tu vas réaliser plusieurs étapes. Les étapes 1 et 2 contextualisent les données que tu dois extraire. 
+                                    L'étape 3 est importante car elle explicite les limites et regles que tu dois appliquer. Les étapes 4 et 5 figurent la construction du JSON.
 
+                                    
                                     ETAPE 1 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
                                         - code_art - un code unique identifiant le produit. Prend bien toute la chaine de caracteres.
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
@@ -140,20 +142,19 @@ class Mistral_API():
                                         - 'discount' ne peut correspondre qu'avec une colonne 'Remise'
                                         - 'achat_brut' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
 
-                                    ETAPE 3 - Considérer les doublons :
-                                        - Si un produit est en double sur plusieurs lignes du tableau, tu dois les traiter comme deux produits différents et donc l'inclure plusieurs fois.
-                                            
-                                    ETAPE 4 - Prend en compte les affirmations suivantes : 
+                                    ETAPE 3 - Prend en compte les précisions suivantes : 
+                                        - Il y a autant d'objets dans la liste JSON que de produits dans le tableau a analyser.
                                         - Si la colonne d'une clé n'existe pas dans le tableau, ne l'invente pas et ne l'inclue pas dans le JSON final. Par example, si il n'y a pas de colonne EAN, ne l'ajoute pas.
-                                        ne fait pas non plus correspondre le PU HT au poids. 
+                                        ne fait pas non plus correspondre le PU HT au poids.
+                                        - Si le meme produit est présent plusieurs fois dans le tableau, crée donc autant d'entrée dans le JSON final.
                                         - 'code_art' et 'ean' sont deux identifiants différents.
                                         - 'achat_brut' est le prix unitaire hors taxe, pas le prix total.    
 
-                                    ETAPE 5 - Construire le JSON
+                                    ETAPE 4 - Construire le JSON
                                         - Le fichier correspond a une liste JSON, contenant les produits.
                                         - Le JSON est une liste, pas un objet contenant une liste.
                                     
-                                    ETAPE 6 - Renvoyer le JSON
+                                    ETAPE 5 - Renvoyer le JSON
                                         - Ta réponse ne doit comporter UNIQUEMENT la liste JSON et rien d'autre. Ne soit pas verbeux.
                                     '''
                         }

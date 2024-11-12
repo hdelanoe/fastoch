@@ -67,7 +67,7 @@ def move_from_file(request, id=None, *args, **kwargs):
                         messages.error(request, f'error while parsing {e}')
                 else:
                     if file_extension == ".xml" or file_extension == ".xlsx":
-                        df = pd.read_xml(file_path, encoding='utf-8')
+                        df = pd.read_excel(file_path)
                     if file_extension == ".csv":
                         df = pd.read_csv(file_path, encoding='utf-8')
                     json_data = json.loads(df.to_json(orient='records'))
