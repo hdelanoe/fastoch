@@ -80,7 +80,12 @@ RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 RUN python manage.py makemigrations
 RUN python manage.py migrate
-RUN python manage.py createsuperuser --noinput --username ${DJANGO_SUPERUSER_PASSWORD} --email ${DJANGO_SUPERUSER_EMAIL}
+RUN python -c "import django; django.setup(); \
+   from django.contrib.auth.management.commands.createsuperuser import get_user_model; \
+   get_user_model()._default_manager.db_manager('$DJANGO_DB_NAME').create_superuser( \
+   username='$DJANGO_SUPERUSER_USERNAME', \
+   email='$DJANGO_SUPERUSER_EMAIL', \
+   password='$DJANGO_SUPERUSER_PASSWORD')"
 
 # whitenoise -> s3
 
