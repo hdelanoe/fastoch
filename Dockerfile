@@ -78,14 +78,6 @@ RUN npm run build
 # such as:
 RUN python manage.py vendor_pull    
 RUN python manage.py collectstatic --noinput
-RUN python manage.py makemigrations
-RUN python manage.py migrate
-RUN python -c "import django; django.setup(); \
-   from django.contrib.auth.management.commands.createsuperuser import get_user_model; \
-   get_user_model()._default_manager.db_manager('$DJANGO_DB_NAME').create_superuser( \
-   username='$DJANGO_SUPERUSER_USERNAME', \
-   email='$DJANGO_SUPERUSER_EMAIL', \
-   password='$DJANGO_SUPERUSER_PASSWORD')"
 
 # whitenoise -> s3
 
@@ -98,7 +90,10 @@ ARG PROJ_NAME="home"
 # the container starts and the database is available
 RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
-    printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
+    printf "python manage.py makemigrations\n" >> ./paracord_runner.sh && \
+    printf "python manage.py migrate\n" >> ./paracord_runner.sh && \
+    printf "python manage.py createcachetable\n" >> ./paracord_runner.sh && \
+    printf "python manage.py create_superuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
 
