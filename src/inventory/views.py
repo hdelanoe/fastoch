@@ -1,123 +1,177 @@
+import json
 import os
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
-import pandas
-import camelot
-import numpy
-import re
-from numpy.dtypes import StringDType
-from django.core.files.storage import FileSystemStorage
+import pandas as pd
+from pdf2image import convert_from_path
 
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from customers.models import Customer
-from inventory.models import Inventory, Product, StockEntry, Pronatura_dictionary
-from inventory.parsers import Column_Parser
+from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
+from .forms import ImportForm, QuestionForm, ProductForm
+from .parsers import json_to_db
+from inventory.models import Inventory, Product
+from backup.models import Backup
+
+from dashboard.views import init_context
 
 
-@login_required
-def inventory_view(request, id=None, data_types=None, *args, **kwargs):
-    inventory_obj = get_inventory_with_email(request.user.email)
-    context = {
-        "products": inventory_obj.products.all(),
-        "inventory_list": [inventory_obj],
-        "inventory_name": inventory_obj.name,
-        "id": inventory_obj.id,
-        "data_types":inventory_obj.get_dtypes_as_list(),
-    }
-    return render(request, "inventory/inventory.html", context) 
 
 @login_required
-def upload_file(request, id=None, *args, **kwargs):
+def inventory_view(request, id=None, response=0, *args, **kwargs):
+    context = init_context()
+    inventory = Inventory.objects.get(id=id)
+    context["inventory"] = inventory
+    context["columns"] = settings.KESIA2_COLUMNS_NAME.values()
+    context["response"] = response
+    context["products"] = inventory.products.all()
+    return render(request, "inventory/inventory.html", context)
+
+@login_required
+def move_from_file(request, id=None, *args, **kwargs):
+    redirect_url = reverse("inventory", args=[id, 0])
     if request.method == 'POST':
         try:
+            form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
-            fs = FileSystemStorage()
-            filename = fs.save(uploaded_file.name, uploaded_file)
-            try:
+            providername = form.data['provider']
+            move_type = int(form.data['move_type'])
+            filename, file_extension = os.path.splitext(uploaded_file.name)
+            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
+                fs = FileSystemStorage()
+                filename = fs.save(uploaded_file.name, uploaded_file)
                 file_path = fs.path(filename)
-                tables = camelot.read_pdf(file_path, pages='all', flavor='stream')
-                df_list = []
-                for table in tables: 
-                    df_list.append(table.df)
-                
-                # concatenate df
-                df = pandas.concat(df_list)
-                print(df)
+                inventory = Inventory.objects.get(id=id)
 
-
-                df.dropna(axis=1, inplace=True)
-                # get columns
-                parse_columns = numpy.strings.replace(numpy.array(df.iloc[0], dtype=StringDType()), '\n', '')
-                data_df = pandas.DataFrame(data=None, columns = parse_columns)
-                df = df.drop([0])
-                for x in range(len(df.index)):
-                    data_df.loc[x] = df.values[x]
-
-                # for other artifacts
-                #data_df.replace('', numpy.nan, inplace=True)
-                #data_df.dropna(axis=0, inplace=True)
-                pcstr = ''
-                for v in parse_columns:
-                    pcstr += f',{v}'
-                try:
-                    inventory_obj = Inventory.objects.get(id=id)
-                    inventory_obj.dtypes_array = pcstr[1:]
-                    parser = Column_Parser()
-                    for values in data_df.iloc:
-                        product = Product.objects.create()
-                        for d in parser.description:
-                            if (values[d]):
-                                product.description=values[d]
-
-                        unit=values[Pronatura_dictionary.get('unit')],
-                        name = values[Pronatura_dictionary.get('description')][:20]
-                        try: product.quantity = int(values[Pronatura_dictionary.get('quantity')])
-                        except: None
-                        try: product.weight = float(re.split('\n', values[Pronatura_dictionary.get('weight')].replace(',', '.'))[0])
-                        except: None  
-                        try: product.price = float(values[Pronatura_dictionary.get('price')].replace(',', '.'))
-                        except: None
-                        try: product.discount = float(values[Pronatura_dictionary.get('discount')].replace(',', '.'))
-                        except: None  
-                        try: product.net_price = float(values[Pronatura_dictionary.get('net_price')].replace(',', '.'))
-                        except: None
-                        try: product.tva = float(values[Pronatura_dictionary.get('tva')].replace(',', '.'))
-                        except: None
-                        try: product.net = float(values[Pronatura_dictionary.get('net')].replace(',', '.'))
-                        except: None
-
-                        product.save()
-                        entry = StockEntry.objects.create(
-                            product=product,
-                            quantity=product.quantity
-                        )
-                        entry.save()
-                        inventory_obj.products.add(product)
-                        inventory_obj.entry_list.add(entry)
-                    inventory_obj.save()
-
-                    messages.success(request, "Your inventory has been updated.")
-                except Exception as e:
-                    messages.error(request, f"Error while create your inventory. {e}")
-            except Exception as e:
-                messages.error(request, f"Error while update your inventory. {e}")
-            fs.delete(file_path)
+                if file_extension == ".pdf":
+                    pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
+                    api = Mistral_API()
+                    image_content = []
+                    try:
+                        for count, page in enumerate(pages):
+                            page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
+                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                            image_content.append(format_content_from_image_path(jpg_path))
+                        try:
+                            json_data = api.extract_json_from_image(image_content)
+                        except Exception as e:
+                            messages.error(request, f'error while extracting {e}')
+                        for count, page in enumerate(pages):
+                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                            fs.delete(jpg_path)
+                    except Exception as e:
+                        messages.error(request, f'error while parsing {e}')
+                else:
+                    if file_extension == ".xml" or file_extension == ".xlsx":
+                        df = pd.read_xml(file_path, encoding='utf-8')
+                    if file_extension == ".csv":
+                        df = pd.read_csv(file_path, encoding='utf-8')
+                    json_data = json.loads(df.to_json(orient='records'))
+                    print(json_data)
+                return_obj = json_to_db(providername, json_data, inventory, move_type)
+                error_list = return_obj.get('error_list')
+                delivery = return_obj.get('delivery')
+                if not error_list:
+                    messages.success(request, "Livraison bien enregistrée.")
+                    redirect_url = reverse('last_delivery', args=[delivery.id])
+                else:
+                    messages.error(request, f'Error while extracting : {error_list}')
+                fs.delete(file_path)
+            else:
+                messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
-            messages.error(request, f"Error while upload file. {e}")    
-    return redirect(reverse("inventory", args=[id]))
+            messages.error(request, f'error while saving {e}')
+    return redirect(redirect_url)
+
+
+
 
 @login_required
-def export_file(request, id=None, data_types=None, *args, **kwargs):
-    inventory_obj = Inventory.objects.get(id=id)
-    columns = inventory_obj.get_dtypes_as_list()
-    columns.insert(0, Pronatura_dictionary.get('name'))
-    df = pandas.DataFrame([p.to_dict() for p in inventory_obj.products.all()], columns = columns)
-    file_path = f'{settings.MEDIA_ROOT}/{inventory_obj.name}.xlsx'
-    df.to_excel(file_path)
+def update_product(request, inventory=None, product=None, *args, **kwargs):
+    if request.method == 'POST':
+        product_obj = Product.objects.get(id=product)
+        form = ProductForm(request.POST)
+        product_obj.description = form.data['description']
+        product_obj.price_net = form.data['price_net']
+        product_obj.save()
+    return redirect(reverse("inventory", args=[inventory, 0]))
+
+@login_required
+def delete_product(request, inventory=None, product=None, *args, **kwargs):
+    if request.method == 'POST':
+        product_obj = Product.objects.get(id=product)
+        product_obj.delete()
+    return redirect(reverse("inventory", args=[inventory, 0]))
+
+@login_required
+def ask_question(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(id=id)
+    if request.method == 'POST':
+        api = Codestral_Mamba()
+        form = QuestionForm(request.POST)
+        df = pd.DataFrame([x.as_Kesia2_dict() for x in inventory.products.all()])
+        inventory.last_response = api.chat(form.data['question'], df)
+        inventory.save()
+    print(inventory.last_response)
+    return redirect(reverse("inventory", args=[id, 1]))
+
+
+@login_required
+def import_inventory(request, id=None, *args, **kwargs):
+    redirect_url = reverse("inventory", args=[id, 0])
+    if request.method == 'POST':
+        try:
+            form = ImportForm(request.POST)
+            uploaded_file = request.FILES['document']
+            providername = form.data['provider']
+            move_type = int(form.data['move_type'])
+            filename, file_extension = os.path.splitext(uploaded_file.name)
+            if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
+                fs = FileSystemStorage()
+                filename = fs.save(uploaded_file.name, uploaded_file)
+                file_path = fs.path(filename)
+                inventory = Inventory.objects.get(id=id)
+
+                if file_extension == ".xml" or file_extension == ".xlsx":
+                    df = pd.read_xml(file_path, encoding='utf-8')
+                if file_extension == ".csv":
+                    df = pd.read_csv(file_path, encoding='utf-8')
+                json_data = json.loads(df.to_json(orient='records'))
+                return_obj = json_to_db(providername, json_data, inventory, move_type)
+                error_list = return_obj.get('error_list')
+                delivery = return_obj.get('delivery')
+                if not error_list:
+                    for p in inventory.products.all():
+                        p.delete()
+                    for t in delivery.transactions.all():
+                        inventory.products.add(t.product)
+                    inventory.save()
+                    messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
+                    redirect_url = reverse('last_delivery', args=[delivery.id])
+                else:
+                    messages.error(request, f'Error while extracting : {error_list}')
+                fs.delete(file_path)
+            else:
+                messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
+        except Exception as e:
+            messages.error(request, f'error while saving {e}')
+    return redirect(redirect_url)
+
+
+@login_required
+def export_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(id=id)
+    backup = save_backup(inventory)
+    df = pd.DataFrame.from_dict(
+        [p.as_Kesia2_dict() for p in inventory.products.all()],
+        orient='columns'
+        )
+    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xml'
+    df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
@@ -125,7 +179,19 @@ def export_file(request, id=None, data_types=None, *args, **kwargs):
             return response
     raise Http404
 
+@login_required
+def backup_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(id=id)
+    save_backup(inventory, Backup.BackupType.MANUAL)
+    messages.success(request, "Your inventory has been backup.")
+    return redirect(reverse("inventory", args=[id, 0]))
 
-def get_inventory_with_email(email):
-    customer = Customer.get_customer_by_user_email(email)
-    return Inventory.objects.get(customer=customer)
+def save_backup(inventory, type=Backup.BackupType.AUTO):
+    backup = Backup(
+        inventory=inventory,
+        products_backup = pd.DataFrame([x.as_Kesia2_dict() for x in inventory.products.all()]).to_json(orient='table'),
+        transactions_backup = pd.DataFrame([x.as_dict() for x in inventory.transaction_list.all()]).to_json(orient='table'),
+        backup_type = type
+    )
+    backup.save()
+    return(backup)

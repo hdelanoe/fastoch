@@ -62,18 +62,15 @@ INSTALLED_APPS = [
     'allauth_ui',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    #'allauth.socialaccount.providers.google',
     "widget_tweaks",
     "slippers",
     # my apps
-    'profiles',
-    'customers',
-    'subscriptions',
     'commando',
-    'checkouts',
     'dashboard',
     'inventory',
+    'backup',
+    'provider',
+    'delivery',
 ]
 
 MIDDLEWARE = [
@@ -122,18 +119,6 @@ DATABASES = {
     }
 }
 
-CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
-DATABASE_URL = config("DATABASE_URL", default=None)
-
-if DATABASE_URL is not None:
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=CONN_MAX_AGE,
-            conn_health_checks=True,
-        )
-    }
 
 
 # Password validation
@@ -157,7 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Django Allauth Config
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED=True
-ACCOUNT_EMAIL_VERIFICATION='mandatory'
 LOGIN_REDIRECT_URL='/'
 
 AUTHENTICATION_BACKENDS = [
@@ -167,19 +151,6 @@ AUTHENTICATION_BACKENDS = [
     # `allauth` specific authentication methods, such as login by email
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
-        'APP': {
-            'client_id': '123',
-            'secret': '456',
-            'key': ''
-        }
-    }
-}
 
 
 # Internationalization
@@ -236,8 +207,21 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://sutoko-production.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = ['https://fastoch-production.up.railway.app',]
 
 # For production, set these lines to True
 # CSRF_COOKIE_HTTPONLY = True
 # SESSION_COOKIE_HTTPONLY = True
+
+KESIA2_COLUMNS_NAME = {
+    "code_art": "IDART",
+    "fournisseur": "NOM_FOURNISSEUR",
+    "ean": "EAN",
+    "description": "DEF",
+    "quantity": "STOCK",
+    "achat_brut": "BaseHT",
+    #"achat_tva": "TAUX_TVA_ACHAT",
+    #"achat_net": "PRIX_ACHAT_TTC",
+    "vente_net": "PRIX_TTC",
+    #"vente_tva": "TAUX_TVA_VENTE",
+}

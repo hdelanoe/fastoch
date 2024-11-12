@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DJANGO_DEBUG: 0
-      STRIPE_TEST_OVERRIDE: 1
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
       NEON_PROD_BRANCH: "main"
@@ -47,13 +45,3 @@ jobs:
         working-directory: ./src
         run: |
           python manage.py migrate
-      - name: Django Users Sync Stripe Subscriptions
-        if: github.event.schedule != '0 4 1 * *'
-        working-directory: ./src
-        run: |
-          python manage.py sync_user_subs --day-start 0 --day-end 1
-      - name: Django Users Clear Dangling Stripe Subscriptions
-        working-directory: ./src
-        if: github.event.schedule == '0 4 1 * *'
-        run: |
-          python manage.py sync_user_subs --clear-dangling
