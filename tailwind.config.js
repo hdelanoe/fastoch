@@ -4,14 +4,17 @@ const colors = require('tailwindcss/colors')
 module.exports = {
   important: true,
   content: [
-    "./templates/**/*.{html,js}",
+    "./src/templates/**/*.{html,js}",
     "./node_modules/flowbite/**/*.js"
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: {"50":"#f0fdf4","100":"#dcfce7","200":"#bbf7d0","300":"#86efac","400":"#4ade80","500":"#22c55e","600":"#16a34a","700":"#15803d","800":"#166534","900":"#14532d","950":"#052e16"}
+        cream: '#fffbef',
+        mate: '#f6dc7d',
+        bean: '#724b29',
+        bavarian: '#4f3110',
+        primary: {"50":"#f0fdf4","100":"#dcfce7","200":"#bbf7d0","300":"#86efac","400":"#4ade80","500":"#22c55e","600":"#16a34a","700":"#15803d","800":"#166534","900":"#14532d","950":"#052e16"},
       }
     },
     fontFamily: {

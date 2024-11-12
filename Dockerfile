@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     # other
     gcc \
+    poppler-utils \ 
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
@@ -74,6 +75,9 @@ RUN npm run build
 # such as:
 RUN python manage.py vendor_pull    
 RUN python manage.py collectstatic --noinput
+RUN python manage.py makemigrations
+RUN python manage.py migrate
+RUN python manage.py createsuperuser --noinput
 
 # whitenoise -> s3
 
