@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from inventory.models import StockEntry, Product, Inventory
+from inventory.models import Transaction, Product, Inventory
 
-admin.site.register(StockEntry)
 admin.site.register(Product)
+admin.site.register(Transaction)
 admin.site.register(Inventory)

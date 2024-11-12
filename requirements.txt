@@ -5,12 +5,12 @@ psycopg[binary]
 dj-database-url
 requests
 whitenoise # -> upgrade to django-storages
-django-allauth[socialaccount]
+django-allauth
 django-allauth-ui
 django-widget-tweaks
 slippers
-stripe
-camelot-py[base]
-setuptools
-opencv-python-headless
-PyPDF2<3.0
+pandas
+mistralai
+pdf2image
+openpyxl
+lxml
