@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 STATICFILES_VENDOR_DIR = getattr(settings, 'STATICFILES_VENDOR_DIR')
 
 VENDOR_STATICFILES = {
-    "fastoch.min.css": "https://raw.githubusercontent.com/hdelanoe/fastoch/refs/heads/stagging/src/staticfiles/theme/fastoch.min.css?token=GHSAT0AAAAAACVZIWA3HRZVXEXHGUAIOBJOZZUB3SA",
+    "fastoch.min.css": "https://raw.githubusercontent.com/hdelanoe/staticfiles/refs/heads/main/theme/fastoch.min.css",
     'flowbite.min.css': 'https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css',
     'flowbite.min.js.map': 'https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js.map',
     'flowbite.min.js': 'https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js',
