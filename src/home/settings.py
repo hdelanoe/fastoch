@@ -186,14 +186,10 @@ STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
-# source(s) for python manage.py collectstatic 
-STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR
-]
-
-# output for python manage.py collectstatic 
-# local cdn
-STATIC_ROOT = BASE_DIR / "staticfiles"
+if DEBUG:
+    STATICFILES_DIRS = STATICFILES_BASE_DIR
+else:
+    STATIC_ROOT = STATICFILES_BASE_DIR
 
 
 #if not DEBUG:
