@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "watch": "tailwindcss -i src/staticfiles/tw/tailwind-input.css -o src/staticfiles/tw/tailwind-out.css --watch",
-    "build": "tailwindcss -i src/staticfiles/tw/tailwind-input.css -o src/staticfiles/theme/fastoch.min.css --build --minify"
+    "watch": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/tw/tailwind-out.css --watch",
+    "build": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/theme/fastoch.min.css --build --minify"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
