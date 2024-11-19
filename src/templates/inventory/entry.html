@@ -28,13 +28,13 @@
     {% if product.has_changed %}
         <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">
             <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-                <input size="4" min="1" max="4" class="text-center text-sm text-red-900 whitespace-nowrap dark:text-red rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="achat_brut" type="text" name="achat_brut" value="{{product.get_format_achat_brut}}" placeholder="{{product.get_format_achat_brut}}" required="">€
+                <input size="5" min="1" max="5" class="text-center text-sm text-red-900 whitespace-nowrap dark:text-red rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="achat_brut" type="text" name="achat_brut" value="{{product.get_format_achat_brut}}" placeholder="{{product.get_format_achat_brut}}" required="">€
             </form>
         </td>
     {% else %}
         <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
             <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-                <input size="4" min="1" max="4" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="achat_brut" type="text" name="achat_brut" value="{{product.get_format_achat_brut}}" placeholder="{{product.get_format_achat_brut}}" required="">€
+                <input size="5" min="1" max="5" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="achat_brut" type="text" name="achat_brut" value="{{product.get_format_achat_brut}}" placeholder="{{product.get_format_achat_brut}}" required="">€
             </form>
         </td>
     {% endif %}

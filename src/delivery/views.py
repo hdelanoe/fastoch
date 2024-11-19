@@ -8,7 +8,6 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.forms import ProductForm
 from inventory.models import Inventory, Product
 from .models import Delivery, delivery_columns
 from dashboard.views import init_context

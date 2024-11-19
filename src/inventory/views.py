@@ -1,4 +1,5 @@
 import json
+import re
 import os
 from django.conf import settings
 from django.http import Http404, HttpResponse
@@ -12,7 +13,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
-from .forms import ImportForm, QuestionForm, ProductForm
+from .forms import ImportForm, QuestionForm
 from .parsers import json_to_db
 from inventory.models import Inventory, Product
 from backup.models import Backup
@@ -96,10 +97,12 @@ def move_from_file(request, id=None, *args, **kwargs):
 def update_product(request, inventory=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
-        form = ProductForm(request.POST)
-        product_obj.description = form.data['description']
-        product_obj.quantity = form.data['quantity']
-        product_obj.achat_brut = form.data['achat_brut']
+        product_obj.description = request.POST.get('description', product_obj.description)
+        product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
+        product_obj.achat_brut = re.search(
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
+                    ).group(1)
+              
         product_obj.save()
     return redirect(reverse("inventory", args=[inventory, 0]))
 
