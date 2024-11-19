@@ -6,6 +6,12 @@
     
     <!-- EAN -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.ean}}</td>
+    <!-- MultiCode -->
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
+            <input size="16" min="1" max="16" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="multicode" type="text" name="multicode" value="{{product.multicode}}" placeholder="{{product.multicode}}" required="">
+        </form>
+    </td>
     <!-- Description -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
@@ -13,19 +19,26 @@
         </form>
     </td>
     <!-- Quantité -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.quantity}}</td>
-    <!-- Achat brut -->
-    {% if product.has_changed %}
-        <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">{{product.get_format_achat_brut}} €</td>
-    {% else %}
-        <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.get_format_achat_brut}} €</td>
-    {% endif %}
-    <!-- Vente Net -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-            <input size="50" min="1" max="50" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="vente_net" type="text" name="vente_net" value="{{product.vente_net}}" placeholder="{{product.vente_net}}" required="">
+            <input size="2" min="1" max="3" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="quantity" type="text" name="quantity" value="{{product.quantity}}" placeholder="{{product.quantity}}" required="">
         </form>
     </td>
+    <!-- Achat brut -->
+    {% if product.has_changed %}
+        <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">
+            <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
+                <input size="4" min="1" max="4" class="text-center text-sm text-red-900 whitespace-nowrap dark:text-red rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="achat_brut" type="text" name="achat_brut" value="{{product.get_format_achat_brut}}" placeholder="{{product.get_format_achat_brut}}" required="">€
+            </form>
+        </td>
+    {% else %}
+        <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
+                <input size="4" min="1" max="4" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="achat_brut" type="text" name="achat_brut" value="{{product.get_format_achat_brut}}" placeholder="{{product.get_format_achat_brut}}" required="">€
+            </form>
+        </td>
+    {% endif %}
+    <!-- Action -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'delete_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
             <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">

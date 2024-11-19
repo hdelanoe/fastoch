@@ -98,7 +98,8 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
         product_obj = Product.objects.get(id=product)
         form = ProductForm(request.POST)
         product_obj.description = form.data['description']
-        product_obj.price_net = form.data['price_net']
+        product_obj.quantity = form.data['quantity']
+        product_obj.achat_brut = form.data['achat_brut']
         product_obj.save()
     return redirect(reverse("inventory", args=[inventory, 0]))
 
@@ -169,10 +170,10 @@ def export_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_Kesia2_dict() for p in inventory.products.all()],
+        [p.as_Kesia2_inventory_dict() for p in inventory.products.all()],
         orient='columns'
         )
-    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xml'
+    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:

@@ -29,13 +29,16 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     warning = False
     context["delivery"] = delivery
     context["inventory"] = inventory
-    context["columns"] = settings.KESIA2_COLUMNS_NAME.values()
+    context["columns"] = settings.KESIA2_INVENTORY_COLUMNS_NAME.values()
     context["transactions"] = transactions
     message_list=['Attention']
     for transaction in transactions:
         if transaction.product.has_changed:
             message_list.append(f'Le prix de {transaction.product.description} a changé !')
             warning = True
+        elif transaction.product.multicode_generated:   
+            message_list.append(f'Le multicode de {transaction.product.description} a été généré !')
+            warning = True  
     if warning:        
         messages.warning(request, f'{message_list}')      
     return render(request, "delivery/delivery.html", context)

@@ -14,6 +14,6 @@ class QuestionForm(forms.Form):
 
 class ProductForm(forms.Form):
     description = forms.CharField(max_length=50)    
+    multicode = forms.CharField(max_length=16)    
     quantity = forms.IntegerField()
-    price_net = forms.FloatField()    
-    price_tva = forms.FloatField()    
+    achat_brut = forms.FloatField()

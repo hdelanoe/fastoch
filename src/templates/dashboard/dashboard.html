@@ -3,7 +3,7 @@
 {% block head_title %}Dashboard - {{ block.super }}{% endblock head_title %}
 
 {% block body %} 
-<main class="p-4 md:ml-64 pt-20 antialiased bg-gray-50 dark:bg-gray-900">
+<main class="p-4 pt-20 antialiased h-screen bg-gray-50 dark:bg-gray-900">
     <div class="mb-4">
         {% include 'base/messages.html' with messages=messages %}
         {% include 'dashboard/sidebar.html' %}

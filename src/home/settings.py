@@ -230,11 +230,15 @@ KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
     "fournisseur": "NOM_FOURNISSEUR",
     "ean": "EAN",
+    "multicode": "MultiCode",
     "description": "DEF",
     "quantity": "STOCK",
     "achat_brut": "BaseHT",
-    #"achat_tva": "TAUX_TVA_ACHAT",
-    #"achat_net": "PRIX_ACHAT_TTC",
-    "vente_net": "PRIX_TTC",
-    #"vente_tva": "TAUX_TVA_VENTE",
+}
+
+KESIA2_INVENTORY_COLUMNS_NAME = {
+    "multicode": "MultiCode",
+    "description": "DEF",
+    "quantity": "Qté Mouv.",
+    "achat_ht": "PMPA",
 }
