@@ -53,7 +53,8 @@ def json_to_db(providername, json_data, inventory, operator=1):
                 except Product.DoesNotExist:
                     product = Product.objects.create(
                         fournisseur=provider,
-                        description=description)
+                        description=description,
+                        is_new=True)
                     if code_art is None:
                         code_art = f'{provider.code}{product.id}'
                         product.multicode_generated = True

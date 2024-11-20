@@ -37,7 +37,10 @@ def last_delivery_view(request, id=None, *args, **kwargs):
             warning = True
         if transaction.product.multicode_generated:   
             message_list.append(f'Le multicode de {transaction.product.description} a été généré !')
-            warning = True  
+            warning = True
+        if transaction.product.is_new:   
+            message_list.append(f'Le produit {transaction.product.description} est nouveau !')
+            warning = True      
     if warning:        
         messages.warning(request, f'{message_list}')      
     return render(request, "delivery/delivery.html", context)

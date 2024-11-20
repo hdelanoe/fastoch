@@ -29,6 +29,7 @@ class Product(models.Model):
 
     has_changed=models.BooleanField(default=False)
     multicode_generated=models.BooleanField(default=False)
+    is_new=models.BooleanField(default=False)
 
     incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
 
