@@ -238,7 +238,7 @@ KESIA2_COLUMNS_NAME = {
 
 KESIA2_INVENTORY_COLUMNS_NAME = {
     "multicode": "MultiCode",
-    "description": "DEF",
+    "description": "Designation",
     "quantity": "Qté Mouv.",
     "achat_ht": "PMPA",
 }

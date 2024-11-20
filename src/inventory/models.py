@@ -54,7 +54,7 @@ class Product(models.Model):
     
     def as_Kesia2_inventory_dict(self):
         return {
-            "DEF": self.description,
+            "Designation": self.description,
             "MultiCode": self.multicode,
             "Qté Mouv.": self.quantity,
             "PMPA": self.achat_brut,
