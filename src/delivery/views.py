@@ -52,7 +52,7 @@ def validate_delivery(request, id=None, *args, **kwargs):
             product.quantity += transaction.quantity
             product.save()
             inventory.products.add(product)
-            inventory.transaction_list.add(transaction)
+            inventory.transactions.add(transaction)
         inventory.save()
         delivery.is_validated = True
         delivery.save()

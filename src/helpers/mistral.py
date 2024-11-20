@@ -86,7 +86,7 @@ class Mistral_API():
                                 ean : value,
                                 description : value,
                                 quantity : value,
-                                achat_brut : value,
+                                achat_ht : value,
                                 discount : value,
                             },
                             {
@@ -94,7 +94,7 @@ class Mistral_API():
                                 ean : value,
                                 description : value,
                                 quantity : value,
-                                achat_brut : value,
+                                achat_ht : value,
                                 discount : value
                             }
                         ]
@@ -119,7 +119,7 @@ class Mistral_API():
                                         - ean
                                         - description
                                         - quantity
-                                        - achat_brut
+                                        - achat_ht
                                         - discount
 
 
@@ -133,14 +133,14 @@ class Mistral_API():
                                         - description - le nom ou la description du produit
                                         - quantity - La quantité du produit.
                                         - discount - La remise sur le produit. 
-                                        - achat_brut - Le prix unitaire hors taxe.
+                                        - achat_ht - Le prix unitaire hors taxe.
 
                                     ETAPE 2 - Vérifier l'intégrité des ensembles clé/valeurs :
                                         - 'code_art' ne peut correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
                                         - 'ean' ne peut correspondre qu'avec une colonne 'ean' ou 'EAN'
                                         - 'quantity' ne peut correspondre qu'avec une colonne, dans l'ordre des priorités, 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
                                         - 'discount' ne peut correspondre qu'avec une colonne 'Remise'
-                                        - 'achat_brut' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
+                                        - 'achat_ht' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
 
                                     ETAPE 3 - Prend en compte les précisions suivantes : 
                                         - Il y a autant d'objets dans la liste JSON que de produits dans le tableau a analyser.
@@ -148,7 +148,7 @@ class Mistral_API():
                                         ne fait pas non plus correspondre le PU HT au poids.
                                         - Si le meme produit est présent plusieurs fois dans le tableau, crée donc autant d'entrée dans le JSON final.
                                         - 'code_art' et 'ean' sont deux identifiants différents.
-                                        - 'achat_brut' est le prix unitaire hors taxe, pas le prix total.    
+                                        - 'achat_ht' est le prix unitaire hors taxe, pas le prix total.    
 
                                     ETAPE 4 - Construire le JSON
                                         - Le fichier correspond a une liste JSON, contenant les produits.

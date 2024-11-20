@@ -233,7 +233,7 @@ KESIA2_COLUMNS_NAME = {
     "multicode": "MultiCode",
     "description": "DEF",
     "quantity": "STOCK",
-    "achat_brut": "BaseHT",
+    "achat_ht": "BaseHT",
 }
 
 KESIA2_INVENTORY_COLUMNS_NAME = {

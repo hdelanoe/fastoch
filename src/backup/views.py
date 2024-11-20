@@ -41,7 +41,7 @@ def restore_backup(request, id=None, *args, **kwargs):
     try:
         for p in inventory.products.all():
             p.delete()
-        for t in inventory.transaction_list.all():
+        for t in inventory.transactions.all():
             t.delete()
         inventory.save()   
         for p in products_data:
@@ -52,7 +52,7 @@ def restore_backup(request, id=None, *args, **kwargs):
             ean=p[settings.KESIA2_COLUMNS_NAME['ean']]
             description=p[settings.KESIA2_COLUMNS_NAME['description']]
             quantity=p[settings.KESIA2_COLUMNS_NAME['quantity']]
-            achat_brut=p[settings.KESIA2_COLUMNS_NAME['achat_brut']]
+            achat_ht=p[settings.KESIA2_COLUMNS_NAME['achat_ht']]
             vente_net=p[settings.KESIA2_COLUMNS_NAME['vente_net']]
             try:
                 if ean.isdigit():

@@ -99,8 +99,8 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
         product_obj = Product.objects.get(id=product)
         product_obj.description = request.POST.get('description', product_obj.description)
         product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
-        product_obj.achat_brut = re.search(
-                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
+        product_obj.achat_ht = re.search(
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_ht', product_obj.achat_ht)).replace(',', '.')
                     ).group(1)
 
         product_obj.save()
@@ -196,7 +196,7 @@ def save_backup(inventory, type=Backup.BackupType.AUTO):
     backup = Backup(
         inventory=inventory,
         products_backup = pd.DataFrame([x.as_Kesia2_dict() for x in inventory.products.all()]).to_json(orient='table'),
-        transactions_backup = pd.DataFrame([x.as_dict() for x in inventory.transaction_list.all()]).to_json(orient='table'),
+        transactions_backup = pd.DataFrame([x.as_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
         backup_type = type
     )
     backup.save()

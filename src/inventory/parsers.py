@@ -32,9 +32,9 @@ def json_to_db(providername, json_data, inventory, operator=1):
             ean = ''.join(p.findall(str(kesia_get(jd, 'ean')))).upper()
             description = kesia_get(jd, 'description')
             quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
-            achat_brut = float(
+            achat_ht = float(
                 re.search(
-                    r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_brut')).replace(',', '.')
+                    r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_ht')).replace(',', '.')
                     ).group(1)
                 )
 
@@ -63,11 +63,11 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         product.ean = ean
                         product.multicode = ean
 
-            if product.achat_brut != achat_brut:
+            if product.achat_ht != achat_ht:
                 product.has_changed=True
             else:
                 product.has_changed=False
-            product.achat_brut=achat_brut
+            product.achat_ht=achat_ht
             product.save()
 
 

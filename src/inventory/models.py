@@ -4,75 +4,33 @@ from provider.models import Provider
 
 class Product(models.Model):
 
-    class IncrementalChoices(models.TextChoices):
-        QUANTITY = "quantity", "Quantity"
-        WEIGHT = "weight", "Weight"
-
-    class Unit(models.TextChoices):
-        PIECE = "PIECE", "Piece"
-        KG = "KG", "Kg"
-
     fournisseur = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
+    multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     quantity = models.IntegerField(default=0)
-    achat_brut = models.FloatField(default=0.00)
-    achat_net = models.FloatField(blank=True, null=True)
-    achat_tva = models.FloatField(blank=True, null=True)
+    achat_ht = models.FloatField(default=0.00)
     coef_marge = models.FloatField(blank=True, null=True)
     vente_net = models.FloatField(blank=True, null=True)
-    vente_tva = models.FloatField(blank=True, null=True)
-    discount = models.FloatField(blank=True, null=True)
-    code_art = models.CharField(max_length=16, unique=True, blank=True, null=True)
-
-    multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)
 
     has_changed=models.BooleanField(default=False)
     multicode_generated=models.BooleanField(default=False)
 
-    incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
-
-    def get_format_achat_brut(self):
-        return format(self.achat_brut, '.2f')
-
-    def __str__(self):
-        return f'{self.fournisseur} {self.ean} {self.description} {self.quantity}'
-
-    def as_Kesia2_dict(self):
+    def get_format_achat_ht(self):
+        return format(self.achat_ht, '.2f')
+    
+    def as_dict(self):
         return {
-            "IDART": self.code_art,
-            "NOM_FOURNISSEUR": self.fournisseur.name,
+            "NOM_FOURNISSEUR": self.fournisseur,
             "EAN": self.ean,
+            "Code": self.multicode,
             "DEF": self.description,
             "STOCK": self.quantity,
-            "BaseHT": self.achat_brut,
-            #"TAUX_TVA_ACHAT": self.achat_tva,
-            #"PRIX_ACHAT_TTC": self.achat_net,
-            "PRIX_TTC": self.vente_net,
-            #"TAUX_TVA_VENTE": self.vente_tva,
+            "PMPA": self.product.achat_ht,
         }
 
-    def as_Kesia2_inventory_dict(self):
-        return {
-            "Designation": self.description,
-            "MultiCode": self.multicode,
-            "Qté Mouv.": self.quantity,
-            "PMPA": self.achat_brut,
-        }
-
-    def as_Kesia2_dict_with_quantity(self, quantity):
-        return {
-            "IDART": self.code_art,
-            "NOM_FOURNISSEUR": self.fournisseur.name,
-            "EAN": self.ean,
-            "DEF": self.description,
-            "STOCK": quantity,
-            "BaseHT": self.achat_brut,
-            #"TAUX_TVA_ACHAT": self.achat_tva,
-            #"PRIX_ACHAT_TTC": self.achat_net,
-            "PRIX_TTC": self.vente_net,
-            #"TAUX_TVA_VENTE": self.vente_tva,
-        }
+    def __str__(self):
+        return f'{self.fournisseur} {self.multicode} {self.description} { self.quantity} {self.achat_ht}'
 
 class Transaction(models.Model):
 
@@ -91,6 +49,14 @@ class Transaction(models.Model):
             "quantity": self.quantity,
             "transaction_type": self.transaction_type,
             "date_transaction": self.date_transaction,
+        }
+    
+    def as_Kesia2_inventory_dict(self):
+        return {
+            "Designation": self.product.description,
+            "MultiCode": self.product.multicode,
+            "Qté Mouv.": self.quantity,
+            "PMPA": self.product.achat_ht,
         }
 
     def __str__(self):
