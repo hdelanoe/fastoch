@@ -56,9 +56,12 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         description=description)
                     if code_art is None:
                         code_art = f'{provider.code}{product.id}'
+                        product.multicode_generated = True
                     product.code_art = code_art
+                    product.multicode = code_art
                     if ean.isdigit():
                         product.ean = ean
+                        product.multicode = ean
 
             if product.achat_brut != achat_brut:
                 product.has_changed=True

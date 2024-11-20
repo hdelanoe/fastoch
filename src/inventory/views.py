@@ -1,4 +1,5 @@
 import json
+import re
 import os
 from django.conf import settings
 from django.http import Http404, HttpResponse
@@ -12,7 +13,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
-from .forms import ImportForm, QuestionForm, ProductForm
+from .forms import ImportForm, QuestionForm
 from .parsers import json_to_db
 from inventory.models import Inventory, Product
 from backup.models import Backup
@@ -71,7 +72,7 @@ def move_from_file(request, id=None, *args, **kwargs):
                     if file_extension == ".xml":
                         df = pd.read_xml(file_path, encoding='utf-8')
                     if file_extension == ".csv":
-                        df = pd.read_csv(file_path, encoding='utf-8')    
+                        df = pd.read_csv(file_path, encoding='utf-8')
                     json_data = json.loads(df.to_json(orient='records'))
                     print(json_data)
                 return_obj = json_to_db(providername, json_data, inventory, move_type)
@@ -96,9 +97,12 @@ def move_from_file(request, id=None, *args, **kwargs):
 def update_product(request, inventory=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
-        form = ProductForm(request.POST)
-        product_obj.description = form.data['description']
-        product_obj.price_net = form.data['price_net']
+        product_obj.description = request.POST.get('description', product_obj.description)
+        product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
+        product_obj.achat_brut = re.search(
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
+                    ).group(1)
+
         product_obj.save()
     return redirect(reverse("inventory", args=[inventory, 0]))
 
@@ -169,10 +173,10 @@ def export_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_Kesia2_dict() for p in inventory.products.all()],
+        [p.as_Kesia2_inventory_dict() for p in inventory.products.all()],
         orient='columns'
         )
-    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xml'
+    file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:

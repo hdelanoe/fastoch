@@ -25,7 +25,10 @@ class Product(models.Model):
     discount = models.FloatField(blank=True, null=True)
     code_art = models.CharField(max_length=16, unique=True, blank=True, null=True)
 
+    multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)
+
     has_changed=models.BooleanField(default=False)
+    multicode_generated=models.BooleanField(default=False)
 
     incremental_option = models.CharField(max_length=20, choices=IncrementalChoices, default=IncrementalChoices.WEIGHT)
 
@@ -47,6 +50,14 @@ class Product(models.Model):
             #"PRIX_ACHAT_TTC": self.achat_net,
             "PRIX_TTC": self.vente_net,
             #"TAUX_TVA_VENTE": self.vente_tva,
+        }
+
+    def as_Kesia2_inventory_dict(self):
+        return {
+            "Designation": self.description,
+            "MultiCode": self.multicode,
+            "Qté Mouv.": self.quantity,
+            "PMPA": self.achat_brut,
         }
 
     def as_Kesia2_dict_with_quantity(self, quantity):

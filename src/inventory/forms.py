@@ -11,9 +11,3 @@ class ImportForm(forms.Form):
 
 class QuestionForm(forms.Form):
     question = forms.CharField(label="Your question", max_length=100)
-
-class ProductForm(forms.Form):
-    description = forms.CharField(max_length=50)    
-    quantity = forms.IntegerField()
-    price_net = forms.FloatField()    
-    price_tva = forms.FloatField()    

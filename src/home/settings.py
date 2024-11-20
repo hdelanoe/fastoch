@@ -186,12 +186,12 @@ STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
-# source(s) for python manage.py collectstatic 
+# source(s) for python manage.py collectstatic
 STATICFILES_DIRS = [
     STATICFILES_BASE_DIR
 ]
 
-# output for python manage.py collectstatic 
+# output for python manage.py collectstatic
 # local cdn
 STATIC_ROOT = BASE_DIR / "local-cdn"
 
@@ -220,7 +220,7 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://fastoch-production.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
 
 # For production, set these lines to True
 # CSRF_COOKIE_HTTPONLY = True
@@ -230,11 +230,15 @@ KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
     "fournisseur": "NOM_FOURNISSEUR",
     "ean": "EAN",
+    "multicode": "MultiCode",
     "description": "DEF",
     "quantity": "STOCK",
     "achat_brut": "BaseHT",
-    #"achat_tva": "TAUX_TVA_ACHAT",
-    #"achat_net": "PRIX_ACHAT_TTC",
-    "vente_net": "PRIX_TTC",
-    #"vente_tva": "TAUX_TVA_VENTE",
+}
+
+KESIA2_INVENTORY_COLUMNS_NAME = {
+    "multicode": "MultiCode",
+    "description": "Designation",
+    "quantity": "Qté Mouv.",
+    "achat_ht": "PMPA",
 }
