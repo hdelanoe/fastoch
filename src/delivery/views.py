@@ -35,7 +35,7 @@ def last_delivery_view(request, id=None, *args, **kwargs):
         if transaction.product.has_changed:
             message_list.append(f'Le prix de {transaction.product.description} a changé !')
             warning = True
-        elif transaction.product.multicode_generated:   
+        if transaction.product.multicode_generated:   
             message_list.append(f'Le multicode de {transaction.product.description} a été généré !')
             warning = True  
     if warning:        

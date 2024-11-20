@@ -99,6 +99,7 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
         product_obj = Product.objects.get(id=product)
         product_obj.description = request.POST.get('description', product_obj.description)
         product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
+        product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
         product_obj.achat_brut = re.search(
                     r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
                     ).group(1)
