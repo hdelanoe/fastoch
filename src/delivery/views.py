@@ -10,7 +10,7 @@ from django.http import Http404, HttpResponse
 import pandas as pd
 from inventory.models import Inventory, Product
 from .models import Delivery, delivery_columns
-from dashboard.views import init_context
+from home.views import init_context
 from django.contrib import messages
 
 @login_required

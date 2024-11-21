@@ -103,16 +103,23 @@
                 </button>
                 </li>
                 {% endfor %}
-                <li>
-                  <a
-                    href="{% url 'delivery' %}"
-                    class="flex items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                    >Livraisons</a
-                    >
-                </li>
               </ul>
             </li>
-            {% endif %}  
+          {% endif %}
+          <!--Livraisons--> 
+          <li>
+            <a
+              href="{% url 'delivery' %}"
+              class="flex items-center p-2 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
+              <svg class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M4 19v2c0 .5523.44772 1 1 1h14c.5523 0 1-.4477 1-1v-2H4Z"/>
+                <path fill="currentColor" fill-rule="evenodd" d="M4 4a1 1 0 0 1 1-1h1.5a1 1 0 0 1 .979.796L7.939 6H19a1 1 0 0 1 .979 1.204l-1.25 6a1 1 0 0 1-.979.796H9.605l.208 1H17a3 3 0 1 1-2.83 2h-2.34a3 3 0 1 1-4.009-1.76L5.686 5H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+              </svg>
+              <span class="flex-1 ml-3 text-left whitespace-nowrap"
+                >Livraisons</span>
+            </a>
+          </li>
+          <!--Backups-->   
           <li>
             <form action="{% url 'backup' %}">
               <button
@@ -124,7 +131,7 @@
                 </svg>
               
                 <span class="flex-1 ml-3 text-left whitespace-nowrap"
-                  >Backup</span
+                  >Backups</span
                 >
               </button>
             </form>

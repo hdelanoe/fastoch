@@ -10,7 +10,7 @@ import pandas as pd
 from .models import Backup, backup_columns
 from inventory.models import Product, Provider
 from inventory.views import save_backup
-from dashboard.views import init_context
+from home.views import init_context
 
 
 @login_required

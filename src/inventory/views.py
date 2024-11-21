@@ -18,7 +18,7 @@ from .parsers import json_to_db
 from inventory.models import Inventory, Product
 from backup.models import Backup
 
-from dashboard.views import init_context
+from home.views import init_context
 
 
 

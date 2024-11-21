@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.db.models import ProtectedError
 
-from dashboard.views import init_context
+from home.views import init_context
 from .models import Provider, provider_columns
 from .forms import ProviderForm
 
