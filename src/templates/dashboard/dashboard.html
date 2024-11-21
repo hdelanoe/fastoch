@@ -2,40 +2,76 @@
 
 {% block content %} 
 <div class="grid grid-rows-[max-content_1fr] gap-x-4 mb-4"> 
-    <div class="h-10 flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white mb-8">TABLEAU DE BORD</div>
-    <div class="grid grid-cols-3 mb-4">
-        {% for inventory in inventory_list %}
-            <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
-                <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Inventaire</h2>
-                <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">{{inventory.name}}</h2>
-                <a href="{% url 'inventory' id=inventory.id response=0 %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
-            </div>
-        {% empty %}
-            <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
-                <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">You have no inventory yet</h2>
-                <button
-                    data-modal-target="new-inventory-modal"
-                    data-modal-toggle="new-inventory-modal"
-                    class="inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                    <a href="#">Let's create one!</a>    
-                </button>
-            </div>
-        {% endfor %}
-        {% include 'modal/new_inventory_modal.html' %}
-        {% if provider_list %}
-            <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
-                <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Fournisseurs</h2>
-                <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">-</h2>
-                <a href="{% url 'provider' %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
-            </div>
-        {% endif %}
-        {% if backup_list %}
-            <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
-                <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Backups</h2>
-                <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">-</h2>
-                <a href="{% url 'backup' %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
-            </div>
-        {% endif %}      
+    <div class="px-4 lg:px-12">
+        <div class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white">TABLEAU DE BORD</div>
+    </div>
+    <div class="px-4 lg:px-12">
+    </div>
+    <div class="container m-auto grid grid-rows-2 mb-4">
+        <div class="grid grid-cols-3 mb-4">
+            {% for inventory in inventory_list %}
+                <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Inventaire</h1>
+                <div class="container m-auto grid grid-rows-3 border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
+                    <div>
+                        <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">{{inventory.name}}</h2>
+                    </div>
+                    <div>
+                        <a href="{% url 'inventory' id=inventory.id response=0 %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
+                    </div>
+                    <div>
+                        <a href="{% url 'delete_inventory' id=inventory.id %}" class="overflow-y-auto inline-block text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">Supprimer</a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="container m-auto grid grid-rows-3 border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
+                    <div>
+                        <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">You have no inventory yet</h2>
+                    </div>
+                    <div>
+                        <button
+                            data-modal-target="new-inventory-modal"
+                            data-modal-toggle="new-inventory-modal"
+                            class="inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                            <a href="#">Let's create one!</a>    
+                        </button>
+                    </div>
+                    <div>
+                        <button
+                            data-modal-target="import_inventory"
+                            data-modal-toggle="import_inventory"
+                            class="inline-flex justify-between item-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                            <svg class="flex-shrink-0 w-6 h-6 text-white-500 transition duration-75 group-hover:text-white-900 dark:text-white-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd" d="M9 7V2.221a2 2 0 0 0-.5.365L4.586 6.5a2 2 0 0 0-.365.5H9Zm2 0V2h7a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5h7.586l-.293.293a1 1 0 0 0 1.414 1.414l2-2a1 1 0 0 0 0-1.414l-2-2a1 1 0 0 0-1.414 1.414l.293.293H4V9h5a2 2 0 0 0 2-2Z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="flex-1 ml-3 text-left whitespace-nowrap">
+                                Importation depuis un fichier de données
+                            </span>  
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        
+            {% if provider_list %}
+                <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
+                    <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Fournisseurs</h2>
+                    <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">-</h2>
+                    <a href="{% url 'provider' %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
+                </div>
+            {% endif %}
+            {% if backup_list %}
+                <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
+                    <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Backups</h2>
+                    <h2 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">-</h2>
+                    <a href="{% url 'backup' %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
+                </div>
+            {% endif %}      
+        </div>
+        <div class="container m-auto grid grid-rows-2 mb-4">
+            {% include 'modal/import_inventory.html' %}
+            {% include 'modal/new_inventory_modal.html' %}
+        </div>
+        
+
     </div>
 </div>
 {% endblock content %}

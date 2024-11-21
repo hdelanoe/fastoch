@@ -5,6 +5,8 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas as pd
+import datetime
+
 from pdf2image import convert_from_path
 
 from django.core.files.storage import FileSystemStorage
@@ -69,9 +71,9 @@ def move_from_file(request, id=None, *args, **kwargs):
                 else:
                     if file_extension == ".xlsx" or file_extension == ".xls":
                         df = pd.read_excel(file_path)
-                    if file_extension == ".xml":
+                    elif file_extension == ".xml":
                         df = pd.read_xml(file_path, encoding='utf-8')
-                    if file_extension == ".csv":
+                    elif file_extension == ".csv":
                         df = pd.read_csv(file_path, encoding='utf-8')
                     json_data = json.loads(df.to_json(orient='records'))
                     print(json_data)
@@ -127,27 +129,27 @@ def ask_question(request, id=None, *args, **kwargs):
 
 
 @login_required
-def import_inventory(request, id=None, *args, **kwargs):
-    redirect_url = reverse("inventory", args=[id, 0])
+def import_inventory(request, *args, **kwargs):
+    redirect_url = reverse("dashboard")
     if request.method == 'POST':
         try:
-            form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
-            providername = form.data['provider']
-            move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
+            if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
                 fs = FileSystemStorage()
                 filename = fs.save(uploaded_file.name, uploaded_file)
                 file_path = fs.path(filename)
-                inventory = Inventory.objects.get(id=id)
-
-                if file_extension == ".xml" or file_extension == ".xlsx":
-                    df = pd.read_xml(file_path, encoding='utf-8')
-                if file_extension == ".csv":
-                    df = pd.read_csv(file_path, encoding='utf-8')
+                inventory = Inventory.objects.create(name=request.POST.get('name', "My inventory"))
+                if file_extension == ".xlsx" or file_extension == ".xls":
+                        df = pd.read_excel(file_path)
+                elif file_extension == ".xml":
+                        df = pd.read_xml(file_path, encoding='utf-8')
+                elif file_extension == ".csv":
+                        df = pd.read_csv(file_path, encoding='utf-8')
                 json_data = json.loads(df.to_json(orient='records'))
-                return_obj = json_to_db(providername, json_data, inventory, move_type)
+                
+                return_obj = json_to_db(inventory.name, json_data, inventory)
+                
                 error_list = return_obj.get('error_list')
                 delivery = return_obj.get('delivery')
                 if not error_list:
@@ -157,9 +159,9 @@ def import_inventory(request, id=None, *args, **kwargs):
                         inventory.products.add(t.product)
                     inventory.save()
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
-                    redirect_url = reverse('last_delivery', args=[delivery.id])
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')
+                redirect_url = reverse("inventory", args=[inventory.id, 0])
                 fs.delete(file_path)
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
@@ -191,6 +193,13 @@ def backup_inventory(request, id=None, *args, **kwargs):
     save_backup(inventory, Backup.BackupType.MANUAL)
     messages.success(request, "Your inventory has been backup.")
     return redirect(reverse("inventory", args=[id, 0]))
+
+@login_required
+def delete_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(id=id)
+    inventory.delete()
+    messages.success(request, "Your inventory has been deleted.")
+    return redirect(reverse("dashboard"))
 
 def save_backup(inventory, type=Backup.BackupType.AUTO):
     backup = Backup(

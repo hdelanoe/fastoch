@@ -28,6 +28,15 @@ def json_to_db(providername, json_data, inventory, operator=1):
         try:
             #format values
             p = re.compile(r'\w+')
+
+            product_providername = kesia_get(jd, 'fournisseur')
+            if product_providername is not None:
+                product_provider, created = Provider.objects.get_or_create(
+                name=providername,
+                code=str(providername).replace(' ', '')[:3].upper())
+                if created:
+                    product_provider.save()
+
             code_art = kesia_get(jd, 'code_art')
             if code_art is not None:
                 code_art = str(kesia_get(jd, 'code_art')).replace(provider.code, '')
@@ -59,12 +68,15 @@ def json_to_db(providername, json_data, inventory, operator=1):
                     else:
                         raise Product.DoesNotExist('No code article')
                 except Product.DoesNotExist:
-                    product = Product.objects.create(
-                        fournisseur=provider,
-                        description=description)
+                    product = Product.objects.create(description=description)
+                    if product_providername is not None:
+                        product.provider = product_provider
+                    else:
+                        product_provider = provider    
                     if code_art is None:
                         code_art = f'{provider.code}{product.id}'
                         product.multicode_generated = True
+
                     product.code_art = code_art
                     product.multicode = code_art
                     if ean.isdigit():
