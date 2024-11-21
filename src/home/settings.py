@@ -26,6 +26,9 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str, default=None)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_PORT 587 for TLS
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
+LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=False)
+
+
 ADMINS=[('Hugo', 'hug33k@protonmail.com')]
 MANAGERS=ADMINS
 
@@ -115,7 +118,7 @@ LOGGING = {
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
-            "filename": "C:/Users/Nestor/AppData/Roaming/Fastoch/debug.log",
+            "filename": LOGFILE_PATH,
         },
         "console": {
             "class": "logging.StreamHandler",

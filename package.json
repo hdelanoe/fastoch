@@ -1,12 +1,12 @@
 {
   "scripts": {
-    "watch": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/tw/tailwind-out.css --watch",
-    "build": "tailwindcss -i staticfiles/tw/tailwind-input.css -o staticfiles/theme/fastoch.min.css --build --minify"
+    "watch": "tailwindcss -i src/staticfiles/tw/tailwind-input.css -o src/staticfiles/tw/tailwind-out.css --watch",
+    "build": "tailwindcss -i src/staticfiles/tw/tailwind-input.css -o src/staticfiles/theme/fastoch.min.css --build --minify"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
     "flowbite": "^2.3.0",
     "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.15"
   }
 }

@@ -27,7 +27,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
     for jd in json_data:
         try:
             #format values
-            p = re.compile('\w+')
+            p = re.compile(r'\w+')
             code_art = kesia_get(jd, 'code_art')
             if code_art is not None:
                 code_art = str(kesia_get(jd, 'code_art')).replace(provider.code, '')
