@@ -80,9 +80,9 @@ def move_from_file(request, id=None, *args, **kwargs):
                 delivery = return_obj.get('delivery')
                 if not error_list:
                     messages.success(request, "Livraison bien enregistrée.")
-                    redirect_url = reverse('last_delivery', args=[delivery.id])
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')
+                redirect_url = reverse('last_delivery', args=[delivery.id])
                 fs.delete(file_path)
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
