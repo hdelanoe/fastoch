@@ -1,4 +1,6 @@
 import re
+import logging
+
 
 from django.conf import settings
 from inventory.models import Product, Transaction
@@ -8,9 +10,12 @@ from delivery.models import Delivery
 
 
 def json_to_db(providername, json_data, inventory, operator=1):
+    logger = logging.getLogger('fastoch')
+    consolelog = logging.getLogger('console')
     # format return obj
     delivery = Delivery.objects.create(inventory=inventory)
     return_obj = {'delivery': delivery, 'error_list': []}
+    item_count = 0
 
     # get or create provider
     provider, created = Provider.objects.get_or_create(
@@ -32,11 +37,14 @@ def json_to_db(providername, json_data, inventory, operator=1):
             ean = ''.join(p.findall(str(kesia_get(jd, 'ean')))).upper()
             description = kesia_get(jd, 'description')
             quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
-            achat_ht = float(
-                re.search(
-                    r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_ht')).replace(',', '.')
-                    ).group(1)
-                )
+            try:
+                achat_ht = float(
+                    re.search(
+                        r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_brut')).replace(',', '.')
+                        ).group(1)
+                    )
+            except:
+                  achat_ht = float(str(kesia_get(jd, 'achat_brut')).replace(',', '.'))
 
             # get or create product
             try:
@@ -69,6 +77,9 @@ def json_to_db(providername, json_data, inventory, operator=1):
                 product.has_changed=False
             product.achat_ht=achat_ht
             product.save()
+            item_count += 1
+            logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
+            consolelog.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
 
             transaction = Transaction.objects.create(
@@ -76,6 +87,8 @@ def json_to_db(providername, json_data, inventory, operator=1):
                 quantity=quantity
             )
             transaction.save()
+            logger.debug(f'transaction saved !')
+            consolelog.debug(f'transaction saved !')
             delivery.transactions.add(transaction)
             delivery.providers.add(product.fournisseur)
         except Exception as e:

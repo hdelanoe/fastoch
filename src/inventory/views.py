@@ -42,7 +42,7 @@ def move_from_file(request, id=None, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
+            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
                 fs = FileSystemStorage()
                 filename = fs.save(uploaded_file.name, uploaded_file)
                 file_path = fs.path(filename)
@@ -67,7 +67,7 @@ def move_from_file(request, id=None, *args, **kwargs):
                     except Exception as e:
                         messages.error(request, f'error while parsing {e}')
                 else:
-                    if file_extension == ".xlsx":
+                    if file_extension == ".xlsx" or file_extension == ".xls":
                         df = pd.read_excel(file_path)
                     if file_extension == ".xml":
                         df = pd.read_xml(file_path, encoding='utf-8')

@@ -6,6 +6,7 @@ media/
 
 *tailwind-out.css
 */migrations/*
+*initial.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

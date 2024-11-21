@@ -108,6 +108,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "C:/Users/Nestor/AppData/Roaming/Fastoch/debug.log",
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "fastoch": {
+            "handlers": ["file"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "console": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -230,10 +257,10 @@ KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
     "fournisseur": "NOM_FOURNISSEUR",
     "ean": "EAN",
-    "multicode": "MultiCode",
+    "multicode": "CODE",
     "description": "DEF",
     "quantity": "STOCK",
-    "achat_ht": "BaseHT",
+    "achat_brut": "PMPA",
 }
 
 KESIA2_INVENTORY_COLUMNS_NAME = {
