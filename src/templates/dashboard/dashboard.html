@@ -1,8 +1,8 @@
-{% extends 'home/dashboard.html' %}
+{% extends 'core.html' %}
 
 {% block content %} 
 <div class="grid grid-rows-[max-content_1fr] gap-x-4 mb-4"> 
-    <div class="h-10 flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white mb-8">VUE GENERALE</div>
+    <div class="h-10 flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white mb-8">TABLEAU DE BORD</div>
     <div class="grid grid-cols-3 mb-4">
         {% for inventory in inventory_list %}
             <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">

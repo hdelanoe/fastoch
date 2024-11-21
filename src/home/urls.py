@@ -19,17 +19,15 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-from .views import home_view, dashboard_view, create_inventory
+from .views import home_view
 
 urlpatterns = [
     path('', home_view, name='home'),
-    path('dashboard/', dashboard_view, name='dashboard'),
+    path('dashboard/', include('dashboard.urls')),
     path('inventory/', include('inventory.urls')),
     path('backup/', include('backup.urls')),
     path('provider/', include('provider.urls')),
     path('delivery/', include('delivery.urls')),
-
-    path('create_inventory/', create_inventory),
 
     path('accounts/', include('allauth.urls')),
     

@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "slippers",
     # my apps
     'commando',
+    'dashboard',
     'inventory',
     'backup',
     'provider',

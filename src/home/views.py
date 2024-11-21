@@ -1,9 +1,7 @@
 import pathlib
 from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.contrib import messages
-from django.urls import reverse
 
 from inventory.models import Inventory
 from backup.models import Backup
@@ -14,22 +12,6 @@ this_dir = pathlib.Path(__file__).resolve().parent
 
 def home_view(request, *args, **kwargs):
     return redirect("dashboard")
-
-@login_required
-def dashboard_view(request):
-    context = init_context()
-    return render(request, "overview/overview.html", context) 
-
-
-def create_inventory(request):
-    if request.method=='POST':
-        try:
-            Inventory.objects.create(name=request.POST.get('name', "My inventory"))
-            messages.success(request, "Your inventory has been created.")
-        except Inventory.DoesNotExist:
-            messages.error(request, "Error while create your inventory.")
-    return redirect(reverse("dashboard"))
-
 
 def init_context():
     try:
