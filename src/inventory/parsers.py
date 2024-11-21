@@ -44,7 +44,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
                 code_art = f'{provider.code}{code_art}'
 
             ean = ''.join(p.findall(str(kesia_get(jd, 'ean')))).upper()
-            description = kesia_get(jd, 'description')
+            description = kesia_get(jd, 'description')[:32]
             quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
             try:
                 achat_ht = float(

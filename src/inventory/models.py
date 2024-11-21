@@ -7,7 +7,7 @@ class Product(models.Model):
     fournisseur = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)
-    description = models.CharField(max_length=100, blank=True, null=True)
+    description = models.CharField(max_length=32, blank=True, null=True)
     quantity = models.IntegerField(default=0)
     achat_ht = models.FloatField(default=0.00)
     coef_marge = models.FloatField(blank=True, null=True)
