@@ -26,7 +26,7 @@ class Product(models.Model):
             "Code": self.multicode,
             "DEF": self.description,
             "STOCK": self.quantity,
-            "PMPA": self.product.achat_ht,
+            "PMPA": self.achat_ht,
         }
 
     def __str__(self):
