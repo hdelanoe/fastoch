@@ -1,7 +1,7 @@
 from django.test import TestCase
 import json
 from inventory.models import Inventory, Product, Transaction
-from inventory.views import json_to_db
+from inventory.views import json_to_delivery
 
 
 class InventoryTestCase(TestCase):
@@ -268,7 +268,7 @@ class InventoryTestCase(TestCase):
 '''  
         json_data = json.loads(str)
         inventory = Inventory.get('testInventory')
-        error_list = json_to_db(json_data, inventory)
+        error_list = json_to_delivery(json_data, inventory)
         self.assertTrue(error_list)
     
 

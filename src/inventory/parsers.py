@@ -18,7 +18,8 @@ from pdf2image import convert_from_path
 
 logger = logging.getLogger('fastoch')
 
-def file_to_json(request, uploaded_file, file_extension):
+def file_to_json(uploaded_file, file_extension):
+    return_obj = {'json': {}, 'error_list': {}}
     fs = FileSystemStorage()
     filename = fs.save(uploaded_file.name, uploaded_file)
     file_path = fs.path(filename)
@@ -32,16 +33,16 @@ def file_to_json(request, uploaded_file, file_extension):
                 jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
                 image_content.append(format_content_from_image_path(jpg_path))
             try:
-                json_data = api.extract_json_from_image(image_content)
+                return_obj['json'] = api.extract_json_from_image(image_content)
             except Exception as e:
                 logger.error(f"Error while extracting data from pdf with mistral - {e}")
-                messages.error(request, "Erreur lors de la lecture du .pdf")
+                return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
             for count, page in enumerate(pages):
                 jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
                 fs.delete(jpg_path)
         except Exception as e:
             logger.error(f"Error while saving file - {e}")
-            messages.error(request, "Erreur lors de la lecture du .pdf")
+            return_obj['error_list'] = "Erreur lors de la lecture du .pdf"    
     else:
         try:
             if file_extension == ".xlsx" or file_extension == ".xls":
@@ -52,111 +53,34 @@ def file_to_json(request, uploaded_file, file_extension):
                 df = pd.read_csv(file_path, encoding='utf-8')
         except Exception as e:
             logger.error(f"Error while reading {file_extension} - {e}")
-            messages.error(request, f"Erreur lors de la lecture du {file_extension}")        
+            return_obj['error_list'] = f"Erreur lors de la lecture du {file_extension}"
         try:
-            json_data = json.loads(df.to_json(orient='records'))
+            return_obj['json'] = json.loads(df.to_json(orient='records'))
         except Exception as e:
             logger.error(f"Error while loading df in json - {e}")
-            messages.error(request, f"Erreur lors de la lecture du {file_extension}")
+            return_obj['error_list'] = f"Erreur lors de la lecture du {file_extension}"
     fs.delete(file_path)
-    return (json_data)
+    return (return_obj)
 
-def json_to_db(providername, json_data, inventory, operator=1):
-    logger.debug("json_to_db")
+def json_to_delivery(providername, json_data, inventory, operator=1):
     # format return obj
     delivery = Delivery.objects.create(inventory=inventory)
     return_obj = {'delivery': delivery, 'error_list': []}
     item_count = 0
 
-    # get or create provider
-    provider, created = Provider.objects.get_or_create(
-        name=providername,
-        code=str(providername).replace(' ', '')[:3].upper())
-    if created:
-        provider.save()
+    provider = get_or_create_provider(providername)
 
     for jd in json_data:
         try:
-            logger.debug(
-                        f'{kesia_get(jd, 'provider')}'
-                        f'{kesia_get(jd, 'code_art')}'
-                        f'{kesia_get(jd, 'ean')}'
-                        f'{kesia_get(jd, 'description')[:32]}'
-                        f'{kesia_get(jd, 'quantity')}'
-                        f'{kesia_get(jd, 'achat_ht')}'
-                        )
-            #format values
-            p = re.compile(r'\w+')
-            product_providername = kesia_get(jd, 'provider')
-            if product_providername is not None:
-                product_provider, created = Provider.objects.get_or_create(
-                name=providername,
-                code=str(providername).replace(' ', '')[:3].upper())
-                if created:
-                    product_provider.save()
+            values=format_json_values(jd, provider, operator)
+            product=get_or_create_product(values)
 
-            code_art = kesia_get(jd, 'code_art')
-            if code_art is not None:
-                code_art = str(kesia_get(jd, 'code_art')).replace(provider.code, '')
-                code_art = ''.join(p.findall(code_art)).upper()
-                code_art = f'{provider.code}{code_art}'
-
-            ean = ''.join(p.findall(str(kesia_get(jd, 'ean')))).upper()
-            description = kesia_get(jd, 'description')[:32]
-            quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
-            try:
-                achat_ht = float(
-                    re.search(
-                        r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_ht')).replace(',', '.')
-                        ).group(1)
-                    )
-            except:
-                  achat_ht = float(str(kesia_get(jd, 'achat_ht')).replace(',', '.'))
-
-            # get or create product
-            try:
-                if ean.isdigit():
-                    product = Product.objects.get(ean=ean)
-                else:
-                    raise Product.DoesNotExist('EAN is not a digit')
-            except Product.DoesNotExist:
-                try:
-                    if code_art is not None:
-                        product = Product.objects.get(code_art=code_art)
-                    else:
-                        raise Product.DoesNotExist('No code article')
-                except Product.DoesNotExist:
-                    logger.debug("Create object")
-                    product = Product.objects.create(description=description)
-                    if product_providername is not None:
-                        product.provider = product_provider
-                    else:
-                        product_provider = provider    
-                    if code_art is None:
-                        code_art = f'{provider.code}{product.id}'
-                        logger.debug("Generate MultiCode")
-                        product.multicode_generated = True
-
-                    product.multicode = code_art
-                    if ean.isdigit():
-                        product.ean = ean
-                        product.multicode = ean
-
-            if product.achat_ht != achat_ht:
-                logger.debug("Product has changed")
-                product.has_changed=True
-            else:
-                product.has_changed=False
-            product.achat_ht=achat_ht
-            product.save()
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
-
-
             transaction = Transaction.objects.create(
                 product=product,
-                quantity=quantity
+                quantity=values.get('quantity')
             )
             transaction.save()
             logger.debug(f'transaction saved !')
@@ -170,6 +94,132 @@ def json_to_db(providername, json_data, inventory, operator=1):
         delivery.save()
         return_obj['delivery'] = delivery
     return return_obj
+
+def json_to_import(json_data, inventory):
+    # format return obj
+    return_obj = {'inventory': inventory, 'error_list': []}
+    item_count = 0
+
+    provider = get_or_create_provider(inventory.name)
+
+    for jd in json_data:
+        try:
+            values = format_json_values(jd, provider)
+            product=get_or_create_product(values)
+
+            item_count += 1
+            logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
+
+            inventory.add(product)
+        except Exception as e:
+            return_obj['error_list'].append(f'{e}')
+            logger.error(f'{e}')
+
+    if not return_obj['error_list']:
+        inventory.save()
+        return_obj['inventory'] = inventory
+    return return_obj
+
+def get_or_create_provider(providername):
+    provider, created = Provider.objects.get_or_create(
+        name=providername,
+        code=str(providername).replace(' ', '')[:3].upper())
+    if created:
+        provider.save()
+    return provider
+
+def format_json_values(jd, provider, operator):
+    values = {'provider': {}, 
+              'code_art': {},
+              'ean': {},
+              'description': {},
+              'quantity': {},
+              'achat_ht': {},
+              }
+    logger.debug(
+                f'{kesia_get(jd, 'provider')}'
+                f'{kesia_get(jd, 'code_art')}'
+                f'{kesia_get(jd, 'ean')}'
+                f'{kesia_get(jd, 'description')[:32]}'
+                f'{kesia_get(jd, 'quantity')}'
+                f'{kesia_get(jd, 'achat_ht')}'
+                )
+    
+    p = re.compile(r'\w+')
+    product_providername = kesia_get(jd, 'provider')
+    if product_providername is not None:
+        product_provider, created = Provider.objects.get_or_create(
+        name=provider.name,
+        code=str(provider.name).replace(' ', '')[:3].upper())
+        if created:
+            product_provider.save()
+    else:
+        product_provider=provider        
+
+    code_art = kesia_get(jd, 'code_art')
+    if code_art is not None:
+        code_art = str(kesia_get(jd, 'code_art')).replace(provider.code, '')
+        code_art = ''.join(p.findall(code_art)).upper()
+        code_art = f'{provider.code}{code_art}'
+
+    ean = ''.join(p.findall(str(kesia_get(jd, 'ean')))).upper()
+    description = kesia_get(jd, 'description')[:32]
+    quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
+    try:
+        achat_ht = float(
+            re.search(
+                r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_ht')).replace(',', '.')
+                ).group(1)
+            )
+    except:
+            achat_ht = float(str(kesia_get(jd, 'achat_ht')).replace(',', '.'))
+
+    values['provider']=provider     
+    values['code_art']=code_art     
+    values['ean']=ean     
+    values['description']=description     
+    values['quantity']=quantity     
+    values['achat_ht']=achat_ht   
+    return values  
+
+def get_or_create_product(values):
+    try:
+        if values.get('ean').isdigit():
+            product = Product.objects.get(ean=values.get('ean'))
+        else:
+            raise Product.DoesNotExist('EAN is not a digit')
+    except Product.DoesNotExist:
+        try:
+            if values.get('code_art') is not None:
+                product = Product.objects.get(code_art=values.get('code_art'))
+            else:
+                raise Product.DoesNotExist('No code article')
+        except Product.DoesNotExist:
+            logger.debug("Create object")
+            product = Product.objects.create(
+                description=values.get('description'),
+                provider=values.get('provider'))
+            
+            if  values.get('ean').isdigit():
+                product.ean = values.get('ean')
+                product.multicode = values.get('ean')
+            else:
+                logger.debug("Generate MultiCode")
+                if values.get('code_art'):
+                    product.multicode = values.get('code_art')
+                else:
+                    product.multicode = f'{values.get('provider').code}{product.id}'
+                product.multicode_generated = True          
+             
+    if product.achat_ht != values.get('achat_ht'):
+        logger.debug("Product achat_ht has changed")
+        product.achat_ht=values.get('achat_ht')
+        product.has_changed=True
+    else:
+        product.has_changed=False
+    product.save()
+    return product
+
 
 def kesia_get(jd, key):
     value = jd.get(key)
