@@ -133,13 +133,14 @@ LOGGING = {
 
         },
         "console": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "class": "logging.StreamHandler",
-            'formatter': 'verbose'
+            'formatter': 'verbose',
         },
     },
     "loggers": {
         "fastoch": {
+            'level': 'ERROR',
             "handlers": ["file", "console"],
             "propagate": True,
         },
@@ -266,7 +267,7 @@ CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
-    "fournisseur": "NOM_FOURNISSEUR",
+    "provider": "NOM_FOURNISSEUR",
     "ean": "EAN",
     "multicode": "CODE",
     "description": "DEF",

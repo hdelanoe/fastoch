@@ -1,17 +1,14 @@
 <tr>
-    <!-- Code interne -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.code_art}}</td>
-    <!-- Fournisseur -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.fournisseur.name}}</td>
-    
-    <!-- EAN -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.ean}}</td>
     <!-- MultiCode -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
             <input size="16" min="1" max="16" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="multicode" type="text" name="multicode" value="{{product.multicode}}" placeholder="{{product.multicode}}" required="">
         </form>
     </td>
+    <!-- Fournisseur -->
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.provider.name}}</td>
+    <!-- EAN -->
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.ean}}</td>
     <!-- Description -->
     <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}

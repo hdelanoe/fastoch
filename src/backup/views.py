@@ -46,9 +46,9 @@ def restore_backup(request, id=None, *args, **kwargs):
         inventory.save()   
         for p in products_data:
             code_art=p[settings.KESIA2_COLUMNS_NAME['code_art']]
-            fournisseur, created = Provider.objects.get_or_create(
-                        name=p[settings.KESIA2_COLUMNS_NAME['fournisseur']],
-                        code=str(p[settings.KESIA2_COLUMNS_NAME['fournisseur']]).replace(' ', '')[:3].upper())
+            provider, created = Provider.objects.get_or_create(
+                        name=p[settings.KESIA2_COLUMNS_NAME['provider']],
+                        code=str(p[settings.KESIA2_COLUMNS_NAME['provider']]).replace(' ', '')[:3].upper())
             ean=p[settings.KESIA2_COLUMNS_NAME['ean']]
             description=p[settings.KESIA2_COLUMNS_NAME['description']]
             quantity=p[settings.KESIA2_COLUMNS_NAME['quantity']]
@@ -67,11 +67,11 @@ def restore_backup(request, id=None, *args, **kwargs):
                         raise Product.DoesNotExist('No code article')         
                 except Product.DoesNotExist:
                     product = Product.objects.create(
-                        fournisseur=fournisseur,
+                        provider=provider,
                         description=description)
                     if code_art is None:
-                        code_art = f'{fournisseur.code}{product.id}'
-                    product.code_art = code_art
+                        code_art = f'{provider.code}{product.id}'
+                    product.multicode = code_art
                     if ean.isdigit():
                         product.ean = ean
             inventory.append(product)

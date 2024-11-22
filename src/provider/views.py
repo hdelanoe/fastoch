@@ -33,10 +33,10 @@ def delete_provider(request, id=None, *args, **kwargs):
             provider = Provider.objects.get(id=id)
             name = provider.name
             provider.delete()
-            messages.success(request, f'Le fournisseur {name} a bien été supprimé.')
+            messages.success(request, f'Le provider {name} a bien été supprimé.')
         except ProtectedError:
-            messages.error(request, f'Il existe encore des produits avec ce fournisseur. Supprimez les d\'abord.')   
+            messages.error(request, f'Il existe encore des produits avec ce provider. Supprimez les d\'abord.')   
         except Exception as e:
-            messages.error(request, f'Erreur lors de la suppression du fournisseur : {e}')   
+            messages.error(request, f'Erreur lors de la suppression du provider : {e}')   
         
     return redirect(reverse("provider"))   

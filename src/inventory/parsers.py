@@ -1,13 +1,65 @@
-import re
+import os
 import logging
+import re
+import json
+import pandas as pd
 
+from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
 
 from django.conf import settings
 from inventory.models import Product, Transaction
 from provider.models import Provider
 from delivery.models import Delivery
 
+
+from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
+from pdf2image import convert_from_path
+
 logger = logging.getLogger('fastoch')
+
+def file_to_json(request, uploaded_file, file_extension):
+    fs = FileSystemStorage()
+    filename = fs.save(uploaded_file.name, uploaded_file)
+    file_path = fs.path(filename)
+    if file_extension == ".pdf":
+        pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
+        api = Mistral_API()
+        image_content = []
+        try:
+            for count, page in enumerate(pages):
+                page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
+                jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                image_content.append(format_content_from_image_path(jpg_path))
+            try:
+                json_data = api.extract_json_from_image(image_content)
+            except Exception as e:
+                logger.error(f"Error while extracting data from pdf with mistral - {e}")
+                messages.error(request, "Erreur lors de la lecture du .pdf")
+            for count, page in enumerate(pages):
+                jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
+                fs.delete(jpg_path)
+        except Exception as e:
+            logger.error(f"Error while saving file - {e}")
+            messages.error(request, "Erreur lors de la lecture du .pdf")
+    else:
+        try:
+            if file_extension == ".xlsx" or file_extension == ".xls":
+                df = pd.read_excel(file_path)
+            elif file_extension == ".xml":
+                df = pd.read_xml(file_path, encoding='utf-8')
+            elif file_extension == ".csv":
+                df = pd.read_csv(file_path, encoding='utf-8')
+        except Exception as e:
+            logger.error(f"Error while reading {file_extension} - {e}")
+            messages.error(request, f"Erreur lors de la lecture du {file_extension}")        
+        try:
+            json_data = json.loads(df.to_json(orient='records'))
+        except Exception as e:
+            logger.error(f"Error while loading df in json - {e}")
+            messages.error(request, f"Erreur lors de la lecture du {file_extension}")
+    fs.delete(file_path)
+    return (json_data)
 
 def json_to_db(providername, json_data, inventory, operator=1):
     logger.debug("json_to_db")
@@ -26,7 +78,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
     for jd in json_data:
         try:
             logger.debug(
-                        f'{kesia_get(jd, 'fournisseur')}'
+                        f'{kesia_get(jd, 'provider')}'
                         f'{kesia_get(jd, 'code_art')}'
                         f'{kesia_get(jd, 'ean')}'
                         f'{kesia_get(jd, 'description')[:32]}'
@@ -35,7 +87,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         )
             #format values
             p = re.compile(r'\w+')
-            product_providername = kesia_get(jd, 'fournisseur')
+            product_providername = kesia_get(jd, 'provider')
             if product_providername is not None:
                 product_provider, created = Provider.objects.get_or_create(
                 name=providername,
@@ -85,7 +137,6 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         logger.debug("Generate MultiCode")
                         product.multicode_generated = True
 
-                    product.code_art = code_art
                     product.multicode = code_art
                     if ean.isdigit():
                         product.ean = ean
@@ -110,7 +161,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
             transaction.save()
             logger.debug(f'transaction saved !')
             delivery.transactions.add(transaction)
-            delivery.providers.add(product.fournisseur)
+            delivery.providers.add(product.provider)
         except Exception as e:
             return_obj['error_list'].append(f'{e}')
             logger.error(f'{e}')

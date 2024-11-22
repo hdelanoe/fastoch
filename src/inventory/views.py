@@ -15,7 +15,7 @@ from django.contrib import messages
 
 from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
 from .forms import ImportForm, QuestionForm
-from .parsers import json_to_db
+from .parsers import file_to_json, json_to_db
 from inventory.models import Inventory, Product
 from backup.models import Backup
 
@@ -44,49 +44,20 @@ def move_from_file(request, id=None, *args, **kwargs):
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
             if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
-                fs = FileSystemStorage()
-                filename = fs.save(uploaded_file.name, uploaded_file)
-                file_path = fs.path(filename)
-                inventory = Inventory.objects.get(id=id)
-
-                if file_extension == ".pdf":
-                    pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
-                    api = Mistral_API()
-                    image_content = []
-                    try:
-                        for count, page in enumerate(pages):
-                            page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
-                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                            image_content.append(format_content_from_image_path(jpg_path))
-                        try:
-                            json_data = api.extract_json_from_image(image_content)
-                        except Exception as e:
-                            messages.error(request, f'error while extracting {e}')
-                        for count, page in enumerate(pages):
-                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                            fs.delete(jpg_path)
-                    except Exception as e:
-                        messages.error(request, f'error while parsing {e}')
-                else:
-                    if file_extension == ".xlsx" or file_extension == ".xls":
-                        df = pd.read_excel(file_path)
-                    elif file_extension == ".xml":
-                        df = pd.read_xml(file_path, encoding='utf-8')
-                    elif file_extension == ".csv":
-                        df = pd.read_csv(file_path, encoding='utf-8')
-                    json_data = json.loads(df.to_json(orient='records'))
-                    print(json_data)
-                return_obj = json_to_db(providername, json_data, inventory, move_type)
-                error_list = return_obj.get('error_list')
-                delivery = return_obj.get('delivery')
-                if not error_list:
-                    messages.success(request, "Livraison bien enregistrée.")
-                else:
-                    messages.error(request, f'Error while extracting : {error_list}')
-                redirect_url = reverse('last_delivery', args=[delivery.id])
-                fs.delete(file_path)
+                json_data = file_to_json(request, filename, file_extension)
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
+                return reverse("inventory", args=[id, 0])
+            inventory = Inventory.objects.get(id=id)
+            return_obj = json_to_db(providername, json_data, inventory, move_type)
+            error_list = return_obj.get('error_list')
+            delivery = return_obj.get('delivery')
+            if not error_list:
+                messages.success(request, "Livraison bien enregistrée.")
+            else:
+                messages.error(request, f'Error while extracting : {error_list}')
+            redirect_url = reverse('last_delivery', args=[delivery.id])
+           
         except Exception as e:
             messages.error(request, f'error while saving {e}')
     return redirect(redirect_url)

@@ -4,7 +4,7 @@ from provider.models import Provider
 
 class Product(models.Model):
 
-    fournisseur = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
+    provider = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)
     description = models.CharField(max_length=32, blank=True, null=True)
@@ -21,7 +21,7 @@ class Product(models.Model):
     
     def as_dict(self):
         return {
-            "NOM_FOURNISSEUR": self.fournisseur,
+            "NOM_FOURNISSEUR": self.provider,
             "EAN": self.ean,
             "Code": self.multicode,
             "DEF": self.description,
@@ -30,7 +30,7 @@ class Product(models.Model):
         }
 
     def __str__(self):
-        return f'{self.fournisseur} {self.multicode} {self.description} { self.quantity} {self.achat_ht}'
+        return f'{self.provider} {self.multicode} {self.description} { self.quantity} {self.achat_ht}'
 
 class Transaction(models.Model):
 
