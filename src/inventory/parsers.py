@@ -1,4 +1,3 @@
-import os
 import logging
 import re
 import json
@@ -6,6 +5,7 @@ import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
+from django.db.utils import IntegrityError, OperationalError
 
 from django.conf import settings
 from inventory.models import Product, Transaction
@@ -21,8 +21,8 @@ logger = logging.getLogger('fastoch')
 def file_to_json(uploaded_file, file_extension):
     return_obj = {'json': {}, 'error_list': {}}
     fs = FileSystemStorage()
-    filename = fs.save(uploaded_file.name, uploaded_file)
-    file_path = fs.path(filename)
+    file = fs.save(uploaded_file.name, uploaded_file)
+    file_path = fs.path(file)
     if file_extension == ".pdf":
         pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
         api = Mistral_API()
@@ -87,8 +87,8 @@ def json_to_delivery(providername, json_data, inventory, operator=1):
             delivery.transactions.add(transaction)
             delivery.providers.add(product.provider)
         except Exception as e:
-            return_obj['error_list'].append(f'{e}')
-            logger.error(f'{e}')
+            return_obj['error_list'].append(f'product {values.get('description')} : {e}')
+            logger.error(f'product {values.get('description')} : {e}')
 
     if not return_obj['error_list']:
         delivery.save()
@@ -105,30 +105,32 @@ def json_to_import(json_data, inventory):
     for jd in json_data:
         try:
             values = format_json_values(jd, provider)
-            product=get_or_create_product(values)
+            product=import_product(values)
 
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
-            inventory.add(product)
-        except Exception as e:
-            return_obj['error_list'].append(f'{e}')
-            logger.error(f'{e}')
+            inventory.products.add(product)
+        except OperationalError as e:
+            return_obj['error_list'].append(f'product {values.get('description')} : {e}')
+            logger.error(f'product {values.get('description')} : {e}')
 
-    if not return_obj['error_list']:
-        inventory.save()
-        return_obj['inventory'] = inventory
+    inventory.save()
+    logger.info(f'{len(inventory.products.all())} produit(s) sur {len(json_data)} importé(s).')
+    return_obj['inventory'] = inventory
     return return_obj
 
 def get_or_create_provider(providername):
+    rpro = re.compile(r'([A-z]+)')
     provider, created = Provider.objects.get_or_create(
         name=providername,
-        code=str(providername).replace(' ', '')[:3].upper())
+        code=''.join(rpro.findall(str(providername)))[:4].upper()
+    )
     if created:
         provider.save()
     return provider
 
-def format_json_values(jd, provider, operator):
+def format_json_values(jd, provider, operator=1):
     values = {'provider': {}, 
               'code_art': {},
               'ean': {},
@@ -136,6 +138,8 @@ def format_json_values(jd, provider, operator):
               'quantity': {},
               'achat_ht': {},
               }
+    
+    logger.debug(f'{provider.name}')
     logger.debug(
                 f'{kesia_get(jd, 'provider')}'
                 f'{kesia_get(jd, 'code_art')}'
@@ -146,11 +150,13 @@ def format_json_values(jd, provider, operator):
                 )
     
     p = re.compile(r'\w+')
+    rpro = re.compile(r'([A-z]+)')
     product_providername = kesia_get(jd, 'provider')
     if product_providername is not None:
         product_provider, created = Provider.objects.get_or_create(
-        name=provider.name,
-        code=str(provider.name).replace(' ', '')[:3].upper())
+        name=product_providername,
+        code=''.join(rpro.findall(str(product_providername)))[:4].upper()
+        )
         if created:
             product_provider.save()
     else:
@@ -174,7 +180,7 @@ def format_json_values(jd, provider, operator):
     except:
             achat_ht = float(str(kesia_get(jd, 'achat_ht')).replace(',', '.'))
 
-    values['provider']=provider     
+    values['provider']=product_provider     
     values['code_art']=code_art     
     values['ean']=ean     
     values['description']=description     
@@ -185,13 +191,13 @@ def format_json_values(jd, provider, operator):
 def get_or_create_product(values):
     try:
         if values.get('ean').isdigit():
-            product = Product.objects.get(ean=values.get('ean'))
+            product = Product.objects.get(multicode=values.get('ean'))
         else:
             raise Product.DoesNotExist('EAN is not a digit')
     except Product.DoesNotExist:
         try:
             if values.get('code_art') is not None:
-                product = Product.objects.get(code_art=values.get('code_art'))
+                product = Product.objects.get(multicode=values.get('code_art'))
             else:
                 raise Product.DoesNotExist('No code article')
         except Product.DoesNotExist:
@@ -219,6 +225,38 @@ def get_or_create_product(values):
         product.has_changed=False
     product.save()
     return product
+
+def import_product(values):
+    product = Product.objects.create(
+        provider=values.get('provider'),
+        description=values.get('description'),
+        quantity=values.get('quantity'),
+        achat_ht=values.get('achat_ht')
+    )
+    if  values.get('ean').isdigit():
+        try:
+            product.ean = values.get('ean')
+            product.multicode = values.get('ean')
+            product.save()
+            return product
+        except IntegrityError as e:
+            if 'unique constraint' in str(e.args).lower():
+                logger.error(f'ERROR ean-multicode : product {product.description} {e}')
+    logger.debug("Generate MultiCode")
+    if values.get('code_art'):
+        try:
+            logger.debug(f'codeart = {values.get('code_art')}')
+            product.multicode = values.get('code_art')
+            product.save()
+        except IntegrityError as e:
+            if 'unique constraint' in str(e.args).lower():
+                logger.error(f'ERROR ean-multicode : product {product.description} {e}')
+                product.multicode = f'{values.get('provider').code}{product.id}'
+    else:
+        product.multicode = f'{values.get('provider').code}{product.id}'
+    product.multicode_generated = True
+    product.save()
+    return product     
 
 
 def kesia_get(jd, key):

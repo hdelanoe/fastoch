@@ -2,13 +2,11 @@
 
 {% block content %} 
 <div class="grid grid-rows-[max-content_1fr] gap-x-4 mb-4"> 
-    <div class="px-4 lg:px-12">
-        <div class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white">TABLEAU DE BORD</div>
-    </div>
-    <div class="px-4 lg:px-12">
-    </div>
+    <div class="px-4 lg:px-12 p-4">
+        <div class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white p-4">TABLEAU DE BORD</div>
+    </div> 
     <div class="container m-auto grid grid-rows-2 mb-4">
-        <div class="grid grid-cols-3 mb-4">
+        <div class="grid grid-cols-3 mb-4  gap-4 ">
             {% for inventory in inventory_list %}
                 <div class="container m-auto grid grid-rows-4 border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
                     <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Inventaire</h1>
@@ -19,7 +17,11 @@
                         <a href="{% url 'inventory' id=inventory.id response=0 %}" class="overflow-y-auto inline-block text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Let's go!</a>
                     </div>
                     <div>
-                        <a href="{% url 'delete_inventory' id=inventory.id %}" class="overflow-y-auto inline-block text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">Supprimer</a>
+                        <button
+                            data-modal-target="waiting"
+                            data-modal-toggle="waiting">
+                            <a href="{% url 'delete_inventory' id=inventory.id %}" class="overflow-y-auto inline-block text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 my-15 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">Supprimer</a>
+                        </button>
                     </div>
                 </div>
             {% empty %}
@@ -50,7 +52,7 @@
                     </div>
                 </div>
             {% endfor %}
-        
+            {% include 'modal/waiting.html' %}
             {% if provider_list %}
                 <div class="border-2 text-center border-gray-300 rounded-lg dark:border-gray-600 bg-white h-32 md:h-64 lg:px-6">
                     <h1 class="justify-self-stretch my-4  tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Fournisseurs</h2>
@@ -70,8 +72,6 @@
             {% include 'modal/import_inventory.html' %}
             {% include 'modal/new_inventory_modal.html' %}
         </div>
-        
-
     </div>
 </div>
 {% endblock content %}

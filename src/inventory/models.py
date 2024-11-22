@@ -3,7 +3,6 @@ from django.db import models
 from provider.models import Provider
 
 class Product(models.Model):
-
     provider = models.ForeignKey(Provider, on_delete=models.PROTECT, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)

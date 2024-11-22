@@ -1,19 +1,17 @@
-import json
 import re
 import os
+import logging
+
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas as pd
 
-from pdf2image import convert_from_path
-
-from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
+from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import
 from inventory.models import Inventory, Product
@@ -21,6 +19,7 @@ from backup.models import Backup
 
 from home.views import init_context
 
+logger = logging.getLogger('fastoch')
 
 
 @login_required
@@ -28,7 +27,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     context = init_context()
     inventory = Inventory.objects.get(id=id)
     context["inventory"] = inventory
-    context["columns"] = settings.KESIA2_COLUMNS_NAME.values()
+    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
     context["products"] = inventory.products.all()
     return render(request, "inventory/inventory.html", context)
@@ -44,7 +43,7 @@ def move_from_file(request, id=None, *args, **kwargs):
             filename, file_extension = os.path.splitext(uploaded_file.name)
             if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
                 # Parsing file #
-                return_obj = file_to_json(filename, file_extension)
+                return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
                 error_list = return_obj.get('error_list')
                 if error_list:
@@ -105,12 +104,13 @@ def ask_question(request, id=None, *args, **kwargs):
 @login_required
 def import_inventory(request, *args, **kwargs):
     if request.method == 'POST':
-        try:
+        #try:
             uploaded_file = request.FILES['document']
             name = request.POST['name']
             filename, file_extension = os.path.splitext(uploaded_file.name)
+            logger.debug(f"start parse {filename}")
             if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
-                return_obj = file_to_json(filename, file_extension)
+                return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
                 error_list = return_obj.get('error_list')
                 if error_list:
@@ -123,11 +123,12 @@ def import_inventory(request, *args, **kwargs):
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
                 else:
                     messages.error(request, f'Error while extracting : {error_list}')
-                redirect_url = reverse("inventory", args=[inventory.id, 0])
+                return redirect(reverse("inventory", args=[inventory.id, 0]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
-        except Exception as e:
-            messages.error(request, f'error while saving {e}')
+        #except Exception as e:
+        #    logger.error(f'{e} - {request}')
+        #    messages.error(request, f'error while saving {e}')
     return redirect(reverse("dashboard"))
 
 
@@ -158,6 +159,10 @@ def backup_inventory(request, id=None, *args, **kwargs):
 @login_required
 def delete_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
+    # watchout #
+    for product in inventory.products.all():
+        logger.info(inventory.products.len())
+        product.delete()
     inventory.delete()
     messages.success(request, "Your inventory has been deleted.")
     return redirect(reverse("dashboard"))
