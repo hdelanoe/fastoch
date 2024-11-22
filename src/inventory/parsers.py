@@ -7,11 +7,10 @@ from inventory.models import Product, Transaction
 from provider.models import Provider
 from delivery.models import Delivery
 
-
+logger = logging.getLogger('fastoch')
 
 def json_to_db(providername, json_data, inventory, operator=1):
-    logger = logging.getLogger('fastoch')
-    consolelog = logging.getLogger('console')
+    logger.debug("json_to_db")
     # format return obj
     delivery = Delivery.objects.create(inventory=inventory)
     return_obj = {'delivery': delivery, 'error_list': []}
@@ -26,9 +25,16 @@ def json_to_db(providername, json_data, inventory, operator=1):
 
     for jd in json_data:
         try:
+            logger.debug(
+                        f'{kesia_get(jd, 'fournisseur')}'
+                        f'{kesia_get(jd, 'code_art')}'
+                        f'{kesia_get(jd, 'ean')}'
+                        f'{kesia_get(jd, 'description')[:32]}'
+                        f'{kesia_get(jd, 'quantity')}'
+                        f'{kesia_get(jd, 'achat_ht')}'
+                        )
             #format values
             p = re.compile(r'\w+')
-
             product_providername = kesia_get(jd, 'fournisseur')
             if product_providername is not None:
                 product_provider, created = Provider.objects.get_or_create(
@@ -49,11 +55,11 @@ def json_to_db(providername, json_data, inventory, operator=1):
             try:
                 achat_ht = float(
                     re.search(
-                        r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_brut')).replace(',', '.')
+                        r'([0-9]+.?[0-9]+)', str(kesia_get(jd, 'achat_ht')).replace(',', '.')
                         ).group(1)
                     )
             except:
-                  achat_ht = float(str(kesia_get(jd, 'achat_brut')).replace(',', '.'))
+                  achat_ht = float(str(kesia_get(jd, 'achat_ht')).replace(',', '.'))
 
             # get or create product
             try:
@@ -68,6 +74,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
                     else:
                         raise Product.DoesNotExist('No code article')
                 except Product.DoesNotExist:
+                    logger.debug("Create object")
                     product = Product.objects.create(description=description)
                     if product_providername is not None:
                         product.provider = product_provider
@@ -75,6 +82,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         product_provider = provider    
                     if code_art is None:
                         code_art = f'{provider.code}{product.id}'
+                        logger.debug("Generate MultiCode")
                         product.multicode_generated = True
 
                     product.code_art = code_art
@@ -84,6 +92,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
                         product.multicode = ean
 
             if product.achat_ht != achat_ht:
+                logger.debug("Product has changed")
                 product.has_changed=True
             else:
                 product.has_changed=False
@@ -91,7 +100,7 @@ def json_to_db(providername, json_data, inventory, operator=1):
             product.save()
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
-            consolelog.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
+
 
 
             transaction = Transaction.objects.create(
@@ -100,11 +109,11 @@ def json_to_db(providername, json_data, inventory, operator=1):
             )
             transaction.save()
             logger.debug(f'transaction saved !')
-            consolelog.debug(f'transaction saved !')
             delivery.transactions.add(transaction)
             delivery.providers.add(product.fournisseur)
         except Exception as e:
             return_obj['error_list'].append(f'{e}')
+            logger.error(f'{e}')
 
     if not return_obj['error_list']:
         delivery.save()

@@ -114,25 +114,33 @@ WSGI_APPLICATION = 'home.wsgi.application'
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters":{
+        "verbose":{
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple":{
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
             "filename": LOGFILE_PATH,
+            'formatter': 'simple'
+
         },
         "console": {
+            "level": "DEBUG",
             "class": "logging.StreamHandler",
+            'formatter': 'verbose'
         },
     },
     "loggers": {
         "fastoch": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-        "console": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+            "handlers": ["file", "console"],
             "propagate": True,
         },
     },
@@ -263,7 +271,7 @@ KESIA2_COLUMNS_NAME = {
     "multicode": "CODE",
     "description": "DEF",
     "quantity": "STOCK",
-    "achat_brut": "PMPA",
+    "achat_ht": "PMPA",
 }
 
 KESIA2_INVENTORY_COLUMNS_NAME = {

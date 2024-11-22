@@ -5,7 +5,6 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas as pd
-import datetime
 
 from pdf2image import convert_from_path
 
