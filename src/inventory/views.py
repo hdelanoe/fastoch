@@ -2,11 +2,12 @@ import re
 import os
 import logging
 
+import pandas as pd
+from itertools import chain
+
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
-import pandas as pd
-
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -32,14 +33,17 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     products = inventory.products.all()
     # Filtre les produits si une recherche est spécifiée
     if query:
-        products = products.filter(description__icontains=query)
-
-    total = products.all().count()
+        products_desc = products.filter(description__icontains=query)
+        products_prov = products.filter(provider__name=query)
+        products = list(chain(products_desc, products_prov))
+        total = len(products)
+    else:
+        total = products.count()
 
     paginator = Paginator(products, 25)  # 25 produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)  
-    len = int(page_obj.object_list.count()) + (page_obj.number-1)*25
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
     context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
@@ -47,7 +51,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     context["pages"] = page_obj
     context["products"] = page_obj.object_list
     context["total"] = total
-    context["len"] = len
+    context["len"] = pagin
 
     
 
