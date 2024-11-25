@@ -1,12 +1,11 @@
 import logging
 import re
 import json
+from django.db import IntegrityError
 import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
-from django.db.utils import IntegrityError, OperationalError
-
 from django.conf import settings
 from inventory.models import Product, Transaction
 from provider.models import Provider
@@ -106,14 +105,20 @@ def json_to_import(json_data, inventory):
         try:
             values = format_json_values(jd, provider)
             product=import_product(values)
+            if not product:
+                raise Exception('no products')
 
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
             inventory.products.add(product)
-        except OperationalError as e:
-            return_obj['error_list'].append(f'product {values.get('description')} : {e}')
-            logger.error(f'product {values.get('description')} : {e}')
+        except ValueError as ex:
+             return_obj['error_list'].append(f'Erreur lors de l\'import de {values.get('description')} : {ex}\n')    
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            return_obj['error_list'].append(f'product {values.get('description')} : {ex}')
+            logger.error(f'{message}')
 
     inventory.save()
     logger.info(f'{len(inventory.products.all())} produit(s) sur {len(json_data)} importé(s).')
@@ -141,12 +146,12 @@ def format_json_values(jd, provider, operator=1):
     
     logger.debug(f'{provider.name}')
     logger.debug(
-                f'{kesia_get(jd, 'provider')}'
-                f'{kesia_get(jd, 'code_art')}'
-                f'{kesia_get(jd, 'ean')}'
-                f'{kesia_get(jd, 'description')[:32]}'
-                f'{kesia_get(jd, 'quantity')}'
-                f'{kesia_get(jd, 'achat_ht')}'
+                f'{kesia_get(jd, 'provider')} '
+                f'{kesia_get(jd, 'code_art')} '
+                f'{kesia_get(jd, 'ean')} '
+                f'{kesia_get(jd, 'description')[:32]} '
+                f'{kesia_get(jd, 'quantity')} '
+                f'{kesia_get(jd, 'achat_ht')} '
                 )
     
     p = re.compile(r'\w+')
@@ -235,23 +240,26 @@ def import_product(values):
     )
     if  values.get('ean').isdigit():
         try:
+            logger.debug(f'try to save ean {values.get('ean')}...')
             product.ean = values.get('ean')
             product.multicode = values.get('ean')
             product.save()
             return product
         except IntegrityError as e:
-            if 'unique constraint' in str(e.args).lower():
-                logger.error(f'ERROR ean-multicode : product {product.description} {e}')
+                product.ean = None
+                logger.error(f'ean {values.get('ean')} already exist!')
     logger.debug("Generate MultiCode")
     if values.get('code_art'):
         try:
-            logger.debug(f'codeart = {values.get('code_art')}')
+            logger.debug(f'try to save codeart = {values.get('code_art')}...')
             product.multicode = values.get('code_art')
+            product.multicode_generated = True
             product.save()
         except IntegrityError as e:
-            if 'unique constraint' in str(e.args).lower():
-                logger.error(f'ERROR ean-multicode : product {product.description} {e}')
+                logger.error(f'code_art {values.get('code_art')} already exist!')
                 product.multicode = f'{values.get('provider').code}{product.id}'
+                logger.error(f'try {values.get('provider').code}{product.id}...')
+
     else:
         product.multicode = f'{values.get('provider').code}{product.id}'
     product.multicode_generated = True

@@ -126,21 +126,21 @@ LOGGING = {
     },
     "handlers": {
         "file": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "class": "logging.FileHandler",
             "filename": LOGFILE_PATH,
             'formatter': 'simple'
 
         },
         "console": {
-            "level": "ERROR",
+            "level": "DEBUG",
             "class": "logging.StreamHandler",
             'formatter': 'verbose',
         },
     },
     "loggers": {
         "fastoch": {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             "handlers": ["file", "console"],
             "propagate": True,
         },
@@ -270,6 +270,15 @@ KESIA2_COLUMNS_NAME = {
     "provider": "NOM_FOURNISSEUR",
     "ean": "EAN",
     "multicode": "CODE",
+    "description": "DEF",
+    "quantity": "STOCK",
+    "achat_ht": "PMPA",
+}
+
+INVENTORY_COLUMNS_NAME = {
+    "multicode": "CODE",
+    "provider": "NOM_FOURNISSEUR",
+    "ean": "EAN",
     "description": "DEF",
     "quantity": "STOCK",
     "achat_ht": "PMPA",

@@ -7,6 +7,7 @@ from django.http import Http404, HttpResponse
 from django.urls import reverse
 import pandas as pd
 
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
@@ -26,10 +27,30 @@ logger = logging.getLogger('fastoch')
 def inventory_view(request, id=None, response=0, *args, **kwargs):
     context = init_context()
     inventory = Inventory.objects.get(id=id)
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    products = inventory.products.all()
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        products = products.filter(description__icontains=query)
+
+    total = products.all().count()
+
+    paginator = Paginator(products, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    len = int(page_obj.object_list.count()) + (page_obj.number-1)*25
+
     context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
-    context["products"] = inventory.products.all()
+    context["pages"] = page_obj
+    context["products"] = page_obj.object_list
+    context["total"] = total
+    context["len"] = len
+
+    
+
     return render(request, "inventory/inventory.html", context)
 
 @login_required
@@ -104,7 +125,7 @@ def ask_question(request, id=None, *args, **kwargs):
 @login_required
 def import_inventory(request, *args, **kwargs):
     if request.method == 'POST':
-        #try:
+        try:
             uploaded_file = request.FILES['document']
             name = request.POST['name']
             filename, file_extension = os.path.splitext(uploaded_file.name)
@@ -122,13 +143,16 @@ def import_inventory(request, *args, **kwargs):
                 if not error_list:
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
                 else:
-                    messages.error(request, f'Error while extracting : {error_list}')
+                   
+                    messages.error(request, f'{error_list}')
                 return redirect(reverse("inventory", args=[inventory.id, 0]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
-        #except Exception as e:
-        #    logger.error(f'{e} - {request}')
-        #    messages.error(request, f'error while saving {e}')
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            logger.error(f'{message}')
+            messages.error(request, f'Erreur lors de la sauvegarde du fichier : {ex}')
     return redirect(reverse("dashboard"))
 
 
@@ -161,7 +185,7 @@ def delete_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     # watchout #
     for product in inventory.products.all():
-        logger.info(inventory.products.len())
+        logger.info(inventory.products.all().count())
         product.delete()
     inventory.delete()
     messages.success(request, "Your inventory has been deleted.")

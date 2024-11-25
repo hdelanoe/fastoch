@@ -2,7 +2,6 @@
 {% extends 'dashboard/dashboard.html' %}
 
 {% block content %}
-    </br></br>
     <div class="grid grid-rows-[max-content_1fr] gap-4 mb-4"> 
         {% include 'modal/move_from_file.html' %}
         
@@ -22,14 +21,18 @@
                 </svg>
                 Faire un mouvement d'inventaire
             </button>
-            <!--<button type="button"
-            data-modal-target="import_inventory"
-            data-modal-toggle="import_inventory" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="3" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4" />
-                </svg>
-                Import
-            </button>-->
+            <form method="get" class="mb-4">
+                <input
+                    type="text"
+                    name="search"
+                    class="p-2 border border-gray-300 rounded-lg text-sm"
+                    placeholder="Rechercher un produit..."
+                    value="{{ request.GET.search|default:'' }}"
+                />
+                <button type="submit" class="px-4 py-2 ml-2 text-white bg-blue-500 rounded-lg">
+                    Rechercher
+                </button>
+            </form>
             <form action="{% url 'export_inventory' id=inventory.id %}">
                 <button type="submit" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="3" stroke="currentColor" aria-hidden="true">
@@ -48,8 +51,23 @@
             </form>
         </div>
         {% if products %}
-            <div class="flex flex-col justify-center overflow-y-auto overflow-x-auto mb-8">
-                {% include 'inventory/table.html' %}
+            <div class="flex-grow flex flex-col">
+                <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
+                    {% include 'inventory/table.html' %}
+                </div>
+                <div class="m-4">
+                    <div class="flex justify-center">
+                        {% if pages.has_previous %}
+                            <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
+                        {% endif %}
+                        <div class="m-2 justify-center">
+                            {{ len }} / {{ total }} 
+                        </div>
+                        {% if pages.has_next %}
+                            <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
 
         {% else %}
@@ -74,5 +92,7 @@
             </div>
         </form>
     </div>
-
 {% endblock content %}
+
+
+    

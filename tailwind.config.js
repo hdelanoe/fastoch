@@ -57,4 +57,8 @@ module.exports = {
   plugins: [
     require('flowbite/plugin')
   ],
+  safelist: [
+    'max-h-32',
+    'overflow-y-auto',
+],
 }

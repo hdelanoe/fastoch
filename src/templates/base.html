@@ -6,14 +6,10 @@
         {% include 'base/css.html' %}
 
     </head>
-    <body>
-        <div>
-            {% include 'header.html' %}
-            {% block body %}
-            {% endblock body %}
-            {% include 'footer.html' %}
-        </div>
-       
+    <body class="flex flex-col h-full">
+        {% include 'header.html' %}
+        {% block body %}
+        {% endblock body %}
         {% include 'base/js.html' %}
     </body>
 </html>
