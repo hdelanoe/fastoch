@@ -1,40 +1,64 @@
-import json
 import re
 import os
+import logging
+
+import pandas as pd
+from itertools import chain
+
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.urls import reverse
-import pandas as pd
-from pdf2image import convert_from_path
-
-from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
+from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, QuestionForm
-from .parsers import json_to_db
+from .parsers import file_to_json, json_to_delivery, json_to_import
 from inventory.models import Inventory, Product
 from backup.models import Backup
 
-from dashboard.views import init_context
+from home.views import init_context
 
+logger = logging.getLogger('fastoch')
 
 
 @login_required
 def inventory_view(request, id=None, response=0, *args, **kwargs):
     context = init_context()
     inventory = Inventory.objects.get(id=id)
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    products = inventory.products.all()
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        products_desc = products.filter(description__icontains=query)
+        products_prov = products.filter(provider__name=query)
+        products = list(chain(products_desc, products_prov))
+        total = len(products)
+    else:
+        total = products.count()
+
+    paginator = Paginator(products, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
     context["inventory"] = inventory
-    context["columns"] = settings.KESIA2_COLUMNS_NAME.values()
+    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
-    context["products"] = inventory.products.all()
+    context["products"] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
+
+
+
     return render(request, "inventory/inventory.html", context)
 
 @login_required
 def move_from_file(request, id=None, *args, **kwargs):
-    redirect_url = reverse("inventory", args=[id, 0])
     if request.method == 'POST':
         try:
             form = ImportForm(request.POST)
@@ -42,53 +66,29 @@ def move_from_file(request, id=None, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
-                fs = FileSystemStorage()
-                filename = fs.save(uploaded_file.name, uploaded_file)
-                file_path = fs.path(filename)
+            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
+                # Parsing file #
+                return_obj = file_to_json(uploaded_file, file_extension)
+                json_data = return_obj.get('json')
+                error_list = return_obj.get('error_list')
+                if error_list:
+                    messages.error(request, error_list)
+                    return redirect(reverse("inventory", args=[id, 0]))
                 inventory = Inventory.objects.get(id=id)
-
-                if file_extension == ".pdf":
-                    pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
-                    api = Mistral_API()
-                    image_content = []
-                    try:
-                        for count, page in enumerate(pages):
-                            page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
-                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                            image_content.append(format_content_from_image_path(jpg_path))
-                        try:
-                            json_data = api.extract_json_from_image(image_content)
-                        except Exception as e:
-                            messages.error(request, f'error while extracting {e}')
-                        for count, page in enumerate(pages):
-                            jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                            fs.delete(jpg_path)
-                    except Exception as e:
-                        messages.error(request, f'error while parsing {e}')
-                else:
-                    if file_extension == ".xlsx":
-                        df = pd.read_excel(file_path)
-                    if file_extension == ".xml":
-                        df = pd.read_xml(file_path, encoding='utf-8')
-                    if file_extension == ".csv":
-                        df = pd.read_csv(file_path, encoding='utf-8')    
-                    json_data = json.loads(df.to_json(orient='records'))
-                    print(json_data)
-                return_obj = json_to_db(providername, json_data, inventory, move_type)
+                # Parsing json #
+                return_obj = json_to_delivery(providername, json_data, inventory, move_type)
                 error_list = return_obj.get('error_list')
                 delivery = return_obj.get('delivery')
-                if not error_list:
-                    messages.success(request, "Livraison bien enregistrée.")
-                    redirect_url = reverse('last_delivery', args=[delivery.id])
-                else:
+                if error_list:
                     messages.error(request, f'Error while extracting : {error_list}')
-                fs.delete(file_path)
+                else:
+                    messages.success(request, "Livraison bien enregistrée.")
+                return redirect(reverse('last_delivery', args=[delivery.id]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
             messages.error(request, f'error while saving {e}')
-    return redirect(redirect_url)
+    return redirect(reverse("inventory", args=[id, 0]))
 
 
 
@@ -103,7 +103,7 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
         product_obj.achat_brut = re.search(
                     r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
                     ).group(1)
-              
+
         product_obj.save()
     return redirect(reverse("inventory", args=[inventory, 0]))
 
@@ -128,49 +128,41 @@ def ask_question(request, id=None, *args, **kwargs):
 
 
 @login_required
-def import_inventory(request, id=None, *args, **kwargs):
-    redirect_url = reverse("inventory", args=[id, 0])
+def import_inventory(request, *args, **kwargs):
     if request.method == 'POST':
         try:
-            form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
-            providername = form.data['provider']
-            move_type = int(form.data['move_type'])
+            name = request.POST['name']
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".csv":
-                fs = FileSystemStorage()
-                filename = fs.save(uploaded_file.name, uploaded_file)
-                file_path = fs.path(filename)
-                inventory = Inventory.objects.get(id=id)
-
-                if file_extension == ".xml" or file_extension == ".xlsx":
-                    df = pd.read_xml(file_path, encoding='utf-8')
-                if file_extension == ".csv":
-                    df = pd.read_csv(file_path, encoding='utf-8')
-                json_data = json.loads(df.to_json(orient='records'))
-                return_obj = json_to_db(providername, json_data, inventory, move_type)
+            logger.debug(f"start parse {filename}")
+            if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
+                return_obj = file_to_json(uploaded_file, file_extension)
+                json_data = return_obj.get('json')
                 error_list = return_obj.get('error_list')
-                delivery = return_obj.get('delivery')
+                if error_list:
+                    messages.error(request, error_list)
+                    return redirect(reverse("dashboard"))
+                return_obj = json_to_import(json_data, Inventory.objects.create(name=name))
+                inventory = return_obj.get('inventory')
+                error_list = return_obj.get('error_list')
                 if not error_list:
-                    for p in inventory.products.all():
-                        p.delete()
-                    for t in delivery.transactions.all():
-                        inventory.products.add(t.product)
-                    inventory.save()
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
-                    redirect_url = reverse('last_delivery', args=[delivery.id])
                 else:
-                    messages.error(request, f'Error while extracting : {error_list}')
-                fs.delete(file_path)
+
+                    messages.error(request, f'{error_list}')
+                return redirect(reverse("inventory", args=[inventory.id, 0]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
-        except Exception as e:
-            messages.error(request, f'error while saving {e}')
-    return redirect(redirect_url)
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            logger.error(f'{message}')
+            messages.error(request, f'Erreur lors de la sauvegarde du fichier : {ex}')
+    return redirect(reverse("dashboard"))
 
 
 @login_required
-def export_inventory(request, id=None, *args, **kwargs):
+def export_inventory(id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
@@ -193,11 +185,22 @@ def backup_inventory(request, id=None, *args, **kwargs):
     messages.success(request, "Your inventory has been backup.")
     return redirect(reverse("inventory", args=[id, 0]))
 
+@login_required
+def delete_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(id=id)
+    # watchout #
+    for product in inventory.products.all():
+        logger.info(inventory.products.all().count())
+        product.delete()
+    inventory.delete()
+    messages.success(request, "Your inventory has been deleted.")
+    return redirect(reverse("dashboard"))
+
 def save_backup(inventory, type=Backup.BackupType.AUTO):
     backup = Backup(
         inventory=inventory,
-        products_backup = pd.DataFrame([x.as_Kesia2_dict() for x in inventory.products.all()]).to_json(orient='table'),
-        transactions_backup = pd.DataFrame([x.as_dict() for x in inventory.transaction_list.all()]).to_json(orient='table'),
+        products_backup = pd.DataFrame([x.as_dict() for x in inventory.products.all()]).to_json(orient='table'),
+        #transactions_backup = pd.DataFrame([x.as_Kesia2_inventory_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
         backup_type = type
     )
     backup.save()

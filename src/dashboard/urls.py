@@ -1,16 +1,11 @@
-from django.urls import include, path
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import path, include
 
-from . import views as dashboard_views
-
+from .views import dashboard_view, create_inventory
 
 urlpatterns = [
-    path('', dashboard_views.dashboard_view, name='dashboard'),
-    path('inventory/', include('inventory.urls')),
-    path('backup/', include('backup.urls')),
-    path('provider/', include('provider.urls')),
-    path('delivery/', include('delivery.urls')),
-
-    path('create_inventory/', dashboard_views.create_inventory),
-
-
-]
+    path('', dashboard_view, name='dashboard'),
+    path('create_inventory/', create_inventory),
+]    

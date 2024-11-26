@@ -1,11 +1,12 @@
 
 src/staticfiles/vendors/
+src/staticfiles/theme/
 local-cdn/
 node_modules/
 media/
 
 *tailwind-out.css
-*/migrations/*
+**/migrations/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

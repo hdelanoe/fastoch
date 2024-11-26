@@ -48,7 +48,7 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
-ENV NODE_VERSION=20.17.0
+ENV NODE_VERSION=22.11.0
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
 RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
@@ -79,6 +79,9 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # such as:
 RUN python manage.py vendor_pull    
 RUN python manage.py collectstatic --noinput
+RUN python manage.py makemigrations
+RUN python manage.py migrate
+RUN python manage.py createsuperuser --noinput
 
 
 # whitenoise -> s3

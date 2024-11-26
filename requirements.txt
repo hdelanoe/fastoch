@@ -14,3 +14,4 @@ mistralai
 pdf2image
 openpyxl
 lxml
+xlrd >= 2.0.1

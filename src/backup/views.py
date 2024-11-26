@@ -1,6 +1,8 @@
+from itertools import chain
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.urls import reverse
 from django.conf import settings
 
@@ -10,13 +12,34 @@ import pandas as pd
 from .models import Backup, backup_columns
 from inventory.models import Product, Provider
 from inventory.views import save_backup
-from dashboard.views import init_context
+from home.views import init_context
 
 
 @login_required
 def backup_view(request, *args, **kwargs):
     context = init_context()
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    backup_list = Backup.objects.all()
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        backup_type_list = backup_list.filter(backup_type__icontains=query)
+        backup_inv_list = backup_list.filter(inventory__name=query)
+        backup_list = list(chain(backup_type_list, backup_inv_list))
+        total = len(backup_list)
+    else:
+        total = backup_list.count()
+
+    paginator = Paginator(backup_list, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+
     context['columns'] = backup_columns
+    context["pages"] = page_obj
+    context["backup_list"] = page_obj.object_list
+    context["total"] = total
+    context["len"] = pagin
     return render(request, "backup/backup.html", context) 
 
 @login_required
@@ -41,18 +64,18 @@ def restore_backup(request, id=None, *args, **kwargs):
     try:
         for p in inventory.products.all():
             p.delete()
-        for t in inventory.transaction_list.all():
+        for t in inventory.transactions.all():
             t.delete()
         inventory.save()   
         for p in products_data:
             code_art=p[settings.KESIA2_COLUMNS_NAME['code_art']]
-            fournisseur, created = Provider.objects.get_or_create(
-                        name=p[settings.KESIA2_COLUMNS_NAME['fournisseur']],
-                        code=str(p[settings.KESIA2_COLUMNS_NAME['fournisseur']]).replace(' ', '')[:3].upper())
+            provider, created = Provider.objects.get_or_create(
+                        name=p[settings.KESIA2_COLUMNS_NAME['provider']],
+                        code=str(p[settings.KESIA2_COLUMNS_NAME['provider']]).replace(' ', '')[:3].upper())
             ean=p[settings.KESIA2_COLUMNS_NAME['ean']]
             description=p[settings.KESIA2_COLUMNS_NAME['description']]
             quantity=p[settings.KESIA2_COLUMNS_NAME['quantity']]
-            achat_brut=p[settings.KESIA2_COLUMNS_NAME['achat_brut']]
+            achat_ht=p[settings.KESIA2_COLUMNS_NAME['achat_ht']]
             vente_net=p[settings.KESIA2_COLUMNS_NAME['vente_net']]
             try:
                 if ean.isdigit():
@@ -67,11 +90,11 @@ def restore_backup(request, id=None, *args, **kwargs):
                         raise Product.DoesNotExist('No code article')         
                 except Product.DoesNotExist:
                     product = Product.objects.create(
-                        fournisseur=fournisseur,
+                        provider=provider,
                         description=description)
                     if code_art is None:
-                        code_art = f'{fournisseur.code}{product.id}'
-                    product.code_art = code_art
+                        code_art = f'{provider.code}{product.id}'
+                    product.multicode = code_art
                     if ean.isdigit():
                         product.ean = ean
             inventory.append(product)

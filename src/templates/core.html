@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block head_title %}{{ block.super }}{% endblock head_title %}
+
+{% block body %} 
+<main class="flex-grow min-h-screen flex flex-col p-4 pt-20 antialiased bg-gray-50 dark:bg-gray-900">
+            {% include 'base/messages.html' with messages=messages %}
+            {% include 'sidebar.html' %}
+            {% block content %}
+            {% endblock content %} 
+        
+</main>
+<footer class="mt-auto">
+    {% include 'footer.html' %}
+</footer>
+{% endblock body %}

@@ -26,6 +26,9 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str, default=None)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_PORT 587 for TLS
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
+LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=False)
+
+
 ADMINS=[('Hugo', 'hug33k@protonmail.com')]
 MANAGERS=ADMINS
 
@@ -108,6 +111,42 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters":{
+        "verbose":{
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple":{
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": LOGFILE_PATH,
+            'formatter': 'simple'
+
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            'formatter': 'verbose',
+        },
+    },
+    "loggers": {
+        "fastoch": {
+            'level': 'DEBUG',
+            "handlers": ["file", "console"],
+            "propagate": True,
+        },
+    },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -186,12 +225,12 @@ STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
-# source(s) for python manage.py collectstatic 
+# source(s) for python manage.py collectstatic
 STATICFILES_DIRS = [
     STATICFILES_BASE_DIR
 ]
 
-# output for python manage.py collectstatic 
+# output for python manage.py collectstatic
 # local cdn
 STATIC_ROOT = BASE_DIR / "local-cdn"
 
@@ -228,12 +267,21 @@ CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
-    "fournisseur": "NOM_FOURNISSEUR",
+    "provider": "NOM_FOURNISSEUR",
     "ean": "EAN",
-    "multicode": "MultiCode",
+    "multicode": "CODE",
     "description": "DEF",
     "quantity": "STOCK",
-    "achat_brut": "BaseHT",
+    "achat_ht": "PMPA",
+}
+
+INVENTORY_COLUMNS_NAME = {
+    "multicode": "CODE",
+    "provider": "NOM_FOURNISSEUR",
+    "ean": "EAN",
+    "description": "DEF",
+    "quantity": "STOCK",
+    "achat_ht": "PMPA",
 }
 
 KESIA2_INVENTORY_COLUMNS_NAME = {

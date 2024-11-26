@@ -2,17 +2,17 @@
     <div class="mb-4">
         {% for message in messages %}
             {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-                <div class="flex items-center px-4 py-3 text-sm font-bold text-white bg-red-500"
+                <div class="flex items-center px-2 py-1 text-sm font-bold text-white bg-red-500"
                     role="alert">
                     <p>{{ message }}</p>
                 </div>
             {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
-            <div class="flex items-center px-4 py-3 text-sm font-bold text-white bg-yellow-500"
+            <div class="flex items-center px-2 py-1 text-sm font-bold text-white bg-yellow-500"
                 role="alert">
                 <p>{{ message }}</p>
             </div>    
             {% else %}
-                <div class="flex items-center px-4 py-3 text-sm font-bold text-white bg-blue-500"
+                <div class="flex items-center px-2 py-1 text-sm font-bold text-white bg-blue-500"
                     role="alert">
                     <p>{{ message }}</p>
             </div>  
