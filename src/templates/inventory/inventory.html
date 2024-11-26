@@ -20,6 +20,9 @@
             </svg>
             Faire un mouvement d'inventaire
     </button>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        <input type="file" name="image" accept="image/*" capture="environment">
+    </form>
     <form method="get">
         <input
             type="text"
