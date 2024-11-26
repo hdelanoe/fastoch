@@ -1,6 +1,8 @@
+from itertools import chain
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.urls import reverse
 from django.conf import settings
 
@@ -16,7 +18,28 @@ from home.views import init_context
 @login_required
 def backup_view(request, *args, **kwargs):
     context = init_context()
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    backup_list = Backup.objects.all()
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        backup_type_list = backup_list.filter(backup_type__icontains=query)
+        backup_inv_list = backup_list.filter(inventory__name=query)
+        backup_list = list(chain(backup_type_list, backup_inv_list))
+        total = len(backup_list)
+    else:
+        total = backup_list.count()
+
+    paginator = Paginator(backup_list, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+
     context['columns'] = backup_columns
+    context["pages"] = page_obj
+    context["backup_list"] = page_obj.object_list
+    context["total"] = total
+    context["len"] = pagin
     return render(request, "backup/backup.html", context) 
 
 @login_required

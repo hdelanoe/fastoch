@@ -198,8 +198,8 @@ def delete_inventory(request, id=None, *args, **kwargs):
 def save_backup(inventory, type=Backup.BackupType.AUTO):
     backup = Backup(
         inventory=inventory,
-        products_backup = pd.DataFrame([x.as_Kesia2_dict() for x in inventory.products.all()]).to_json(orient='table'),
-        transactions_backup = pd.DataFrame([x.as_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
+        products_backup = pd.DataFrame([x.as_dict() for x in inventory.products.all()]).to_json(orient='table'),
+        #transactions_backup = pd.DataFrame([x.as_Kesia2_inventory_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
         backup_type = type
     )
     backup.save()

@@ -4,13 +4,12 @@
 {% block content %}
     <div class="grid grid-rows-[max-content_1fr] gap-4 mb-4"> 
         {% include 'modal/move_from_file.html' %}
-        
-        <div class="px-4 lg:px-12">
+        <!-- Title -->
+        <div class="p-4">
             <div class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white">INVENTAIRE : {{ inventory.name }}</div>
         </div>
-        <div class="px-4 lg:px-12">
-        </div>
-        <div class="flex justify-center flex-shrink-0 space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
+        <!-- Buttons -->
+        <div class="mt-2 flex justify-center flex-shrink-0 space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
             <button type="button" 
             data-modal-target="move_from_file"
             data-modal-toggle="move_from_file" 
@@ -20,7 +19,7 @@
                 </svg>
                 Faire un mouvement d'inventaire
             </button>
-            <form method="get" class="mb-4">
+            <form method="get">
                 <input
                     type="text"
                     name="search"
@@ -49,7 +48,9 @@
                 </button>
             </form>
         </div>
-        {% if products %}
+        <!-- Table -->
+        <section class="p-2">
+            {% if products %}
             <div class="flex-grow flex flex-col">
                 <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
                     {% include 'inventory/table.html' %}
@@ -68,14 +69,14 @@
                     </div>
                 </div>
             </div>
-
-        {% else %}
-            <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                Sorry, you don't have any products yet
-            </div>
-        {% endif %}
+            {% else %}
+                <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                    Sorry, you don't have any products yet
+                </div>
+            {% endif %}
+        </section>
         {% include 'modal/waiting.html' %}
-        <div class="bt-8 flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+        <!--<div class="bt-8 flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
             {% if response %}
             <span style="white-space: pre-line"> {{ inventory.last_response }}</span>
             {% else %}
@@ -85,11 +86,11 @@
         <form action="{% url 'ask_question' id=inventory.id %}" method="post">{% csrf_token %}
             <div class="space-y-4 ">
                 <div>
-                <!---    <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label> --->
+                  <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
                     <input id="question" type="text" name="question" placeholder="Qu'allez vous demander ?" class="bg-cream border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                 </div>
             </div>
-        </form>
+        </form>-->
     </div>
 {% endblock content %}
 
