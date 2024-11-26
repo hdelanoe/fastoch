@@ -48,8 +48,8 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
-    context["pages"] = page_obj
     context["products"] = page_obj.object_list
+    context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
 

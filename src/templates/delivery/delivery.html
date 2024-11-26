@@ -1,58 +1,66 @@
 
-{% extends 'dashboard/dashboard.html' %}
+{% extends 'core2.html' %}
 
-{% block content %}
-<div class="grid grid-cols-1 gap-4 mb-4">
-    <section class="bg-gray-50 dark:bg-gray-900 p-5 ">
-        <div class="px-4 lg:px-12">
-            <div class="flex flex-col text-2xl font-semibold whitespace-nowrap dark:text-white">RESUME IMPORT LIVRAISON : {{ inventory.name }} - {{ delivery.date_creation }}</div>
+{% block head_title %}Livraison - {{ block.super }}{% endblock head_title %}
+
+{% block body_title %}RESUME IMPORT LIVRAISON : {{ inventory.name }} - {{ delivery.date_creation }}{% endblock body_title %}
+
+{% block body_modals %}
+{% endblock body_modals %}
+
+{% block body_buttons %}
+    <a href="{% url 'inventory' id=delivery.inventory.id response=0 %}" 
+        class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+        <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="white" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12l4-4m-4 4 4 4" />
+        </svg>
+        Retour a l'inventaire
+    </a>
+    {% if delivery.is_validated %}
+        <div class="flex flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3">
+            <form action="{% url 'export_delivery' id=delivery.id %}">
+                <button type="submit" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                    Export
+                </button>
+            </form>    
         </div>
-        <div class="px-4 lg:px-12">
-            <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
-                <div class="flex items-center flex-1 space-x-4">
-                    <h5>
-                        <span class="text-gray-500">Toutes les transactions:</span>
-                        <span class="dark:text-white">{{ transactions|length }}</span>
-                    </h5>
+    {% else %}
+        <a href="{% url 'validate_delivery' id=delivery.id %}" 
+            class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="white" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 11.917 9.724 16.5 19 7.5" />
+            </svg>
+            Valider la livraison
+        </a>
+    {% endif %}
+{% endblock body_buttons %}
+
+{% block body_table %}
+    {% if backup_list %}
+    <div class="flex-grow flex flex-col">
+        <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
+            {% include 'delivery/table.html' %}
+        </div>
+        <div class="m-4">
+            <div class="flex justify-center">
+                {% if pages.has_previous %}
+                    <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
+                {% endif %}
+                <div class="m-2 justify-center">
+                    {{ len }} / {{ total }} 
                 </div>
-                <a href="{% url 'inventory' id=delivery.inventory.id response=0 %}" 
-                    class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="white" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12l4-4m-4 4 4 4" />
-                    </svg>
-                    Retour a l'inventaire
-                </a>
-                {% if delivery.is_validated %}
-                <div class="flex flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3">
-                    <form action="{% url 'export_delivery' id=delivery.id %}">
-                        <button type="submit" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                            </svg>
-                            Export
-                        </button>
-                    </form>    
-                </div>
-                {% else %}
-                <a href="{% url 'validate_delivery' id=delivery.id %}" 
-                    class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="white" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 11.917 9.724 16.5 19 7.5" />
-                    </svg>
-                    Valider la livraison
-                </a>
+                {% if pages.has_next %}
+                    <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
                 {% endif %}
             </div>
-            <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg overflow-x-auto w-full">
-                {% if transactions %}
-                    {% include 'delivery/table.html' %}
-                {% else %}
-                    <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                        Aucune livraison ici !
-                    </div>
-                {% endif %}
-            </div>
         </div>
-    </section>
-</div>
-{% endblock content %}
+    </div>
+    {% else %}
+    <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+        Aucune livraison ici !
+    </div>
+    {% endif %}
+{% endblock body_table %}

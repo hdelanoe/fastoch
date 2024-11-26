@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.db.models import ProtectedError
+from django.core.paginator import Paginator
 
 from home.views import init_context
 from .models import Provider, provider_columns
@@ -11,7 +12,26 @@ from .forms import ProviderForm
 @login_required
 def provider_view(request, *args, **kwargs):
     context = init_context()
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    providers = context["provider_list"]
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        providers = providers.filter(name__icontains=query)
+        total = len(providers)
+    else:
+        total = providers.count()
+
+    paginator = Paginator(providers, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
     context["columns"] = provider_columns
+    context["provider_list"] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
     return render(request, "provider/provider.html", context) 
 
 @login_required

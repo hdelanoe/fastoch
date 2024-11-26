@@ -1,53 +1,51 @@
 
-{% extends 'dashboard/dashboard.html' %}
+{% extends 'core2.html' %}
 
-{% block content %}
-<div class="grid grid-rows-[max-content_1fr] gap-4 mb-4">
-    <!-- Title -->
-    <div class="p-4 lg:px-12">
-        <div class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white">LISTE DES BACKUPS</div>
-    </div>
-    <!-- Buttons -->
-    <div class="mt-2 flex justify-center flex-shrink-0 space-y-3 md:flex-row md:items-center md:space-x-3">
-        <form method="get">
-            <input
-                type="text"
-                name="search"
-                class="p-2 border border-gray-300 rounded-lg text-sm"
-                placeholder="Rechercher un produit..."
-                value="{{ request.GET.search|default:'' }}"
-            />
-            <button type="submit" class="px-4 py-2 ml-2 text-white bg-blue-500 rounded-lg">
-                Rechercher
-            </button>
-        </form>
-    </div>
-    <!-- Table -->
-    <section class="p-2">
-        {% if backup_list %}
-            <div class="flex-grow flex flex-col">
-                <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
-                    {% include 'backup/table.html' %}
+{% block head_title %}Backups - {{ block.super }}{% endblock head_title %}
+
+{% block body_title %}LISTE DES BACKUPS : {{ inventory.name }}{% endblock body_title %}
+
+{% block body_modals %}
+{% endblock body_modals %}
+
+{% block body_buttons %}
+    <form method="get">
+        <input
+            type="text"
+            name="search"
+            class="p-2 border border-gray-300 rounded-lg text-sm"
+            placeholder="Rechercher un backup..."
+            value="{{ request.GET.search|default:'' }}"
+        />
+        <button type="submit" class="px-4 py-2 ml-2 text-white bg-blue-500 rounded-lg">
+            Rechercher
+        </button>
+    </form>
+{% endblock body_buttons %}
+
+{% block body_table %}
+    {% if backup_list %}
+    <div class="flex-grow flex flex-col">
+        <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
+            {% include 'backup/table.html' %}
+        </div>
+        <div class="m-4">
+            <div class="flex justify-center">
+                {% if pages.has_previous %}
+                    <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
+                {% endif %}
+                <div class="m-2 justify-center">
+                    {{ len }} / {{ total }} 
                 </div>
-                <div class="m-4">
-                    <div class="flex justify-center">
-                        {% if pages.has_previous %}
-                            <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
-                        {% endif %}
-                        <div class="m-2 justify-center">
-                            {{ len }} / {{ total }} 
-                        </div>
-                        {% if pages.has_next %}
-                            <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
-                        {% endif %}
-                    </div>
-                </div>
+                {% if pages.has_next %}
+                    <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
+                {% endif %}
             </div>
-        {% else %}
-            <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                Sorry, you don't have any backups yet
-            </div>
-        {% endif %}
-    </section>
-</div>
-{% endblock content %}
+        </div>
+    </div>
+    {% else %}
+    <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+        Sorry, you don't have any backups yet
+    </div>
+    {% endif %}
+{% endblock body_table %}

@@ -1,24 +1,52 @@
 
-{% extends 'dashboard/dashboard.html' %}
 
-{% block content %}
-<div class="px-4 lg:px-12">
-    <div class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white mb-8">LISTE DES FOURNISSEURS</div>
-</div>
-<div class="grid grid-cols-1 gap-4 mb-4">
-    <section class="bg-gray-50 dark:bg-gray-900 p-5 ">
-        <div class="px-4 lg:px-12">
-            <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg overflow-x-auto w-full">
-                {% if provider_list %}
-                    {% include 'provider/table.html' %}
+{% extends 'core2.html' %}
 
-                {% else %}
-                    <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                        Sorry, you don't have any provider yet
-                    </div>
+{% block head_title %}Fournisseurs - {{ block.super }}{% endblock head_title %}
+
+{% block body_title %}LISTE DES FOURNISSEURS{% endblock body_title %}
+
+{% block body_modals %}
+{% endblock body_modals %}
+
+{% block body_buttons %}
+    <form method="get">
+        <input
+            type="text"
+            name="search"
+            class="p-2 border border-gray-300 rounded-lg text-sm"
+            placeholder="Rechercher un fournisseur..."
+            value="{{ request.GET.search|default:'' }}"
+        />
+        <button type="submit" class="px-4 py-2 ml-2 text-white bg-blue-500 rounded-lg">
+            Rechercher
+        </button>
+    </form>
+{% endblock body_buttons %}
+
+{% block body_table %}
+    {% if provider_list %}
+    <div class="flex-grow flex flex-col">
+        <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
+            {% include 'provider/table.html' %}
+        </div>
+        <div class="m-4">
+            <div class="flex justify-center">
+                {% if pages.has_previous %}
+                    <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
+                {% endif %}
+                <div class="m-2 justify-center">
+                    {{ len }} / {{ total }} 
+                </div>
+                {% if pages.has_next %}
+                    <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
                 {% endif %}
             </div>
         </div>
-    </section>
-</div>
-{% endblock content %}
+    </div>
+    {% else %}
+    <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+       Aucun fournisseur ici !
+    </div>
+    {% endif %}
+{% endblock body_table %}

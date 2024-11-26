@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 import os
 
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import Http404, HttpResponse
@@ -25,21 +26,29 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
     inventory = delivery.inventory
     transactions = delivery.transactions.all()
-    warning = False
+
+    total = transactions.count()
+    
+    for transaction in transactions:
+        if transaction.product.has_changed:
+            messages.warning(request, f'Le prix de {transaction.product.description} a changé !')
+        elif transaction.product.multicode_generated:
+            messages.warning(request, f'Le multicode de {transaction.product.description} a été généré !')
+
+    paginator = Paginator(transactions, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+
+
     context["delivery"] = delivery
     context["inventory"] = inventory
     context["columns"] = settings.KESIA2_INVENTORY_COLUMNS_NAME.values()
-    context["transactions"] = transactions
-    message_list=['Attention']
-    for transaction in transactions:
-        if transaction.product.has_changed:
-            message_list.append(f'Le prix de {transaction.product.description} a changé !')
-            warning = True
-        elif transaction.product.multicode_generated:
-            message_list.append(f'Le multicode de {transaction.product.description} a été généré !')
-            warning = True
-    if warning:
-        messages.warning(request, f'{message_list}')
+    context["transactions"] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
+   
     return render(request, "delivery/delivery.html", context)
 
 @login_required
