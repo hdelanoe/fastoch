@@ -28,7 +28,7 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     transactions = delivery.transactions.all()
 
     total = transactions.count()
-    
+
     for transaction in transactions:
         if transaction.product.has_changed:
             messages.warning(request, f'Le prix de {transaction.product.description} a changé !')
@@ -37,8 +37,8 @@ def last_delivery_view(request, id=None, *args, **kwargs):
 
     paginator = Paginator(transactions, 25)  # 25 produits par page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)  
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+    page_obj = paginator.get_page(page_number)
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
 
     context["delivery"] = delivery
@@ -48,7 +48,7 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
-   
+
     return render(request, "delivery/delivery.html", context)
 
 @login_required

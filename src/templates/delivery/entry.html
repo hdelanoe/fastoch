@@ -1,5 +1,5 @@
 <tr class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-    
+
     <!-- MultiCode -->
     {% if transaction.product.multicode_generated %}
         <td class="px-2 py-1 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.multicode}}</td>
@@ -7,7 +7,11 @@
         <td class="px-2 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.multicode}}</td>
     {% endif %}
     <!-- Description -->
-    <td class="px-2 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
+    {% if transaction.product.is_new %}
+        <td class="px-4 py-2 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
+    {% else %}
+        <td class="px-4 py-2 font-medium text-white-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
+    {% endif %}
    <!-- Quantité -->
     <td class="px-2 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.quantity}}</td>
     <!-- Achat HT -->

@@ -14,10 +14,11 @@ class Product(models.Model):
 
     has_changed=models.BooleanField(default=False)
     multicode_generated=models.BooleanField(default=False)
+    is_new=models.BooleanField(default=False)
 
     def get_format_achat_ht(self):
         return format(self.achat_ht, '.2f')
-    
+
     def as_dict(self):
         return {
             "NOM_FOURNISSEUR": self.provider,
@@ -49,7 +50,7 @@ class Transaction(models.Model):
             "transaction_type": self.transaction_type,
             "date_transaction": self.date_transaction,
         }
-    
+
     def as_Kesia2_inventory_dict(self):
         return {
             "Designation": self.product.description,

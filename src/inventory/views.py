@@ -42,7 +42,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
 
     paginator = Paginator(products, 25)  # 25 produits par page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)  
+    page_obj = paginator.get_page(page_number)
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
     context["inventory"] = inventory
@@ -53,7 +53,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     context["total"] = total
     context["len"] = pagin
 
-    
+
 
     return render(request, "inventory/inventory.html", context)
 
@@ -99,8 +99,9 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
         product_obj = Product.objects.get(id=product)
         product_obj.description = request.POST.get('description', product_obj.description)
         product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
-        product_obj.achat_ht = re.search(
-                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_ht', product_obj.achat_ht)).replace(',', '.')
+        product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
+        product_obj.achat_brut = re.search(
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
                     ).group(1)
 
         product_obj.save()
@@ -147,7 +148,7 @@ def import_inventory(request, *args, **kwargs):
                 if not error_list:
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
                 else:
-                   
+
                     messages.error(request, f'{error_list}')
                 return redirect(reverse("inventory", args=[inventory.id, 0]))
             else:

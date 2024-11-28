@@ -41,7 +41,7 @@ def file_to_json(uploaded_file, file_extension):
                 fs.delete(jpg_path)
         except Exception as e:
             logger.error(f"Error while saving file - {e}")
-            return_obj['error_list'] = "Erreur lors de la lecture du .pdf"    
+            return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
     else:
         try:
             if file_extension == ".xlsx" or file_extension == ".xls":
@@ -113,7 +113,7 @@ def json_to_import(json_data, inventory):
 
             inventory.products.add(product)
         except ValueError as ex:
-             return_obj['error_list'].append(f'Erreur lors de l\'import de {values.get('description')} : {ex}\n')    
+             return_obj['error_list'].append(f'Erreur lors de l\'import de {values.get('description')} : {ex}\n')
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
@@ -136,14 +136,14 @@ def get_or_create_provider(providername):
     return provider
 
 def format_json_values(jd, provider, operator=1):
-    values = {'provider': {}, 
+    values = {'provider': {},
               'code_art': {},
               'ean': {},
               'description': {},
               'quantity': {},
               'achat_ht': {},
               }
-    
+
     logger.debug(f'{provider.name}')
     logger.debug(
                 f'{kesia_get(jd, 'provider')} '
@@ -153,7 +153,7 @@ def format_json_values(jd, provider, operator=1):
                 f'{kesia_get(jd, 'quantity')} '
                 f'{kesia_get(jd, 'achat_ht')} '
                 )
-    
+
     p = re.compile(r'\w+')
     rpro = re.compile(r'([A-z]+)')
     product_providername = kesia_get(jd, 'provider')
@@ -165,7 +165,7 @@ def format_json_values(jd, provider, operator=1):
         if created:
             product_provider.save()
     else:
-        product_provider=provider        
+        product_provider=provider
 
     code_art = kesia_get(jd, 'code_art')
     if code_art is not None:
@@ -185,13 +185,13 @@ def format_json_values(jd, provider, operator=1):
     except:
             achat_ht = float(str(kesia_get(jd, 'achat_ht')).replace(',', '.'))
 
-    values['provider']=product_provider     
-    values['code_art']=code_art     
-    values['ean']=ean     
-    values['description']=description     
-    values['quantity']=quantity     
-    values['achat_ht']=achat_ht   
-    return values  
+    values['provider']=product_provider
+    values['code_art']=code_art
+    values['ean']=ean
+    values['description']=description
+    values['quantity']=quantity
+    values['achat_ht']=achat_ht
+    return values
 
 def get_or_create_product(values):
     try:
@@ -210,7 +210,7 @@ def get_or_create_product(values):
             product = Product.objects.create(
                 description=values.get('description'),
                 provider=values.get('provider'))
-            
+
             if  values.get('ean').isdigit():
                 product.ean = values.get('ean')
                 product.multicode = values.get('ean')
@@ -220,8 +220,8 @@ def get_or_create_product(values):
                     product.multicode = values.get('code_art')
                 else:
                     product.multicode = f'{values.get('provider').code}{product.id}'
-                product.multicode_generated = True          
-             
+                product.multicode_generated = True
+
     if product.achat_ht != values.get('achat_ht'):
         logger.debug("Product achat_ht has changed")
         product.achat_ht=values.get('achat_ht')
@@ -264,7 +264,7 @@ def import_product(values):
         product.multicode = f'{values.get('provider').code}{product.id}'
     product.multicode_generated = True
     product.save()
-    return product     
+    return product
 
 
 def kesia_get(jd, key):
