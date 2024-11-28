@@ -16,6 +16,7 @@ def home_view(request, *args, **kwargs):
 def init_context():
     try:
         inventory_list = Inventory.objects.all()
+        inventory_current = inventory_list.get(is_current=True)
     except Inventory.DoesNotExist:
         inventory_list = None
     try:
@@ -35,4 +36,5 @@ def init_context():
         "backup_list": backup_list,
         "provider_list": provider_list,
         "delivery_list": delivery_list,
+        "inventory_current": inventory_current,
     }

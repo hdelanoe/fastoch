@@ -17,7 +17,13 @@ def dashboard_view(request):
 def create_inventory(request):
     if request.method=='POST':
         try:
-            Inventory.objects.create(name=request.POST.get('name', "My inventory"))
+            inventories=Inventory.objects.all()
+            if not inventories:
+                Inventory.objects.create(
+                    name=request.POST.get('name', "My inventory"),
+                    is_current=True)
+            else:    
+                Inventory.objects.create(name=request.POST.get('name', "My inventory"))
             messages.success(request, "Your inventory has been created.")
         except Inventory.DoesNotExist:
             messages.error(request, "Error while create your inventory.")
