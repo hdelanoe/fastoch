@@ -79,6 +79,7 @@ class Inventory(ProductList):
     name = models.CharField(max_length=50, default="My Inventory", unique=True)
     transaction_list = models.ManyToManyField(Transaction)
     last_response =  models.TextField(default="Comment puis-je vous aider ?")
+    is_current = models.BooleanField(default=False)
 
     def __str__(self):
         return f'name:{self.name}'

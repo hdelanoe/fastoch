@@ -9,6 +9,8 @@ from home.views import init_context
 @login_required
 def dashboard_view(request):
     context = init_context()
+    if not context["inventory_list"] :
+        return render(request, "dashboard/dashboard_new_inventory.html", context) 
     return render(request, "dashboard/dashboard.html", context) 
 
 @login_required

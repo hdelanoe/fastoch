@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     # my apps
     'commando',
     'dashboard',
+    'settings',
     'inventory',
     'backup',
     'provider',

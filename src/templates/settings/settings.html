@@ -1,0 +1,62 @@
+{% extends 'core.html' %}
+
+{% block head_title %}Settings - {{ block.super }}{% endblock head_title %}
+
+{% block content %}
+<div class="grid grid-rows-[max-content_1fr] gap-4 mb-4">
+    <!-- Titre principal -->
+    <div class="py-4">
+        <h1 class="text-center text-2xl font-semibold whitespace-nowrap dark:text-white">CONFIGURATION</h1>
+    </div>
+    <!-- Message -->
+    <div class="px-4 lg:px-12 p-4">
+        <h2 class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white p-4">Aucun inventaire configuré</div>
+    </div>  
+
+    <!-- Conteneur des options -->
+    <div class="flex items-center justify-between">
+        <!-- Option 1 : Créer un inventaire vide -->
+        <div class="w-full flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
+            <h2 class="m-4 text-lg font-bold text-gray-900 dark:text-white text-center">
+                Choisir l'inventaire courant
+            </h2>
+            <button type="button" data-dropdown-toggle="dropdownDefaultRadio"
+                class="m-4 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                <svg class="w-4 h-4 mr-2 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3"
+                    stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8 10 4 4 4-4" />
+                </svg>
+                Inventaire courant
+            </button>
+        </div>
+        <div id="dropdownDefaultRadio" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+            <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownRadioButton">
+                {% for inventory in inventory_list %}
+                <li>
+                    <div class="flex items-center">
+                        <input id="default-radio-1" type="radio" value="" name="default-radio" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                        <label for="default-radio-1" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{ inventory.name }</label>
+                    </div>
+                </li>
+              {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Option 2 : Importer un inventaire -->
+        <div class="w-full flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
+            <h2 class="m-4 text-lg font-bold text-gray-900 dark:text-white text-center">
+                Créer un inventaire depuis un import
+            </h2>
+            <button data-modal-target="import_inventory" data-modal-toggle="import_inventory"
+                class="m-4 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                Importer depuis un fichier de données
+            </button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    {% include 'modal/waiting.html' %}
+    {% include 'modal/import_inventory.html' %}
+    {% include 'modal/new_inventory_modal.html' %}
+</div>
+{% endblock content %}
