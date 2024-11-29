@@ -47,7 +47,6 @@ def add_product_from_photo(request):
                     fs = FileSystemStorage()
                     file = fs.save(uploaded_file.name, uploaded_file)
                     file_path = fs.path(file)
-                    print(f'filepath = {file_path}')  
                     barcode = bar_decoder.decode(file_path)
                     if barcode is None:
                          messages.warning(request, f'Aucun code-barres détecté.')
