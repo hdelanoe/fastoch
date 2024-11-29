@@ -12,7 +12,7 @@ from provider.models import Provider
 from delivery.models import Delivery
 
 
-from helpers.mistral import Mistral_API, Codestral_Mamba, format_content_from_image_path
+from helpers.mistral import Mistral_PDF_API, Codestral_Mamba, format_content_from_image_path
 from pdf2image import convert_from_path
 
 logger = logging.getLogger('fastoch')
@@ -24,7 +24,7 @@ def file_to_json(uploaded_file, file_extension):
     file_path = fs.path(file)
     if file_extension == ".pdf":
         pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
-        api = Mistral_API()
+        api = Mistral_PDF_API()
         image_content = []
         try:
             for count, page in enumerate(pages):

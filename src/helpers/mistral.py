@@ -37,43 +37,13 @@ class Codestral_Mamba():
         )
         return chat_response.choices[0].message.content
 
-class Mistral_API():
+class Mistral_PDF_API():
 
     mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
     model = "pixtral-12b-2409"
     client = Mistral(api_key=mistral_api_key)
 
 
-    def chat(self, message, products):
-        chat_response = self.client.chat.complete(
-            model= self.model,
-            messages = [
-                {
-                    "role": "system",
-                    "content": '''
-                                Le message de l'utilisateur sera toujours fini par un dataset.
-                                Il y a de grandes chances que la réponse a la question se trouve dedans.
-                                Dans ta réponse, n'en fait pas trop, contente toi de répondre simplement a la question.
-                                Si tu ne connais pas la réponse a la question, dit le et n'imvente pas de résultat.
-                                ''',
-                },
-                {
-                    "role": "user",
-                    "content": f'{message} - {products}',
-                },
-              
-            ]
-        )
-        return chat_response.choices[0].message.content
-
-    def upload(self, filepath):
-        return self.client.upload(
-            file={
-                "file_name": filepath,
-                "content": open(filepath, "rb"),
-            }
-        )
-    
     def extract_json_from_image(self, formatted_images):
         content = [{
                     "type": "text",
