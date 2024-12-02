@@ -26,7 +26,7 @@
     <!-- Description -->
     <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'update_product' product=product.id %}" method="post">{% csrf_token %}
-            <input size="32" min="1" max="32" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="description" type="text" name="description" value="{{product.description}}" placeholder="{{product.description}}" required="">
+            <input size="64" min="1" max="64" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="description" type="text" name="description" value="{{product.description}}" placeholder="{{product.description}}" required="">
         </form>
     </td>
     <!-- Quantité -->
