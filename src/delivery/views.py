@@ -1,3 +1,4 @@
+from itertools import chain
 from django.shortcuts import redirect, render
 from django.conf import settings
 import os
@@ -9,13 +10,13 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Inventory, Product
+from inventory.models import Inventory, Product, Receipt, Transaction
 from .models import Delivery, delivery_columns
 from home.views import init_context
 from django.contrib import messages
 
 @login_required
-def delivery_view(request, *args, **kwargs):
+def delivery_list_view(request, *args, **kwargs):
     context = init_context()
 
     query = request.GET.get('search', '')  # Récupère le texte de recherche
@@ -38,9 +39,9 @@ def delivery_view(request, *args, **kwargs):
     return render(request, "delivery/delivery_list/delivery.html", context)
 
 @login_required
-def last_delivery_view(request, id=None, *args, **kwargs):
+def delivery_view(request, id=None, *args, **kwargs):
     context = init_context()
-    delivery = Delivery.objects.get(id=id)
+    delivery = Delivery.objects.last()
     inventory = delivery.inventory
     transactions = delivery.transactions.all()
 
@@ -69,23 +70,31 @@ def last_delivery_view(request, id=None, *args, **kwargs):
     return render(request, "delivery/delivery.html", context)
 
 @login_required
+def update_transaction(request, delivery=None, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        transaction = Transaction.objects.get(id=id)
+        transaction.quantity = request.POST.get('quantity', transaction.quantity)
+        
+        transaction.save()
+    return redirect(reverse("delivery", args=[delivery]))
+
+@login_required
 def validate_delivery(request, id=None, *args, **kwargs):
     try:
         delivery = Delivery.objects.get(id=id)
-        inventory = delivery.inventory
+        receipt, created = Receipt.objects.get_or_create(is_waiting=True)
         for transaction in delivery.transactions.all():
             product = transaction.product
             product.quantity += transaction.quantity
             product.save()
-            inventory.products.add(product)
-            inventory.transactions.add(transaction)
-        inventory.save()
+            receipt.products.add(product)
+        receipt.save()
         delivery.is_validated = True
         delivery.save()
-        messages.success(request, f'Livraison validée et ajoutée a l\'inventaire')
+        messages.success(request, f'Livraison validée et ajoutée aux réceptions.')
     except Exception as e:
         messages.error(request, f'Error while validate {e}')
-    return redirect(reverse("last_delivery", args=[delivery.id]))
+    return redirect(reverse("delivery", args=[delivery]))
 
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
@@ -109,6 +118,36 @@ def delete_delivery(request, id=None, *args, **kwargs):
     delivery.delete()
     messages.success(request, f'la livraison a bien été supprimé. ')
     return redirect(reverse("delivery"))
+
+@login_required
+def receipt_view(request, *args, **kwargs):
+    context = init_context()
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    products = context["receipt"].products.all()
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        products_desc = products.filter(description__icontains=query)
+        products_prov = products.filter(provider__name=query)
+        products = list(chain(products_desc, products_prov))
+        total = len(products)
+    else:
+        total = products.count()
+
+    paginator = Paginator(products, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
+    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
+    context["products"] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
+
+
+
+    return render(request, "receipt/receipt.html", context)
 
 #@login_required
 #def update_delivery_product(request, delivery=None, product=None, *args, **kwargs):

@@ -83,3 +83,6 @@ class Inventory(ProductList):
 
     def __str__(self):
         return f'name:{self.name}'
+    
+class Receipt(ProductList):
+    is_waiting = models.BooleanField(default=True)    

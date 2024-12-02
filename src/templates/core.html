@@ -13,24 +13,28 @@
                         {% block body_title %} Core {% endblock body_title %}
                     </div>
                 </div>
-                <!-- Modals -->
-                <div class="flex items-center justify-center">
-                        {% include 'modal/import_inventory.html' %}
-                        {% include 'modal/move_from_file.html' %}
-                        {% include 'modal/new_inventory_modal.html' %}
-                        {% include 'modal/new_photo_product.html' %}
-                        {% include 'modal/waiting.html' %}
+                <div class="grid grid-rows-[max-content_1fr] gap-4 mb-4"> 
+                    <div class="flex flex-col items-center justify-center">
+                        <!-- Modals -->
+                        <section class="mt-2 flex justify-center flex-shrink-0 space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
+                            {% include 'modal/import_inventory.html' %}
+                            {% include 'modal/move_from_file.html' %}
+                            {% include 'modal/new_inventory_modal.html' %}
+                            {% include 'modal/new_photo_product.html' %}
+                            {% include 'modal/waiting.html' %}
+                        </section>
+                        <!-- Buttons -->
+                        <section class="mt-2 flex justify-center flex-shrink-0 space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
+                            {% block body_buttons %}
+                            {% endblock body_buttons %}
+                        </section>
+                        <!-- Table -->
+                        <section class="p-2">
+                            {% block body_table %}
+                            {% endblock body_table %}
+                        </section>
+                    </div>
                 </div>
-                <!-- Buttons -->
-                <div class="mt-2 flex justify-center flex-shrink-0 space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
-                    {% block body_buttons %}
-                    {% endblock body_buttons %}
-                </div>
-                <!-- Table -->
-                <section class="p-2">
-                    {% block body_table %}
-                    {% endblock body_table %}
-                </section>
             </div>
         </div>
         

@@ -4,7 +4,7 @@ from . import views as inventory_views
 
 
 urlpatterns = [
-    path('<str:id>/<int:response>', inventory_views.inventory_view, name='inventory'),
+    path('<int:response>', inventory_views.inventory_view, name='inventory'),
     path('<str:id>/ask_question', inventory_views.ask_question, name='ask_question'),
     path('move_from_file', inventory_views.move_from_file, name='move_from_file'),
    path('import_inventory', inventory_views.import_inventory, name='import_inventory'),
@@ -13,6 +13,6 @@ urlpatterns = [
     path('<str:id>/delete_inventory', inventory_views.delete_inventory, name='delete_inventory'),
 
 
-    path('<int:inventory>/update_product/<int:product>', inventory_views.update_product, name='update_product'),
-    path('<int:inventory>/delete_product/<int:product>', inventory_views.delete_product, name='delete_product'),
+    path('update_product/<int:product>', inventory_views.update_product, name='update_product'),
+    path('delete_product/<int:product>', inventory_views.delete_product, name='delete_product'),
 ]

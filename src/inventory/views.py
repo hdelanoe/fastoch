@@ -25,9 +25,9 @@ logger = logging.getLogger('fastoch')
 
 
 @login_required
-def inventory_view(request, id=None, response=0, *args, **kwargs):
+def inventory_view(request, response=0, *args, **kwargs):
     context = init_context()
-    inventory = Inventory.objects.get(id=id)
+    inventory = Inventory.objects.get(is_current=True)
 
     query = request.GET.get('search', '')  # Récupère le texte de recherche
     products = inventory.products.all()
@@ -59,6 +59,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
 
 @login_required
 def move_from_file(request, *args, **kwargs):
+    inventory = Inventory.objects.get(is_current=True)
     if request.method == 'POST':
         try:
             form = ImportForm(request.POST)
@@ -67,7 +68,6 @@ def move_from_file(request, *args, **kwargs):
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
             if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
-                inventory = Inventory.objects.get(is_current=True)
                 # Parsing file #
                 return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
@@ -83,7 +83,7 @@ def move_from_file(request, *args, **kwargs):
                     messages.error(request, f'Error while extracting : {error_list}')
                 else:
                     messages.success(request, "Livraison bien enregistrée.")
-                return redirect(reverse('last_delivery', args=[delivery.id]))
+                return redirect(reverse('delivery', args=[delivery.id]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
@@ -94,7 +94,7 @@ def move_from_file(request, *args, **kwargs):
 
 
 @login_required
-def update_product(request, inventory=None, product=None, *args, **kwargs):
+def update_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
         form = EntryForm(request.POST)
         product_obj = Product.objects.get(id=product)
@@ -114,14 +114,14 @@ def update_product(request, inventory=None, product=None, *args, **kwargs):
                     ).group(1)
 
         product_obj.save()
-    return redirect(reverse("inventory", args=[inventory, 0]))
+    return redirect(reverse("inventory", args=[0]))
 
 @login_required
-def delete_product(request, inventory=None, product=None, *args, **kwargs):
+def delete_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
         product_obj.delete()
-    return redirect(reverse("inventory", args=[inventory, 0]))
+    return redirect(reverse("inventory", args=[0]))
 
 @login_required
 def ask_question(request, id=None, *args, **kwargs):
