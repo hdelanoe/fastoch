@@ -14,9 +14,9 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Codestral_Mamba
-from .forms import ImportForm, QuestionForm
+from .forms import ImportForm, EntryForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import
-from inventory.models import Inventory, Product
+from inventory.models import Inventory, Product, Provider
 from backup.models import Backup
 
 from home.views import init_context
@@ -96,12 +96,21 @@ def move_from_file(request, id=None, *args, **kwargs):
 @login_required
 def update_product(request, inventory=None, product=None, *args, **kwargs):
     if request.method == 'POST':
+        form = EntryForm(request.POST)
         product_obj = Product.objects.get(id=product)
         product_obj.description = request.POST.get('description', product_obj.description)
         product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
         product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
+
+        try:
+            providername = form.data['providername']
+            provider, created = Provider.objects.get_or_create(name = providername)
+            product_obj.provider = provider
+        except:
+            None    
+        product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
         product_obj.achat_brut = re.search(
-                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_ht)).replace(',', '.')
                     ).group(1)
 
         product_obj.save()

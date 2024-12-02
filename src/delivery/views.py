@@ -17,7 +17,24 @@ from django.contrib import messages
 @login_required
 def delivery_view(request, *args, **kwargs):
     context = init_context()
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    delivery_list = context['delivery_list']
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        delivery_list = delivery_list.filter(provider__name=query)
+    total = len(delivery_list)
+    
+    paginator = Paginator(delivery_list, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+
     context['columns'] = delivery_columns
+    context['delivery_list'] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
     return render(request, "delivery/delivery_list/delivery.html", context)
 
 @login_required

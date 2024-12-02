@@ -1,22 +1,51 @@
 
-{% extends 'dashboard/dashboard.html' %}
+{% extends 'core2.html' %}
 
-{% block content %}
-   
-<div class="grid grid-cols-1 gap-4 mb-4">
-    <section class="bg-gray-50 dark:bg-gray-900 p-5 ">
-        <div class="px-4 lg:px-12">
-            
-            <div class="bg-white shadow-md dark:bg-gray-800 sm:rounded-lg overflow-x-auto w-full">
-                {% if delivery_list %}
-                    {% include 'delivery/delivery_list/table.html' %}
-                {% else %}
-                    <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                        Vous n'avez pas encore été livré
+{% block head_title %}LIVRAISONS - {{ block.super }}{% endblock head_title %}
+
+{% block body_title %}LISTE DES LIVRAISONS : {{ inventory.name }}{% endblock body_title %}
+
+{% block body_modals %}
+{% endblock body_modals %}
+
+{% block body_buttons %}
+    <form method="get">
+        <input
+            type="text"
+            name="search"
+            class="p-2 border border-gray-300 rounded-lg text-sm"
+            placeholder="Rechercher une livraison..."
+            value="{{ request.GET.search|default:'' }}"
+        />
+        <button type="submit" class="px-4 py-2 ml-2 text-white bg-blue-500 rounded-lg">
+            Rechercher
+        </button>
+    </form>
+{% endblock body_buttons %}
+
+{% block body_table %}
+    {% if delivery_list %}
+        <div class="flex-grow flex flex-col">
+            <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
+                {% include 'delivery/delivery_list/table.html' %}
+            </div>
+            <div class="m-4">
+                <div class="flex justify-center">
+                    {% if pages.has_previous %}
+                        <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
+                    {% endif %}
+                    <div class="m-2 justify-center">
+                        {{ len }} / {{ total }} 
                     </div>
-                {% endif %}
+                    {% if pages.has_next %}
+                        <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </section>
-</div>
-{% endblock content %}
+    {% else %}
+        <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+            Aucune livraison enregistrée.
+        </div>
+    {% endif %}
+{% endblock body_table %}
