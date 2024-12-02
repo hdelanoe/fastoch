@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     # other
     gcc \
     poppler-utils \ 
+    libzbar0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
