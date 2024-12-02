@@ -2,16 +2,10 @@
 
 {% block head_title %}Settings - {{ block.super }}{% endblock head_title %}
 
-{% block content %}
+{% block body_title %}CONFIGURATION{% endblock body_title %}
+
+{% block body_table %} 
 <div class="grid grid-rows-[max-content_1fr] gap-4 mb-4">
-    <!-- Titre principal -->
-    <div class="py-4">
-        <h1 class="text-center text-2xl font-semibold whitespace-nowrap dark:text-white">CONFIGURATION</h1>
-    </div>
-    <!-- Message -->
-    <!-- <div class="px-4 lg:px-12 p-4">
-        <h2 class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white p-4">Aucun inventaire configuré</div>
-    </div>   -->
 
     <!-- Conteneur des options -->
     <div class="flex items-center justify-between">
@@ -56,23 +50,6 @@
                 <button type="submit" class="m-4 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Valider</button>
             </form>
         </div>
-        
-
-        <!-- Option 2 : Importer un inventaire -->
-        <!--<div class="w-full flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
-            <h2 class="m-4 text-lg font-bold text-gray-900 dark:text-white text-center">
-                Créer un inventaire depuis un import
-            </h2>
-            <button data-modal-target="import_inventory" data-modal-toggle="import_inventory"
-                class="m-4 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                Importer depuis un fichier de données
-            </button>
-        </div>-->
     </div>
-
-    <!-- Modals -->
-    {% include 'modal/waiting.html' %}
-    {% include 'modal/import_inventory.html' %}
-    {% include 'modal/new_inventory_modal.html' %}
 </div>
-{% endblock content %}
+{% endblock body_table %}

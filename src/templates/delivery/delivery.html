@@ -1,12 +1,7 @@
 
-{% extends 'core2.html' %}
+{% extends 'core.html' %}
 
 {% block head_title %}Livraison - {{ block.super }}{% endblock head_title %}
-
-{% block body_title %}RESUME IMPORT LIVRAISON : {{ inventory.name }} - {{ delivery.date_creation }}{% endblock body_title %}
-
-{% block body_modals %}
-{% endblock body_modals %}
 
 {% block body_buttons %}
     <a href="{% url 'inventory' id=delivery.inventory.id response=0 %}" 
@@ -66,3 +61,6 @@
     </div>
     {% endif %}
 {% endblock body_table %}
+
+{% block body_modals %}
+{% endblock body_modals %}

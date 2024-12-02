@@ -2,11 +2,10 @@
 
 {% block head_title %}Dashboard - {{ block.super }}{% endblock head_title %}
 
-{% block content %} 
+{% block body_title %}TABLEAU DE BORD{% endblock body_title %}
+
+{% block body_table %}
 <div class="grid grid-rows-[max-content_1fr] gap-x-4 mb-4"> 
-    <div class="px-4 lg:px-12 p-4">
-        <h1 class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white p-4">TABLEAU DE BORD</div>
-    </div>
     <div class="px-4 lg:px-12 p-4">
         <h2 class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white p-4">Aucun inventaire configuré</div>
     </div>  
@@ -41,9 +40,6 @@
                 
             </div>
         </div>
-        {% include 'modal/waiting.html' %}
-        {% include 'modal/import_inventory.html' %}
-        {% include 'modal/new_inventory_modal.html' %}
     </div>
 </div>
-{% endblock content %}
+{% endblock body_table %}

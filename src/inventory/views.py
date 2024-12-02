@@ -58,7 +58,7 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     return render(request, "inventory/inventory.html", context)
 
 @login_required
-def move_from_file(request, id=None, *args, **kwargs):
+def move_from_file(request, *args, **kwargs):
     if request.method == 'POST':
         try:
             form = ImportForm(request.POST)
@@ -67,14 +67,14 @@ def move_from_file(request, id=None, *args, **kwargs):
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
             if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
+                inventory = Inventory.objects.get(is_current=True)
                 # Parsing file #
                 return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
                 error_list = return_obj.get('error_list')
                 if error_list:
                     messages.error(request, error_list)
-                    return redirect(reverse("inventory", args=[id, 0]))
-                inventory = Inventory.objects.get(id=id)
+                    return redirect(reverse("inventory", args=[inventory.id, 0]))
                 # Parsing json #
                 return_obj = json_to_delivery(providername, json_data, inventory, move_type)
                 error_list = return_obj.get('error_list')
@@ -88,7 +88,7 @@ def move_from_file(request, id=None, *args, **kwargs):
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
             messages.error(request, f'error while saving {e}')
-    return redirect(reverse("inventory", args=[id, 0]))
+    return redirect(reverse("inventory", args=[inventory.id, 0]))
 
 
 
