@@ -32,9 +32,12 @@ def init_context():
         delivery_list = None
     try:
         receipt = Receipt.objects.first()
-        waiting_list_count = receipt.products.count()
     except Receipt.DoesNotExist:
-        receipt = None            
+        receipt = None
+    if receipt:
+        waiting_list_count = receipt.iproducts.count()
+    else:
+        waiting_list_count = None
     return {
         "backup_list": backup_list,
         "provider_list": provider_list,

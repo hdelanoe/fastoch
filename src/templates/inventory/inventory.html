@@ -11,7 +11,7 @@
 
 {% block body_buttons %}
 <div class="grid grid-rows-[max-content_1fr] gap-4 mb-4"> 
-    <div class="flex items-center justify-center">
+    <div class="flex items-center justify-center gap-4">
         <button type="button" 
             data-modal-target="move_from_file"
             data-modal-toggle="move_from_file" 
@@ -19,19 +19,16 @@
                 <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
                 </svg>
-                Faire un mouvement d'inventaire
+                Enregistrer une livraison
         </button>
         <form method="get">
             <input
                 type="text"
                 name="search"
-                class="p-2 border border-gray-300 rounded-lg text-sm"
+                class="p-2 border border-gray-300 rounded-lg text-sm bg-cream"
                 placeholder="Rechercher un produit..."
                 value="{{ request.GET.search|default:'' }}"
             />
-            <button type="submit" class="px-4 py-2 ml-2 text-white bg-blue-500 rounded-lg">
-                Rechercher
-            </button>
         </form>
         <form action="{% url 'export_inventory' id=current_inventory.id %}">
             <button type="submit" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
@@ -52,7 +49,7 @@
     {% endblock body_buttons %}
 
     {% block body_table %}
-        {% if products %}
+        {% if iproducts %}
             <div class="flex-grow flex flex-col">
                 <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
                     {% include 'inventory/table.html' %}
@@ -73,7 +70,7 @@
             </div>
         {% else %}
             <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                Sorry, you don't have any products yet
+                Desole, pas de de produits dans l'inventaire
             </div>
         {% endif %}
         <!--<div class="bt-8 flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">

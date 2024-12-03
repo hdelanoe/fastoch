@@ -6,13 +6,13 @@
 {% block body_title %}Derniere livraison{% endblock body_title %}
 
 {% block body_buttons %}
-    <a href="{% url 'inventory' id=delivery.current_inventory.id response=0 %}" 
+    <!--<a href="{% url 'inventory' response=0 %}" 
         class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
         <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="white" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12l4-4m-4 4 4 4" />
         </svg>
         Retour a l'inventaire
-    </a>
+    </a>-->
     {% if delivery.is_validated %}
         <div class="flex flex-shrink-0 space-y-3 md:flex-row md:items-center lg:justify-end md:space-y-0 md:space-x-3">
             <form action="{% url 'export_delivery' id=delivery.id %}">
@@ -36,10 +36,10 @@
 {% endblock body_buttons %}
 
 {% block body_table %}
-    {% if transactions %}
+    {% if iproducts %}
     <div class="flex-grow flex flex-col">
         <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
-            {% include 'delivery/table.html' %}
+            {% include 'inventory/table.html' %}
         </div>
         <div class="m-4">
             <div class="flex justify-center">
@@ -58,7 +58,7 @@
     {% else %}
     <div class="flex-grow flex flex-col">
         <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
-            Aucune livraison ici !
+            Aucun produit(s) livré(s) !
         </div>
     </div>
     {% endif %}

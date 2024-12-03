@@ -9,7 +9,7 @@
     </thead>
     <tbody class="divide-y divide-gray-200 bg-white">
         <!--Products entries-->
-        {% for product in products %}
+        {% for iproduct in iproducts %}
             {% include 'inventory/entry.html' with object=entry %}
         {% endfor %}
     </tbody>

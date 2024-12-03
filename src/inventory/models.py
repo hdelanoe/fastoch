@@ -30,6 +30,12 @@ class iProduct(models.Model):
             "PMPA": self.product.achat_ht,
         }
     
+    def as_receipt(self):
+        return {
+            "Code": self.product.multicode,
+            "STOCK": self.quantity,
+        }
+    
     def __str__(self):
         return f'{self.product.provider} {self.product.multicode} {self.product.description} { self.quantity} {self.product.achat_ht}'
 
@@ -72,7 +78,7 @@ class TransactionList(models.Model):
 
 
 class Inventory(iProductList):
-    name = models.CharField(max_length=50, default="My Inventory", unique=True)
+    name = models.CharField(max_length=32, default="My Inventory", unique=True)
     transaction_list = models.ManyToManyField(Transaction)
     last_response =  models.TextField(default="Comment puis-je vous aider ?")
     is_current = models.BooleanField(default=False)
@@ -81,4 +87,5 @@ class Inventory(iProductList):
         return f'name:{self.name}'
     
 class Receipt(iProductList):
+    name = models.CharField(max_length=32, default="Reception en attente", unique=True)
     is_waiting = models.BooleanField(default=True)    

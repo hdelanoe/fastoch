@@ -1,18 +1,15 @@
 import logging
 import re
 import json
-from django.db import IntegrityError
 import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
-from django.contrib import messages
 from django.conf import settings
 from inventory.models import Product, iProduct, Transaction
 from provider.models import Provider
 from delivery.models import Delivery
 
-
-from helpers.mistral import Mistral_PDF_API, Codestral_Mamba, format_content_from_image_path
+from helpers.mistral import Mistral_PDF_API, format_content_from_image_path
 from pdf2image import convert_from_path
 
 logger = logging.getLogger('fastoch')
@@ -63,34 +60,35 @@ def file_to_json(uploaded_file, file_extension):
 
 def json_to_delivery(providername, json_data, inventory, operator=1):
     # format return obj
-    delivery = Delivery.objects.create(inventory=inventory)
-    return_obj = {'delivery': delivery, 'error_list': []}
+    provider = get_or_create_provider(providername)
+    delivery = Delivery.objects.create(inventory=inventory, provider=provider)
+    return_obj = {'delivery': delivery, 'error_list': [], 'report': ''}
     item_count = 0
 
-    provider = get_or_create_provider(providername)
 
     for jd in json_data:
         try:
             values=format_json_values(jd, provider, operator)
             product=get_or_create_product(values)
 
-            item_count += 1
-            logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
-
-            transaction = Transaction.objects.create(
-                iproduct=iProduct(product=product, quantity=values.get('quantity')),
-            )
+            iproduct, created = inventory.iproducts.get_or_create(product=product)
+            if created:
+                logger.debug(f'iproduct created !')
+            iproduct.quantity += values.get('quantity')
+            iproduct.save()
+            transaction = Transaction.objects.create(iproduct=iproduct)
             transaction.save()
             logger.debug(f'transaction saved !')
             delivery.transactions.add(transaction)
-            delivery.providers.add(product.provider)
+            item_count += 1
+            delivery.save()
         except Exception as e:
             return_obj['error_list'].append(f'product {values.get('description')} : {e}')
             logger.error(f'product {values.get('description')} : {e}')
 
-    if not return_obj['error_list']:
-        delivery.save()
-        return_obj['delivery'] = delivery
+    return_obj['delivery'] = delivery
+    return_obj['report'] = f'product {product.description} saved ! {item_count}/{len(json_data)}'
+    logger.debug(return_obj['report'])    
     return return_obj
 
 def json_to_import(json_data, inventory):
@@ -111,7 +109,7 @@ def json_to_import(json_data, inventory):
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
             iproduct, created = inventory.iproducts.get_or_create(product=product)
-            iproduct += values.get('quantity')
+            iproduct.quantity += values.get('quantity')
             iproduct.save()
             if created:
                 inventory.iproducts.add(iproduct)

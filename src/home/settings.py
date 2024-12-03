@@ -284,10 +284,3 @@ INVENTORY_COLUMNS_NAME = {
     "quantity": "STOCK",
     "achat_ht": "PMPA",
 }
-
-KESIA2_INVENTORY_COLUMNS_NAME = {
-    "multicode": "MultiCode",
-    "description": "Designation",
-    "quantity": "Qté Mouv.",
-    "achat_ht": "PMPA",
-}

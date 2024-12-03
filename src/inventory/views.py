@@ -16,7 +16,7 @@ from django.contrib import messages
 from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, EntryForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import
-from inventory.models import Inventory, Product, Provider
+from inventory.models import Inventory, Product, iProduct, Provider
 from backup.models import Backup
 
 from home.views import init_context
@@ -30,17 +30,17 @@ def inventory_view(request, response=0, *args, **kwargs):
     inventory = Inventory.objects.get(is_current=True)
 
     query = request.GET.get('search', '')  # Récupère le texte de recherche
-    products = inventory.products.all()
+    iproducts = inventory.iproducts.all()
     # Filtre les produits si une recherche est spécifiée
     if query:
-        products_desc = products.filter(description__icontains=query)
-        products_prov = products.filter(provider__name=query)
-        products = list(chain(products_desc, products_prov))
-        total = len(products)
+        iproducts_desc = iproducts.filter(product__description__icontains=query)
+        iproducts_prov = iproducts.filter(provider__provider__name=query)
+        iproducts = list(chain(iproducts_desc, iproducts_prov))
+        total = len(iproducts)
     else:
-        total = products.count()
+        total = iproducts.count()
 
-    paginator = Paginator(products, 25)  # 25 produits par page
+    paginator = Paginator(iproducts, 25)  # 25 produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
@@ -48,7 +48,7 @@ def inventory_view(request, response=0, *args, **kwargs):
     context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
-    context["products"] = page_obj.object_list
+    context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
@@ -98,9 +98,9 @@ def update_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
         form = EntryForm(request.POST)
         product_obj = Product.objects.get(id=product)
-        product_obj.description = request.POST.get('description', product_obj.description)
-        product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
         product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
+        product_obj.description = request.POST.get('description', product_obj.description)
+        product_obj.ean = request.POST.get('ean', product_obj.ean)
 
         try:
             providername = form.data['providername']
@@ -108,7 +108,6 @@ def update_product(request, product=None, *args, **kwargs):
             product_obj.provider = provider
         except:
             None    
-        product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
         product_obj.achat_brut = re.search(
                     r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_ht)).replace(',', '.')
                     ).group(1)
@@ -117,10 +116,27 @@ def update_product(request, product=None, *args, **kwargs):
     return redirect(reverse("inventory", args=[0]))
 
 @login_required
+def update_iproduct_quantity(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        iproduct = iProduct.objects.get(id=id)
+        iproduct.quantity = request.POST.get('quantity', iproduct.quantity)
+        iproduct.save()
+        messages.success(request, f'Produit mis à jour!')
+    return redirect(reverse("inventory", args=[0]))
+
+@login_required
 def delete_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
         product_obj.delete()
+    return redirect(reverse("inventory", args=[0]))
+
+@login_required
+def delete_iproduct(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        iproduct = iProduct.objects.get(id=id)
+        iproduct.delete()
+        messages.success(request, f'Produit supprimé.')
     return redirect(reverse("inventory", args=[0]))
 
 @login_required
@@ -151,15 +167,20 @@ def import_inventory(request, *args, **kwargs):
                 if error_list:
                     messages.error(request, error_list)
                     return redirect(reverse("dashboard"))
-                return_obj = json_to_import(json_data, Inventory.objects.create(name=name))
+                return_obj = json_to_import(json_data, Inventory.objects.create(name=name, is_current=True))
                 inventory = return_obj.get('inventory')
                 error_list = return_obj.get('error_list')
                 if not error_list:
+                    for inv in Inventory.objects.all():
+                        if inv is not inventory:
+                            inv.is_current=False
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
                 else:
-
-                    messages.error(request, f'{error_list}')
-                return redirect(reverse("inventory", args=[inventory.id, 0]))
+                    for error in error_list:
+                        logger.error(error)
+                        messages.error(request, error)
+                messages.warning(return_obj['report'])        
+                return redirect(reverse("inventory", args=[0]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as ex:
@@ -175,7 +196,7 @@ def export_inventory(id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_Kesia2_inventory_dict() for p in inventory.products.all()],
+        [p.as_receipt() for p in inventory.iproducts.all()],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
@@ -205,10 +226,10 @@ def delete_inventory(request, id=None, *args, **kwargs):
     messages.success(request, "Your inventory has been deleted.")
     return redirect(reverse("dashboard"))
 
-def save_backup(inventory, type=Backup.BackupType.AUTO):
+def save_backup(iproduct_list, type=Backup.BackupType.AUTO):
     backup = Backup(
-        inventory=inventory,
-        products_backup = pd.DataFrame([x.as_dict() for x in inventory.products.all()]).to_json(orient='table'),
+        iproduct_list_name=iproduct_list.name,
+        products_backup = pd.DataFrame([x.as_dict() for x in iproduct_list.iproducts.all()]).to_json(orient='table'),
         #transactions_backup = pd.DataFrame([x.as_Kesia2_inventory_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
         backup_type = type
     )

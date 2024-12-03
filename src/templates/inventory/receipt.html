@@ -19,21 +19,29 @@
             Rechercher
         </button>
     </form>
-    <form action="{% url 'export_inventory' id=current_inventory.id %}">
+    <form id="download-form" action="{% url 'export_receipt' %}">
         <button type="submit" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="3" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2M12 4v12m0-12 4 4m-4-4L8 8" />
-            </svg>
             Export
         </button>
-    </form> 
+    </form>
+    {% if not receipt.is_waiting %}
+    <a href="{% url 'empty_receipt' %}">
+        <button type="button" class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg focus:outline-none hover:bg-red-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-red-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-red-700"
+        style="background-color: #fee2e2; color: #991b1b;">
+            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="3" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Vider la Réception
+        </button>
+    </a>
+    {% endif %}  
     
 {% endblock body_buttons %}
 
 {% block body_table %}
-    {% if products %}
+    {% if iproducts %}
         <div class="flex-grow flex flex-col">
-            <div class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
+            <div class="max-h-[48vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
                 {% include 'inventory/table.html' %}
             </div>
             <div class="m-4">
@@ -56,8 +64,3 @@
         </div>
     {% endif %}
 {% endblock body_table %}
-
-
-
-
-    
