@@ -1,4 +1,6 @@
+import logging
 import os
+import tempfile
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
@@ -6,10 +8,12 @@ from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 
 from inventory.forms import ImportForm
-from inventory.models import Inventory, Product
+from inventory.models import Inventory, Product, iProduct
 from helpers.pyzbar import bar_decoder
 from heic2png import HEIC2PNG
 from home.views import init_context
+
+logger = logging.getLogger('fastoch')
 
 @login_required
 def dashboard_view(request):
@@ -39,36 +43,71 @@ def create_inventory(request):
 @login_required
 def add_product_from_photo(request):
     if request.method == 'POST':
+        try:    
             form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
             number = form.data['number']
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".png":
-                    fs = FileSystemStorage()
-                    file = fs.save(uploaded_file.name, uploaded_file)
-                    file_path = fs.path(file)
-                    barcode = bar_decoder.decode(file_path)
-                    if barcode is None:
-                         messages.warning(request, f'Aucun code-barres détecté.')
-                         return redirect(reverse("dashboard"))
-                    product, created = Product.objects.get_or_create(ean=barcode)
-                    if created:
-                         product.multicode=product.ean
-                    product.quantity = number
+            fs = FileSystemStorage()
+            file = fs.save(uploaded_file.name, uploaded_file)
+            file_path = fs.path(file)
+            logger.debug(f'file_path: {file_path}, type: {type(file_path)}')
+            if file_extension == ".png" or file_extension == ".heic":   
+                if file_extension == ".heic":
+                    try:
+                        png_path = convert_heic_to_png(filename, file_path)
+                        logger.debug(f"Filepath for decoding: {png_path}")
+                        logger.debug(f"File exists: {os.path.exists(png_path)}")
+                        if not png_path:
+                            messages.error(request, f"Erreur lors de la conversion du fichier HEIC.")
+                            return redirect(reverse("dashboard"))
 
-                    product.save()
-                    inventory = Inventory.objects.get(is_current=True)
-                    inventory.products.add(product)
-                    inventory.save()
-                    messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
-                    fs.delete(file_path)
+                        # Décoder le fichier PNG
+                        barcode = bar_decoder.decode(png_path)
+                    except Exception as e:
+                        logger.error(f"Error processing HEIC file: {e}")
+                        messages.error(request, f"Erreur lors du traitement du fichier HEIC.")
+                        barcode = None
+                    finally:
+                        # Supprimer le fichier PNG temporaire s'il a été créé
+                        if png_path and os.path.exists(png_path):
+                            os.remove(png_path) 
+                elif file_extension == ".png":   
+                    barcode = bar_decoder.decode(file_path)
+                if barcode is None:
+                    messages.warning(request, f'Aucun code-barres détecté.')
+                    fs.delete(file_path)  
+                    return redirect(reverse("dashboard"))
+                product, created = Product.objects.get_or_create(ean=barcode)
+                if created:
+                        product.multicode=product.ean
+                        product.save()        
+                iproduct, created = iProduct.objects.get_or_create(product=product)        
+                iproduct.quantity = number
+                iproduct.save()
+                inventory = Inventory.objects.get(is_current=True)
+                inventory.iproducts.add(iproduct)
+                inventory.save()
+                messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
             else:
                messages.error(request, f'extension {file_extension} non supportée.')
-               return redirect(reverse("dashboard"))     
-            '''
-             elseif file_extension == ".heic":
-                img = HEIC2PNG(uploaded_file, quality=90)
-                img.save()
-                barcode = bar_decoder.decode(img)
-            '''
+               return redirect(reverse("dashboard"))
+        except Exception as e:
+            logger.error(f'{e}')
+            messages.error(request, f'Erreur lors de la sauvegarde du fichier.')
+        if fs and file_path:
+            fs.delete(file_path)        
     return redirect(reverse("dashboard"))
+
+def convert_heic_to_png(filename, file_path):
+    try:
+        # Conversion HEIC -> PNG
+        heic_image = HEIC2PNG(file_path, quality=90)
+        png_path = heic_image.save(f'{filename}.png')
+
+        return png_path
+    except Exception as e:
+        logger.error(f"Error converting HEIC to PNG: {e}")
+        return None
+
+

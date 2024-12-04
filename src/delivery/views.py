@@ -10,7 +10,7 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Receipt, Transaction
+from inventory.models import Inventory, Receipt, Transaction
 from inventory.views import save_backup
 from .models import Delivery, delivery_columns
 from home.views import init_context
@@ -85,16 +85,20 @@ def update_transaction(request, delivery=None, id=None, *args, **kwargs):
 def validate_delivery(request, id=None, *args, **kwargs):
     try:
         delivery = Delivery.objects.get(id=id)
-        receipt, created = Receipt.objects.get_or_create(is_waiting=True)
-        for transaction in delivery.transactions.all():
-            receipt.iproducts.add(transaction.iproduct)
-        receipt.save()
-        delivery.is_validated = True
-        delivery.save()
-        messages.success(request, f'Livraison validée et ajoutée aux réceptions.')
+        receipt = Receipt.objects.first()
+        if receipt.is_waiting:
+            for transaction in delivery.transactions.all():
+                receipt.iproducts.add(transaction.iproduct)
+            receipt.save()
+            delivery.is_validated = True
+            delivery.save()
+            messages.success(request, f'Livraison validée et ajoutée aux réceptions.')
+        else:
+            messages.error(request, f'Videz d\'abord la réception')
     except Exception as e:
         messages.error(request, f'Error while validate {e}')
-    return redirect(reverse("receipt"))
+    return redirect(reverse("delivery_list"))
+
 
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
@@ -169,11 +173,14 @@ def export_receipt(*args, **kwargs):
 @login_required
 def empty_receipt(request, *args, **kwargs):
     receipt = Receipt.objects.first()
+    inventory = Inventory.objects.get(is_current=True)
     for p in receipt.iproducts.all():
-        p.delete()
+        inventory.iproducts.add(p)
+        receipt.iproducts.remove(p)
     receipt.is_waiting=True
     receipt.save()
-    messages.success(request, 'Reception mis a jour.')
+    inventory.save()
+    messages.success(request, 'Tout les produits ont été transferés dans l\'inventaire.')
     return redirect(reverse("receipt")) 
 
 #@login_required
