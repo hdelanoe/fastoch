@@ -1,4 +1,5 @@
 from itertools import chain
+import logging
 from django.shortcuts import redirect, render
 from django.conf import settings
 import os
@@ -10,11 +11,12 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Inventory, Receipt, Transaction
-from inventory.views import save_backup
+from inventory.models import Inventory, Receipt, iProduct
 from .models import Delivery, delivery_columns
 from home.views import init_context
 from django.contrib import messages
+
+logger = logging.getLogger('fastoch')
 
 @login_required
 def delivery_list_view(request, *args, **kwargs):
@@ -42,19 +44,16 @@ def delivery_list_view(request, *args, **kwargs):
 @login_required
 def delivery_view(request, id=None, *args, **kwargs):
     context = init_context()
-    delivery = Delivery.objects.last()
-    inventory = delivery.inventory
-    transactions = delivery.transactions.all()
-    iproducts = []
+    delivery = Delivery.objects.get(id=id)
+    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
 
-    total = transactions.count()
+    total = iproducts.count()
 
-    for transaction in transactions:
-        if transaction.iproduct.product.has_changed:
-            messages.warning(request, f'Le prix de {transaction.iproduct.product.description} a changé !')
-        elif transaction.iproduct.product.multicode_generated:
-            messages.warning(request, f'Le multicode de {transaction.iproduct.product.description} a été généré !')
-        iproducts.append(transaction.iproduct)
+    for iproduct in iproducts:
+        if iproduct.product.has_changed:
+            messages.warning(request, f'Le prix de {iproduct.product.description} a changé !')
+        elif iproduct.product.multicode_generated:
+            messages.warning(request, f'Le multicode de {iproduct.product.description} a été généré !')
 
     paginator = Paginator(iproducts, 25)  # 25 produits par page
     page_number = request.GET.get('page')
@@ -63,7 +62,6 @@ def delivery_view(request, id=None, *args, **kwargs):
 
 
     context["delivery"] = delivery
-    context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
@@ -72,23 +70,25 @@ def delivery_view(request, id=None, *args, **kwargs):
 
     return render(request, "delivery/delivery.html", context)
 
-@login_required
-def update_transaction(request, delivery=None, id=None, *args, **kwargs):
-    if request.method == 'POST':
-        transaction = Transaction.objects.get(id=id)
-        transaction.quantity = request.POST.get('quantity', transaction.quantity)
-        
-        transaction.save()
-    return redirect(reverse("delivery", args=[delivery]))
 
 @login_required
 def validate_delivery(request, id=None, *args, **kwargs):
     try:
         delivery = Delivery.objects.get(id=id)
-        receipt = Receipt.objects.first()
+        receipt, created = Receipt.objects.get_or_create(name='receipt')
+        logger.debug(f'{str(delivery.date_time)}')
+        iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
         if receipt.is_waiting:
-            for transaction in delivery.transactions.all():
-                receipt.iproducts.add(transaction.iproduct)
+            for iproduct in iproducts:
+                try:
+                    already = iProduct.objects.get(product=iproduct.product,
+                                                container_name=receipt.name)
+                    already.quantity += iproduct.quantity
+                    already.save() 
+                    iproduct.delete()
+                except:
+                    iproduct.container_name=receipt.name 
+                    iproduct.save()
             receipt.save()
             delivery.is_validated = True
             delivery.save()
@@ -119,16 +119,18 @@ def export_delivery(request, id=None, *args, **kwargs):
 @login_required
 def delete_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
+    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
+    for iproduct in iproducts:
+        iproduct.delete()
     delivery.delete()
-    messages.success(request, f'la livraison a bien été supprimé. ')
+    messages.success(request, f'la livraison a bien été supprimé.')
     return redirect(reverse("delivery_list"))
 
 @login_required
 def receipt_view(request, *args, **kwargs):
     context = init_context()
-
+    iproducts = iProduct.objects.filter(container_name=context["receipt"].name)
     query = request.GET.get('search', '')  # Récupère le texte de recherche
-    iproducts = context["receipt"].iproducts.all()
     # Filtre les produits si une recherche est spécifiée
     if query:
         iproducts_desc = iproducts.filter(product__description__icontains=query)
@@ -154,12 +156,12 @@ def receipt_view(request, *args, **kwargs):
 @login_required
 def export_receipt(*args, **kwargs):
     receipt = Receipt.objects.first()
-    backup = save_backup(receipt)
+    iproducts = iProduct.objects.filter(container_name=receipt.name)
     df = pd.DataFrame.from_dict(
-        [p.as_receipt() for p in receipt.iproducts.all()],
+        [p.as_receipt() for p in iproducts],
         orient='columns'
         )
-    file_path = f'{settings.MEDIA_ROOT}/{receipt.name}_{str(backup.date_creation)[:10]}.xlsx'
+    file_path = f'{settings.MEDIA_ROOT}/{receipt.name}_{str(receipt.name)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     receipt.is_waiting=False
     receipt.save()
@@ -174,12 +176,12 @@ def export_receipt(*args, **kwargs):
 def empty_receipt(request, *args, **kwargs):
     receipt = Receipt.objects.first()
     inventory = Inventory.objects.get(is_current=True)
-    for p in receipt.iproducts.all():
-        inventory.iproducts.add(p)
-        receipt.iproducts.remove(p)
+    iproducts = iProduct.objects.filter(container_name=receipt.name)
+    for p in iproducts:
+        p.container_name=inventory.name
+        p.save()
     receipt.is_waiting=True
     receipt.save()
-    inventory.save()
     messages.success(request, 'Tout les produits ont été transferés dans l\'inventaire.')
     return redirect(reverse("receipt")) 
 

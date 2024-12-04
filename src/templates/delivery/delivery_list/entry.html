@@ -4,12 +4,7 @@
             {{delivery.provider.name}} 
         </a>
     </td>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <a href="{% url 'delivery' id=delivery.id %}">
-            {{delivery.inventory.name}}
-        </a>
-    </td>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{delivery.date_creation}}</td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{delivery.date_time}}</td>
     {% if delivery.is_validated %}
         <td class="px-4 py-2 font-medium text-primary-900 whitespace-nowrap dark:text-white">
             <div class="flex justify-center font-bold py-2 px-4 rounded">
@@ -21,10 +16,13 @@
     {% else %}
         <td class="px-4 py-2 font-medium text-primary-900 whitespace-nowrap dark:text-white">
             <a href="{% url 'validate_delivery' id=delivery.id %}" class="flex justify-center font-bold py-2 px-4 rounded">
-                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="blue" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 1 0-18c1.052 0 2.062.18 3 .512M7 9.577l3.923 3.923 8.5-8.5M17 14v6m-3-3h6"/>
-                </svg>
-               
+                <button
+                data-modal-target="waiting"
+                data-modal-toggle="waiting" >
+                    <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="blue" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 1 0-18c1.052 0 2.062.18 3 .512M7 9.577l3.923 3.923 8.5-8.5M17 14v6m-3-3h6"/>
+                    </svg>
+                </button>
             </a>
         </td>
     {% endif %}

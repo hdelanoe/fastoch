@@ -27,10 +27,9 @@ logger = logging.getLogger('fastoch')
 @login_required
 def inventory_view(request, response=0, *args, **kwargs):
     context = init_context()
-    inventory = Inventory.objects.get(is_current=True)
-
+    iproducts = iProduct.objects.filter(container_name=context["inventory"].name)
+    
     query = request.GET.get('search', '')  # Récupère le texte de recherche
-    iproducts = inventory.iproducts.all()
     # Filtre les produits si une recherche est spécifiée
     if query:
         iproducts_desc = iproducts.filter(product__description__icontains=query)
@@ -45,7 +44,6 @@ def inventory_view(request, response=0, *args, **kwargs):
     page_obj = paginator.get_page(page_number)
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
-    context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
     context["iproducts"] = page_obj.object_list
@@ -76,7 +74,7 @@ def move_from_file(request, *args, **kwargs):
                     messages.error(request, error_list)
                     return redirect(reverse("inventory", args=[inventory.id, 0]))
                 # Parsing json #
-                return_obj = json_to_delivery(providername, json_data, inventory, move_type)
+                return_obj = json_to_delivery(providername, json_data, move_type)
                 error_list = return_obj.get('error_list')
                 delivery = return_obj.get('delivery')
                 if error_list:

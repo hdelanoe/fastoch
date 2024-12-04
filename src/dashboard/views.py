@@ -1,6 +1,5 @@
 import logging
 import os
-import tempfile
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.contrib import messages
@@ -18,10 +17,8 @@ logger = logging.getLogger('fastoch')
 @login_required
 def dashboard_view(request):
     context = init_context()
-    if not context["current_inventory"] :
+    if not context["inventory"] :
         return render(request, "dashboard/dashboard_new_inventory.html", context)
-    inventory = Inventory.objects.get(is_current=True)
-    context["inventory"] = inventory
     return render(request, "dashboard/dashboard.html", context) 
 
 @login_required

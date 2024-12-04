@@ -5,7 +5,7 @@ import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-from inventory.models import Product, iProduct, Transaction
+from inventory.models import Product, iProduct
 from provider.models import Provider
 from delivery.models import Delivery
 
@@ -58,10 +58,10 @@ def file_to_json(uploaded_file, file_extension):
     fs.delete(file_path)
     return (return_obj)
 
-def json_to_delivery(providername, json_data, inventory, operator=1):
+def json_to_delivery(providername, json_data, operator=1):
     # format return obj
     provider = get_or_create_provider(providername)
-    delivery = Delivery.objects.create(inventory=inventory, provider=provider)
+    delivery = Delivery.objects.create(provider=provider)
     return_obj = {'delivery': delivery, 'error_list': [], 'report': ''}
     item_count = 0
 
@@ -71,21 +71,17 @@ def json_to_delivery(providername, json_data, inventory, operator=1):
             values=format_json_values(jd, provider, operator)
             product=get_or_create_product(values)
 
-            iproduct, created = inventory.iproducts.get_or_create(product=product)
-            if created:
-                logger.debug(f'iproduct created !')
-            iproduct.quantity += values.get('quantity')
+            iproduct = iProduct.objects.create(product=product, 
+                                               quantity=values.get('quantity'),
+                                               container_name=str(delivery.date_time))
             iproduct.save()
-            transaction = Transaction.objects.create(iproduct=iproduct)
-            transaction.save()
-            logger.debug(f'transaction saved !')
-            delivery.transactions.add(transaction)
+            logger.debug(f'iproduct from {product.description} created !')
             item_count += 1
-            delivery.save()
         except Exception as e:
             return_obj['error_list'].append(f'product {values.get('description')} : {e}')
             logger.error(f'product {values.get('description')} : {e}')
 
+    delivery.save()
     return_obj['delivery'] = delivery
     return_obj['report'] = f'product {product.description} saved ! {item_count}/{len(json_data)}'
     logger.debug(return_obj['report'])    
@@ -108,11 +104,10 @@ def json_to_import(json_data, inventory):
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
-            iproduct, created = inventory.iproducts.get_or_create(product=product)
-            iproduct.quantity += values.get('quantity')
+            iproduct, created = iProduct.objects.get_or_create(container_name=inventory.name,
+                                                      product=product)
+            iproduct.quantity+=values.get('quantity')
             iproduct.save()
-            if created:
-                inventory.iproducts.add(iproduct)
         except ValueError as ex:
              return_obj['error_list'].append(f'Erreur lors de l\'import de {values.get('description')} : {ex}\n')
         except Exception as ex:

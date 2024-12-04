@@ -1,8 +1,7 @@
 import pathlib
-from django.http import HttpResponse
 from django.shortcuts import redirect
 
-from inventory.models import Inventory, Receipt
+from inventory.models import Inventory, Receipt, iProduct
 from backup.models import Backup
 from provider.models import Provider
 from delivery.models import Delivery
@@ -35,14 +34,17 @@ def init_context():
     except Receipt.DoesNotExist:
         receipt = None
     if receipt:
-        waiting_list_count = receipt.iproducts.count()
+        try:
+            waiting_list_count = iProduct.objects.filter(container_name=receipt.name).count()
+        except:
+            waiting_list_count = None
     else:
-        waiting_list_count = None
+        waiting_list_count = None        
     return {
         "backup_list": backup_list,
         "provider_list": provider_list,
         "delivery_list": delivery_list,
-        "current_inventory": current_inventory,
+        "inventory": current_inventory,
         "receipt": receipt,
         "waiting_list_count": waiting_list_count,
         "delivery_has_validate_count": delivery_has_validate_count,
