@@ -44,19 +44,7 @@
             <div class="max-h-[48vh] overflow-y-auto border border-gray-200 rounded-lg shadow-md">
                 {% include 'inventory/table.html' %}
             </div>
-            <div class="m-4">
-                <div class="flex justify-center">
-                    {% if pages.has_previous %}
-                        <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-gray-200 rounded-lg">Précédent</a>
-                    {% endif %}
-                    <div class="m-2 justify-center">
-                        {{ len }} / {{ total }} 
-                    </div>
-                    {% if pages.has_next %}
-                        <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-gray-200 rounded-lg">Suivant</a>
-                    {% endif %}
-                </div>
-            </div>
+            {% include 'tools/nav.html' %}
         </div>
     {% else %}
         <div class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">

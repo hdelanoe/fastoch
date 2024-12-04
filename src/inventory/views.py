@@ -34,7 +34,7 @@ def inventory_view(request, response=0, *args, **kwargs):
     # Filtre les produits si une recherche est spécifiée
     if query:
         iproducts_desc = iproducts.filter(product__description__icontains=query)
-        iproducts_prov = iproducts.filter(provider__provider__name=query)
+        iproducts_prov = iproducts.filter(product__provider__name=query)
         iproducts = list(chain(iproducts_desc, iproducts_prov))
         total = len(iproducts)
     else:

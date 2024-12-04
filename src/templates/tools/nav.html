@@ -1,0 +1,13 @@
+<div class="m-4">
+    <div class="flex justify-center">
+        {% if pages.has_previous %}
+            <a href="?page={{ pages.previous_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 mr-2 bg-mate rounded-lg">Précédent</a>
+        {% endif %}
+        <div class="m-2 justify-center">
+            {{ len }} / {{ total }} 
+        </div>
+        {% if pages.has_next %}
+            <a href="?page={{ pages.next_page_number }}&search={{ request.GET.search|default:'' }}" class="h-8 px-2 py-1 ml-2 bg-mate rounded-lg">Suivant</a>
+        {% endif %}
+    </div>
+</div>
