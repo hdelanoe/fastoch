@@ -25,16 +25,18 @@ logger = logging.getLogger('fastoch')
 
 
 @login_required
-def inventory_view(request, response=0, *args, **kwargs):
+def inventory_view(request, response=0, query=None, *args, **kwargs):
     context = init_context()
     iproducts = iProduct.objects.filter(container_name=context["inventory"].name)
     
-    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    if not query:
+        query = request.GET.get('search', '')  # Récupère le texte de recherche
     # Filtre les produits si une recherche est spécifiée
     if query:
         iproducts_desc = iproducts.filter(product__description__icontains=query)
         iproducts_prov = iproducts.filter(product__provider__name=query)
-        iproducts = list(chain(iproducts_desc, iproducts_prov))
+        iproducts_code = iproducts.filter(product__multicode__icontains=query)
+        iproducts = list(chain(iproducts_desc, iproducts_prov, iproducts_code))
         total = len(iproducts)
     else:
         total = iproducts.count()
@@ -86,7 +88,7 @@ def move_from_file(request, *args, **kwargs):
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
             messages.error(request, f'error while saving {e}')
-    return redirect(reverse("inventory", args=[inventory.id, 0]))
+    return redirect(reverse("inventory", args=[0]))
 
 
 
@@ -111,6 +113,7 @@ def update_product(request, product=None, *args, **kwargs):
                     ).group(1)
 
         product_obj.save()
+        messages.success(request, f'Produit mis à jour!')
     return redirect(reverse("inventory", args=[0]))
 
 @login_required
@@ -190,11 +193,12 @@ def import_inventory(request, *args, **kwargs):
 
 
 @login_required
-def export_inventory(id=None, *args, **kwargs):
-    inventory = Inventory.objects.get(id=id)
+def export_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(is_current=True)
+    iproducts=iProduct.objects.filter(container_name=inventory.name)
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_receipt() for p in inventory.iproducts.all()],
+        [p.as_receipt() for p in iproducts],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
@@ -210,8 +214,8 @@ def export_inventory(id=None, *args, **kwargs):
 def backup_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     save_backup(inventory, Backup.BackupType.MANUAL)
-    messages.success(request, "Your inventory has been backup.")
-    return redirect(reverse("inventory", args=[id, 0]))
+    messages.success(request, "Your inventory has been saved.")
+    return redirect(reverse("inventory", args=[0]))
 
 @login_required
 def delete_inventory(request, id=None, *args, **kwargs):
@@ -224,10 +228,11 @@ def delete_inventory(request, id=None, *args, **kwargs):
     messages.success(request, "Your inventory has been deleted.")
     return redirect(reverse("dashboard"))
 
-def save_backup(iproduct_list, type=Backup.BackupType.AUTO):
+def save_backup(inventory, type=Backup.BackupType.AUTO):
+    iproducts=iProduct.objects.filter(container_name=inventory.name)
     backup = Backup(
-        iproduct_list_name=iproduct_list.name,
-        products_backup = pd.DataFrame([x.as_dict() for x in iproduct_list.iproducts.all()]).to_json(orient='table'),
+        inventory=inventory,
+        iproducts_backup = pd.DataFrame([x.as_dict() for x in iproducts]).to_json(orient='table'),
         #transactions_backup = pd.DataFrame([x.as_Kesia2_inventory_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
         backup_type = type
     )

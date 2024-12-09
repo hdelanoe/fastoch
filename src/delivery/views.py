@@ -135,7 +135,8 @@ def receipt_view(request, *args, **kwargs):
     if query:
         iproducts_desc = iproducts.filter(product__description__icontains=query)
         iproducts_prov = iproducts.filter(product__provider__name=query)
-        iproducts = list(chain(iproducts_desc, iproducts_prov))
+        iproducts_code = iproducts.filter(product__multicode__icontains=query)
+        iproducts = list(chain(iproducts_desc, iproducts_prov, iproducts_code))
         total = len(iproducts)
     else:
         total = iproducts.count()

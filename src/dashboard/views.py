@@ -81,11 +81,10 @@ def add_product_from_photo(request):
                         product.save()        
                 iproduct, created = iProduct.objects.get_or_create(product=product)        
                 iproduct.quantity = number
+                iproduct.container_name = Inventory.objects.get(is_current=True).name
                 iproduct.save()
-                inventory = Inventory.objects.get(is_current=True)
-                inventory.iproducts.add(iproduct)
-                inventory.save()
                 messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
+                return redirect(f'{reverse("inventory", args=[0])}?search={product.ean}')
             else:
                messages.error(request, f'extension {file_extension} non supportée.')
                return redirect(reverse("dashboard"))

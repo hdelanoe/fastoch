@@ -57,7 +57,6 @@ class Mistral_PDF_API():
                                 description : value,
                                 quantity : value,
                                 achat_ht : value,
-                                discount : value,
                             },
                             {
                                 code_art : value,
@@ -65,7 +64,6 @@ class Mistral_PDF_API():
                                 description : value,
                                 quantity : value,
                                 achat_ht : value,
-                                discount : value
                             }
                         ]
 
@@ -90,9 +88,9 @@ class Mistral_PDF_API():
                                         - description
                                         - quantity
                                         - achat_ht
-                                        - discount
 
 
+                                    Chaque ligne du tableau correspond a un produit et doit etre traitée comme tel.    
                                     Pour ce faire, tu vas réaliser plusieurs étapes. Les étapes 1 et 2 contextualisent les données que tu dois extraire. 
                                     L'étape 3 est importante car elle explicite les limites et regles que tu dois appliquer. Les étapes 4 et 5 figurent la construction du JSON.
 
@@ -102,14 +100,12 @@ class Mistral_PDF_API():
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
                                         - quantity - La quantité du produit.
-                                        - discount - La remise sur le produit. 
                                         - achat_ht - Le prix unitaire hors taxe.
 
                                     ETAPE 2 - Vérifier l'intégrité des ensembles clé/valeurs :
                                         - 'code_art' ne peut correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
                                         - 'ean' ne peut correspondre qu'avec une colonne 'ean' ou 'EAN'
                                         - 'quantity' ne peut correspondre qu'avec une colonne, dans l'ordre des priorités, 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
-                                        - 'discount' ne peut correspondre qu'avec une colonne 'Remise'
                                         - 'achat_ht' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
 
                                     ETAPE 3 - Prend en compte les précisions suivantes : 

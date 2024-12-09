@@ -262,10 +262,6 @@ SESSION_COOKIE_HTTPONLY = True
 
 CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
 
-# For production, set these lines to True
-# CSRF_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_HTTPONLY = True
-
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
     "provider": "NOM_FOURNISSEUR",
