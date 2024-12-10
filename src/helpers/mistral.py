@@ -37,43 +37,13 @@ class Codestral_Mamba():
         )
         return chat_response.choices[0].message.content
 
-class Mistral_API():
+class Mistral_PDF_API():
 
     mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
     model = "pixtral-12b-2409"
     client = Mistral(api_key=mistral_api_key)
 
 
-    def chat(self, message, products):
-        chat_response = self.client.chat.complete(
-            model= self.model,
-            messages = [
-                {
-                    "role": "system",
-                    "content": '''
-                                Le message de l'utilisateur sera toujours fini par un dataset.
-                                Il y a de grandes chances que la réponse a la question se trouve dedans.
-                                Dans ta réponse, n'en fait pas trop, contente toi de répondre simplement a la question.
-                                Si tu ne connais pas la réponse a la question, dit le et n'imvente pas de résultat.
-                                ''',
-                },
-                {
-                    "role": "user",
-                    "content": f'{message} - {products}',
-                },
-              
-            ]
-        )
-        return chat_response.choices[0].message.content
-
-    def upload(self, filepath):
-        return self.client.upload(
-            file={
-                "file_name": filepath,
-                "content": open(filepath, "rb"),
-            }
-        )
-    
     def extract_json_from_image(self, formatted_images):
         content = [{
                     "type": "text",
@@ -87,7 +57,6 @@ class Mistral_API():
                                 description : value,
                                 quantity : value,
                                 achat_ht : value,
-                                discount : value,
                             },
                             {
                                 code_art : value,
@@ -95,7 +64,6 @@ class Mistral_API():
                                 description : value,
                                 quantity : value,
                                 achat_ht : value,
-                                discount : value
                             }
                         ]
 
@@ -120,9 +88,9 @@ class Mistral_API():
                                         - description
                                         - quantity
                                         - achat_ht
-                                        - discount
 
 
+                                    Chaque ligne du tableau correspond a un produit et doit etre traitée comme tel.    
                                     Pour ce faire, tu vas réaliser plusieurs étapes. Les étapes 1 et 2 contextualisent les données que tu dois extraire. 
                                     L'étape 3 est importante car elle explicite les limites et regles que tu dois appliquer. Les étapes 4 et 5 figurent la construction du JSON.
 
@@ -132,14 +100,12 @@ class Mistral_API():
                                         - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
                                         - description - le nom ou la description du produit
                                         - quantity - La quantité du produit.
-                                        - discount - La remise sur le produit. 
                                         - achat_ht - Le prix unitaire hors taxe.
 
                                     ETAPE 2 - Vérifier l'intégrité des ensembles clé/valeurs :
                                         - 'code_art' ne peut correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
                                         - 'ean' ne peut correspondre qu'avec une colonne 'ean' ou 'EAN'
                                         - 'quantity' ne peut correspondre qu'avec une colonne, dans l'ordre des priorités, 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
-                                        - 'discount' ne peut correspondre qu'avec une colonne 'Remise'
                                         - 'achat_ht' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
 
                                     ETAPE 3 - Prend en compte les précisions suivantes : 

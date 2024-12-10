@@ -1,12 +1,15 @@
 <tr class="h-8">
-    <!-- Name -->
-    <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_provider' id=provider.id %}" method="post">{% csrf_token %}
+    <form action="{% url 'update_provider' id=provider.id %}" method="post">{% csrf_token %}
+        <!-- Name -->
+        <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
             <input size="32" min="1" max="32" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="name" type="text" name="name" value="{{provider.name}}" placeholder="{{provider.name}}" required="">
-        </form>
-    </td>
-    <!-- Code -->
-    <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">{{provider.code}}</td>
+        </td>
+        <!-- Code -->
+        <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <input size="4" min="1" max="4" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="code" type="text" name="code" value="{{provider.code}}" placeholder="{{provider.code}}" required="">
+        </td>
+        <input type="submit" value="submit" class="hidden"/>
+    </form>
     <!-- Action -->
     <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'delete_provider' id=provider.id %}" method="post">{% csrf_token %}
@@ -16,3 +19,13 @@
         </form>
     </td>
 </tr>
+
+<script>
+    $('form').on('submit', function (e) {
+    e.preventDefault();
+
+    var first = $('.first').val();
+    var next = $(".next").val();
+    alert(first + " " + next);
+});
+</script>

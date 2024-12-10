@@ -24,6 +24,7 @@ from .views import home_view
 urlpatterns = [
     path('', home_view, name='home'),
     path('dashboard/', include('dashboard.urls')),
+    path('settings/', include('settings.urls')),
     path('inventory/', include('inventory.urls')),
     path('backup/', include('backup.urls')),
     path('provider/', include('provider.urls')),

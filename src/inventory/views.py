@@ -14,9 +14,9 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Codestral_Mamba
-from .forms import ImportForm, QuestionForm
+from .forms import ImportForm, EntryForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import
-from inventory.models import Inventory, Product
+from inventory.models import Inventory, Product, iProduct, Provider
 from backup.models import Backup
 
 from home.views import init_context
@@ -25,30 +25,30 @@ logger = logging.getLogger('fastoch')
 
 
 @login_required
-def inventory_view(request, id=None, response=0, *args, **kwargs):
+def inventory_view(request, response=0, query=None, *args, **kwargs):
     context = init_context()
-    inventory = Inventory.objects.get(id=id)
-
-    query = request.GET.get('search', '')  # Récupère le texte de recherche
-    products = inventory.products.all()
+    iproducts = iProduct.objects.filter(container_name=context["inventory"].name)
+    
+    if not query:
+        query = request.GET.get('search', '')  # Récupère le texte de recherche
     # Filtre les produits si une recherche est spécifiée
     if query:
-        products_desc = products.filter(description__icontains=query)
-        products_prov = products.filter(provider__name=query)
-        products = list(chain(products_desc, products_prov))
-        total = len(products)
+        iproducts_desc = iproducts.filter(product__description__icontains=query)
+        iproducts_prov = iproducts.filter(product__provider__name=query)
+        iproducts_code = iproducts.filter(product__multicode__icontains=query)
+        iproducts = list(chain(iproducts_desc, iproducts_prov, iproducts_code))
+        total = len(iproducts)
     else:
-        total = products.count()
+        total = iproducts.count()
 
-    paginator = Paginator(products, 25)  # 25 produits par page
+    paginator = Paginator(iproducts, 25)  # 25 produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
-    context["inventory"] = inventory
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
-    context["products"] = page_obj.object_list
+    context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
@@ -58,7 +58,8 @@ def inventory_view(request, id=None, response=0, *args, **kwargs):
     return render(request, "inventory/inventory.html", context)
 
 @login_required
-def move_from_file(request, id=None, *args, **kwargs):
+def move_from_file(request, *args, **kwargs):
+    inventory = Inventory.objects.get(is_current=True)
     if request.method == 'POST':
         try:
             form = ImportForm(request.POST)
@@ -73,46 +74,71 @@ def move_from_file(request, id=None, *args, **kwargs):
                 error_list = return_obj.get('error_list')
                 if error_list:
                     messages.error(request, error_list)
-                    return redirect(reverse("inventory", args=[id, 0]))
-                inventory = Inventory.objects.get(id=id)
+                    return redirect(reverse("inventory", args=[inventory.id, 0]))
                 # Parsing json #
-                return_obj = json_to_delivery(providername, json_data, inventory, move_type)
+                return_obj = json_to_delivery(providername, json_data, move_type)
                 error_list = return_obj.get('error_list')
                 delivery = return_obj.get('delivery')
                 if error_list:
                     messages.error(request, f'Error while extracting : {error_list}')
                 else:
                     messages.success(request, "Livraison bien enregistrée.")
-                return redirect(reverse('last_delivery', args=[delivery.id]))
+                return redirect(reverse('delivery', args=[delivery.id]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
             messages.error(request, f'error while saving {e}')
-    return redirect(reverse("inventory", args=[id, 0]))
+    return redirect(reverse("inventory", args=[0]))
 
 
 
 
 @login_required
-def update_product(request, inventory=None, product=None, *args, **kwargs):
+def update_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
+        form = EntryForm(request.POST)
         product_obj = Product.objects.get(id=product)
-        product_obj.description = request.POST.get('description', product_obj.description)
-        product_obj.quantity = request.POST.get('quantity', product_obj.quantity)
         product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
+        product_obj.description = request.POST.get('description', product_obj.description)
+        product_obj.ean = request.POST.get('ean', product_obj.ean)
+
+        try:
+            providername = form.data['providername']
+            provider, created = Provider.objects.get_or_create(name = providername)
+            product_obj.provider = provider
+        except:
+            None    
         product_obj.achat_brut = re.search(
-                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_brut)).replace(',', '.')
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_ht)).replace(',', '.')
                     ).group(1)
 
         product_obj.save()
-    return redirect(reverse("inventory", args=[inventory, 0]))
+        messages.success(request, f'Produit mis à jour!')
+    return redirect(reverse("inventory", args=[0]))
 
 @login_required
-def delete_product(request, inventory=None, product=None, *args, **kwargs):
+def update_iproduct_quantity(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        iproduct = iProduct.objects.get(id=id)
+        iproduct.quantity = request.POST.get('quantity', iproduct.quantity)
+        iproduct.save()
+        messages.success(request, f'Produit mis à jour!')
+    return redirect(reverse("inventory", args=[0]))
+
+@login_required
+def delete_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
         product_obj.delete()
-    return redirect(reverse("inventory", args=[inventory, 0]))
+    return redirect(reverse("inventory", args=[0]))
+
+@login_required
+def delete_iproduct(request, id=None, *args, **kwargs):
+    if request.method == 'POST':
+        iproduct = iProduct.objects.get(id=id)
+        iproduct.delete()
+        messages.success(request, f'Produit supprimé.')
+    return redirect(reverse("inventory", args=[0]))
 
 @login_required
 def ask_question(request, id=None, *args, **kwargs):
@@ -142,15 +168,20 @@ def import_inventory(request, *args, **kwargs):
                 if error_list:
                     messages.error(request, error_list)
                     return redirect(reverse("dashboard"))
-                return_obj = json_to_import(json_data, Inventory.objects.create(name=name))
+                return_obj = json_to_import(json_data, Inventory.objects.create(name=name, is_current=True))
                 inventory = return_obj.get('inventory')
                 error_list = return_obj.get('error_list')
                 if not error_list:
+                    for inv in Inventory.objects.all():
+                        if inv is not inventory:
+                            inv.is_current=False
                     messages.success(request, "L'import est un succés. L'inventaire est mis a jour.")
                 else:
-
-                    messages.error(request, f'{error_list}')
-                return redirect(reverse("inventory", args=[inventory.id, 0]))
+                    for error in error_list:
+                        logger.error(error)
+                        messages.error(request, error)
+                messages.warning(return_obj['report'])        
+                return redirect(reverse("inventory", args=[0]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as ex:
@@ -162,11 +193,12 @@ def import_inventory(request, *args, **kwargs):
 
 
 @login_required
-def export_inventory(id=None, *args, **kwargs):
-    inventory = Inventory.objects.get(id=id)
+def export_inventory(request, id=None, *args, **kwargs):
+    inventory = Inventory.objects.get(is_current=True)
+    iproducts=iProduct.objects.filter(container_name=inventory.name)
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_Kesia2_inventory_dict() for p in inventory.products.all()],
+        [p.as_receipt() for p in iproducts],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
@@ -182,8 +214,8 @@ def export_inventory(id=None, *args, **kwargs):
 def backup_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     save_backup(inventory, Backup.BackupType.MANUAL)
-    messages.success(request, "Your inventory has been backup.")
-    return redirect(reverse("inventory", args=[id, 0]))
+    messages.success(request, "Your inventory has been saved.")
+    return redirect(reverse("inventory", args=[0]))
 
 @login_required
 def delete_inventory(request, id=None, *args, **kwargs):
@@ -197,9 +229,10 @@ def delete_inventory(request, id=None, *args, **kwargs):
     return redirect(reverse("dashboard"))
 
 def save_backup(inventory, type=Backup.BackupType.AUTO):
+    iproducts=iProduct.objects.filter(container_name=inventory.name)
     backup = Backup(
         inventory=inventory,
-        products_backup = pd.DataFrame([x.as_dict() for x in inventory.products.all()]).to_json(orient='table'),
+        iproducts_backup = pd.DataFrame([x.as_dict() for x in iproducts]).to_json(orient='table'),
         #transactions_backup = pd.DataFrame([x.as_Kesia2_inventory_dict() for x in inventory.transactions.all()]).to_json(orient='table'),
         backup_type = type
     )

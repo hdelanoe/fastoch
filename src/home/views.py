@@ -1,9 +1,7 @@
 import pathlib
-from django.http import HttpResponse
 from django.shortcuts import redirect
-from django.contrib import messages
 
-from inventory.models import Inventory
+from inventory.models import Inventory, Receipt, iProduct
 from backup.models import Backup
 from provider.models import Provider
 from delivery.models import Delivery
@@ -15,9 +13,9 @@ def home_view(request, *args, **kwargs):
 
 def init_context():
     try:
-        inventory_list = Inventory.objects.all()
+        current_inventory = Inventory.objects.get(is_current=True)
     except Inventory.DoesNotExist:
-        inventory_list = None
+        current_inventory = None
     try:
         provider_list = Provider.objects.all()
     except Provider.DoesNotExist:
@@ -28,11 +26,26 @@ def init_context():
         backup_list = None    
     try:
         delivery_list = Delivery.objects.all()[::-1]
+        delivery_has_validate_count = len(Delivery.objects.filter(is_validated=False)[::-1])
     except Delivery.DoesNotExist:
-        delivery_list = None        
+        delivery_list = None
+    try:
+        receipt = Receipt.objects.first()
+    except Receipt.DoesNotExist:
+        receipt = None
+    if receipt:
+        try:
+            waiting_list_count = iProduct.objects.filter(container_name=receipt.name).count()
+        except:
+            waiting_list_count = None
+    else:
+        waiting_list_count = None        
     return {
-        "inventory_list": inventory_list,
         "backup_list": backup_list,
         "provider_list": provider_list,
         "delivery_list": delivery_list,
+        "inventory": current_inventory,
+        "receipt": receipt,
+        "waiting_list_count": waiting_list_count,
+        "delivery_has_validate_count": delivery_has_validate_count,
     }

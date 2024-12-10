@@ -8,10 +8,9 @@ class Backup(models.Model):
 
     class BackupType(models.TextChoices):
         MANUAL = "MANUAL", "Manuel"
-        AUTO = "AUTO", "Automatique"  
+        AUTO = "AUTO", "Automatique"
 
-    inventory = models.ForeignKey(Inventory, on_delete=models.PROTECT, null=True)
-    products_backup = models.JSONField()
-    transactions_backup = models.JSONField(null=True)
+    inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
+    iproducts_backup = models.JSONField()
     date_creation = models.DateTimeField(auto_now_add=True)
     backup_type = models.CharField(max_length=20, choices=BackupType, default=BackupType.MANUAL)

@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     # my apps
     'commando',
     'dashboard',
+    'settings',
     'inventory',
     'backup',
     'provider',
@@ -261,10 +262,6 @@ SESSION_COOKIE_HTTPONLY = True
 
 CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
 
-# For production, set these lines to True
-# CSRF_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_HTTPONLY = True
-
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
     "provider": "NOM_FOURNISSEUR",
@@ -281,12 +278,5 @@ INVENTORY_COLUMNS_NAME = {
     "ean": "EAN",
     "description": "DEF",
     "quantity": "STOCK",
-    "achat_ht": "PMPA",
-}
-
-KESIA2_INVENTORY_COLUMNS_NAME = {
-    "multicode": "MultiCode",
-    "description": "Designation",
-    "quantity": "Qté Mouv.",
     "achat_ht": "PMPA",
 }

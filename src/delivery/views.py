@@ -1,3 +1,5 @@
+from itertools import chain
+import logging
 from django.shortcuts import redirect, render
 from django.conf import settings
 import os
@@ -9,72 +11,100 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Inventory, Product
+from inventory.models import Inventory, Receipt, iProduct
 from .models import Delivery, delivery_columns
 from home.views import init_context
 from django.contrib import messages
 
+logger = logging.getLogger('fastoch')
+
 @login_required
-def delivery_view(request, *args, **kwargs):
+def delivery_list_view(request, *args, **kwargs):
     context = init_context()
+
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    delivery_list = context['delivery_list']
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        delivery_list = delivery_list.filter(provider__name=query)
+    total = len(delivery_list)
+    
+    paginator = Paginator(delivery_list, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+
     context['columns'] = delivery_columns
+    context['delivery_list'] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
     return render(request, "delivery/delivery_list/delivery.html", context)
 
 @login_required
-def last_delivery_view(request, id=None, *args, **kwargs):
+def delivery_view(request, id=None, *args, **kwargs):
     context = init_context()
     delivery = Delivery.objects.get(id=id)
-    inventory = delivery.inventory
-    transactions = delivery.transactions.all()
+    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
 
-    total = transactions.count()
+    total = iproducts.count()
 
-    for transaction in transactions:
-        if transaction.product.has_changed:
-            messages.warning(request, f'Le prix de {transaction.product.description} a changé !')
-        elif transaction.product.multicode_generated:
-            messages.warning(request, f'Le multicode de {transaction.product.description} a été généré !')
+    for iproduct in iproducts:
+        if iproduct.product.has_changed:
+            messages.warning(request, f'Le prix de {iproduct.product.description} a changé !')
+        elif iproduct.product.multicode_generated:
+            messages.warning(request, f'Le multicode de {iproduct.product.description} a été généré !')
 
-    paginator = Paginator(transactions, 25)  # 25 produits par page
+    paginator = Paginator(iproducts, 25)  # 25 produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
 
     context["delivery"] = delivery
-    context["inventory"] = inventory
-    context["columns"] = settings.KESIA2_INVENTORY_COLUMNS_NAME.values()
-    context["transactions"] = page_obj.object_list
+    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
+    context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
 
     return render(request, "delivery/delivery.html", context)
 
+
 @login_required
 def validate_delivery(request, id=None, *args, **kwargs):
     try:
         delivery = Delivery.objects.get(id=id)
-        inventory = delivery.inventory
-        for transaction in delivery.transactions.all():
-            product = transaction.product
-            product.quantity += transaction.quantity
-            product.save()
-            inventory.products.add(product)
-            inventory.transactions.add(transaction)
-        inventory.save()
-        delivery.is_validated = True
-        delivery.save()
-        messages.success(request, f'Livraison validée et ajoutée a l\'inventaire')
+        receipt, created = Receipt.objects.get_or_create(name='receipt')
+        logger.debug(f'{str(delivery.date_time)}')
+        iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
+        if receipt.is_waiting:
+            for iproduct in iproducts:
+                try:
+                    already = iProduct.objects.get(product=iproduct.product,
+                                                container_name=receipt.name)
+                    already.quantity += iproduct.quantity
+                    already.save() 
+                    iproduct.delete()
+                except:
+                    iproduct.container_name=receipt.name 
+                    iproduct.save()
+            receipt.save()
+            delivery.is_validated = True
+            delivery.save()
+            messages.success(request, f'Livraison validée et ajoutée aux réceptions.')
+        else:
+            messages.error(request, f'Videz d\'abord la réception')
     except Exception as e:
         messages.error(request, f'Error while validate {e}')
-    return redirect(reverse("last_delivery", args=[delivery.id]))
+    return redirect(reverse("delivery_list"))
+
 
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
     df = pd.DataFrame.from_dict(
-        [t.product.as_Kesia2_dict_with_quantity(t.quantity) for t in delivery.transactions.all()],
+        [t.iproduct.as_dict() for t in delivery.transactions.all()],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_creation)[:10]}.xlsx'
@@ -89,9 +119,72 @@ def export_delivery(request, id=None, *args, **kwargs):
 @login_required
 def delete_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
+    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
+    for iproduct in iproducts:
+        iproduct.delete()
     delivery.delete()
-    messages.success(request, f'la livraison a bien été supprimé. ')
-    return redirect(reverse("delivery"))
+    messages.success(request, f'la livraison a bien été supprimé.')
+    return redirect(reverse("delivery_list"))
+
+@login_required
+def receipt_view(request, *args, **kwargs):
+    context = init_context()
+    iproducts = iProduct.objects.filter(container_name=context["receipt"].name)
+    query = request.GET.get('search', '')  # Récupère le texte de recherche
+    # Filtre les produits si une recherche est spécifiée
+    if query:
+        iproducts_desc = iproducts.filter(product__description__icontains=query)
+        iproducts_prov = iproducts.filter(product__provider__name=query)
+        iproducts_code = iproducts.filter(product__multicode__icontains=query)
+        iproducts = list(chain(iproducts_desc, iproducts_prov, iproducts_code))
+        total = len(iproducts)
+    else:
+        total = iproducts.count()
+
+    paginator = Paginator(iproducts, 25)  # 25 produits par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
+    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
+    context["iproducts"] = page_obj.object_list
+    context["pages"] = page_obj
+    context["total"] = total
+    context["len"] = pagin
+    return render(request, "inventory/receipt.html", context)
+    
+
+@login_required
+def export_receipt(*args, **kwargs):
+    receipt = Receipt.objects.first()
+    iproducts = iProduct.objects.filter(container_name=receipt.name)
+    df = pd.DataFrame.from_dict(
+        [p.as_receipt() for p in iproducts],
+        orient='columns'
+        )
+    file_path = f'{settings.MEDIA_ROOT}/{receipt.name}_{str(receipt.name)[:10]}.xlsx'
+    df.to_excel(file_path, index=False)
+    receipt.is_waiting=False
+    receipt.save()
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
+
+@login_required
+def empty_receipt(request, *args, **kwargs):
+    receipt = Receipt.objects.first()
+    inventory = Inventory.objects.get(is_current=True)
+    iproducts = iProduct.objects.filter(container_name=receipt.name)
+    for p in iproducts:
+        p.container_name=inventory.name
+        p.save()
+    receipt.is_waiting=True
+    receipt.save()
+    messages.success(request, 'Tout les produits ont été transferés dans l\'inventaire.')
+    return redirect(reverse("receipt")) 
 
 #@login_required
 #def update_delivery_product(request, delivery=None, product=None, *args, **kwargs):

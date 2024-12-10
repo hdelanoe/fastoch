@@ -40,10 +40,9 @@ def update_provider(request, id=None, *args, **kwargs):
         provider = Provider.objects.get(id=id)
         form = ProviderForm(request.POST)
         provider.name = form.data['name']
-        #provider.n_tva = form.data['n_tva']
-        #provider.tva = form.data['tva']
+        provider.code = form.data['code']
         provider.save()
-        
+    messages.success(request, f'Le provider {provider.name} a bien été modifié.')    
     return redirect(reverse("provider"))
 
 @login_required
@@ -53,7 +52,7 @@ def delete_provider(request, id=None, *args, **kwargs):
             provider = Provider.objects.get(id=id)
             name = provider.name
             provider.delete()
-            messages.success(request, f'Le provider {name} a bien été supprimé.')
+            messages.success(request, f'Le fournisseur {name} a bien été supprimé.')
         except ProtectedError:
             messages.error(request, f'Il existe encore des produits avec ce provider. Supprimez les d\'abord.')   
         except Exception as e:

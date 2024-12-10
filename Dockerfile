@@ -28,7 +28,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     # other
     gcc \
-    poppler-utils \ 
+    poppler-utils \
+    libzbar0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
@@ -72,13 +73,16 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 #COPY ./package.json /code
 #COPY ./tailwind.config.js /code
 #RUN npm install -D tailwindcss
-#RUN npm run build  
+#RUN npm run build
 
 # database isn't available during build
 # run any other commands that do not need the database
 # such as:
-RUN python manage.py vendor_pull    
+RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
+RUN python manage.py makemigrations
+RUN python manage.py migrate
+RUN python manage.py createsuperuser --noinput
 
 # whitenoise -> s3
 

@@ -1,0 +1,41 @@
+{% extends 'core.html' %}
+
+{% block head_title %}Dashboard - {{ block.super }}{% endblock head_title %}
+
+{% block body_title %}TABLEAU DE BORD{% endblock body_title %}
+
+{% block body_table %}
+<div class="grid grid-rows-[max-content_1fr] gap-4 mb-4"> 
+    <div class="px-4 lg:px-12 p-4">
+        <h2 class="flex flex-col text-center text-2xl font-semibold whitespace-nowrap dark:text-white p-4">Aucun inventaire configuré</h2>
+    </div>  
+    <div class="flex items-center justify-center">
+        <div class="w-1/2 flex flex-col justify-center items-center shadow-md h-full border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
+            <div>
+                <h2 class="justify-self-stretch my-4 tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Créer un inventeraire vide</h2>
+            </div>
+            <div class="flex items-center justify-center w-full">
+                <button type="button"
+                    data-modal-target="new-inventory-modal"
+                    data-modal-toggle="new-inventory-modal"
+                    class="m-4 flex text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                    Créer un inventaire
+                </button>
+            </div>
+        </div>
+        <div class="w-1/2 flex flex-col  justify-center items-center shadow-md h-full border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
+            <div>
+                <h2 class="justify-self-stretch my-4 tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Importer un inventaire</h2>
+            </div>
+            <div class="flex items-center justify-center w-full">
+                <button type="button"
+                    data-modal-target="import_inventory"
+                    data-modal-toggle="import_inventory"
+                    class="m-4 flex text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                    Depuis un fichier de données
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body_table %}

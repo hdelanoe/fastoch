@@ -1,23 +1,14 @@
 <tr class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-
-    <!-- MultiCode -->
-    {% if transaction.product.multicode_generated %}
-        <td class="px-2 py-1 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.multicode}}</td>
-    {% else %}
-        <td class="px-2 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.multicode}}</td>
-    {% endif %}
-    <!-- Description -->
-    {% if transaction.product.is_new %}
-        <td class="px-4 py-2 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
-    {% else %}
-        <td class="px-4 py-2 font-medium text-white-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
-    {% endif %}
-   <!-- Quantité -->
-    <td class="px-2 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.quantity}}</td>
-    <!-- Achat HT -->
+    
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.code_art}}</td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.fournisseur.name}}</td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.ean}}</td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.description}}</td>
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.quantity}}</td>
     {% if transaction.product.has_changed %}
-        <td class="px-2 py-1 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.get_format_achat_ht}}€</td>
+        <td class="px-4 py-2 font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.get_format_achat_brut}}€</td>
     {% else %}
-        <td class="px-2 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.get_format_achat_ht}}€</td>
+        <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.get_format_achat_brut}}€</td>
     {% endif %}
+    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{transaction.product.vente_net}}</td>
 </tr>
