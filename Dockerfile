@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.12-slim-bullseye
+ARG PYTHON_VERSION=3.13.0-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -28,7 +28,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     # other
     gcc \
-    poppler-utils \ 
+    poppler-utils \
+    libzbar0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
@@ -48,7 +49,7 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
-ENV NODE_VERSION=20.17.0
+ENV NODE_VERSION=22.11.0
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
 RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
@@ -59,21 +60,25 @@ ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+ENV DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+ENV DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+ENV DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+ENV MISTRAL_API_KEY=${MISTRAL_API_KEY}
 
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 
 # build css theme
-COPY ./package.json /code
-COPY ./tailwind.config.js /code
-RUN npm install -D tailwindcss
-RUN npm run build  
+#COPY ./package.json /code
+#COPY ./tailwind.config.js /code
+#RUN npm install -D tailwindcss
+#RUN npm run build
 
 # database isn't available during build
 # run any other commands that do not need the database
 # such as:
-RUN python manage.py vendor_pull    
+RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 RUN python manage.py makemigrations
 RUN python manage.py migrate
@@ -90,7 +95,9 @@ ARG PROJ_NAME="home"
 # the container starts and the database is available
 RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
+    printf "python manage.py makemigrations --no-input\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
+    printf "python manage.py createsuperuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
 

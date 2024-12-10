@@ -1,34 +1,82 @@
-<tr>
-    <!-- Code interne -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.code_art}}</td>
+<tr class="h-8">
+    <!-- MultiCode -->
+    {% if iproduct.product.multicode_generated %}
+    <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
+    {% else %}
+    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+    {% endif %}
+        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <input size="16" min="1" max="16"
+            class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+            id="multicode" type="text" name="multicode" value="{{iproduct.product.multicode}}" placeholder="{{iproduct.product.multicode}}" required=""
+            style="padding: 4px;">
+        </form>
+    </td>
     <!-- Fournisseur -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.fournisseur.name}}</td>
-    
+    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <input type="text" name="providername" list="providername" value="{{ iproduct.product.provider.name }}" size="32" min="1" max="32"
+            class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-gray rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+            style="padding: 4px;">
+            <datalist id="providername">
+                {% for provider in provider_list %}
+                    <option value="{{ provider.name }}">
+                {% empty %}        
+                {% endfor %}        
+            </datalist>
+        </form>    
+    </td>
     <!-- EAN -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.ean}}</td>
+    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <input size="16" min="1" max="16"
+            class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+            id="ean" type="text" name="ean" value="{{iproduct.product.ean}}" placeholder="{{iproduct.product.ean}}" required=""
+            style="padding: 4px;">
+        </form>
+    </td>
     <!-- Description -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-            <input size="100" min="1" max="100" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="description" type="text" name="description" value="{{product.description}}" placeholder="{{product.description}}" required="">
+    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <input size="64" min="1" max="64"
+            class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+            id="description" type="text" name="description" value="{{iproduct.product.description}}" placeholder="{{iproduct.product.description}}" required=""
+            style="padding: 4px;">
         </form>
     </td>
     <!-- Quantité -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.quantity}}</td>
-    <!-- Achat brut -->
-    {% if product.has_changed %}
-        <td class="px-4 py-2 font-medium text-red-900 whitespace-nowrap dark:text-red">{{product.get_format_achat_brut}} €</td>
-    {% else %}
-        <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{product.get_format_achat_brut}} €</td>
-    {% endif %}
-    <!-- Vente Net -->
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-            <input size="50" min="1" max="50" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="vente_net" type="text" name="vente_net" value="{{product.vente_net}}" placeholder="{{product.vente_net}}" required="">
+    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <form action="{% url 'update_iproduct_quantity' id=iproduct.id %}" method="post">{% csrf_token %}
+            <input size="5" min="1" max="5"
+            class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+            id="quantity" type="text" name="quantity" value="{{iproduct.quantity}}" placeholder="{{iproduct.quantity}}" required=""
+            style="padding: 4px;">
         </form>
     </td>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'delete_product' inventory=inventory.id product=product.id%}" method="post">{% csrf_token %}
-            <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+    <!-- Achat HT -->
+    {% if iproduct.product.has_changed %}
+        <td class="px-2 py-1 truncate font-medium whitespace-nowrap dark:text-red">
+            <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+                <input size="5" min="1" max="5"
+                class="text-sm text-red-900 whitespace-nowrap dark:text-red rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
+                style="text-align: right; padding: 4px;">€
+            </form>
+        </td>
+    {% else %}
+        <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+                <input size="5" min="1" max="5"
+                class="text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
+                style="text-align: right; padding: 4px;">€
+            </form>
+        </td>
+    {% endif %}
+    <!-- Action -->
+    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <form action="{% url 'delete_iproduct' id=iproduct.id %}" method="post">{% csrf_token %}
+            <button class="bg-red-500 hover:bg-red-700 text-white font-bold px-2 py-1 rounded">
                 X
             </button>
         </form>

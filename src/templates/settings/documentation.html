@@ -1,0 +1,15 @@
+{% extends 'core.html' %}
+
+{% block head_title %}Documentation - {{ block.super }}{% endblock head_title %}
+
+{% block body_title %}Documentation{% endblock body_title %}
+
+{% block body_table %} 
+<div class="grid grid-rows-[max-content_1fr] gap-4 mb-4">
+
+    <!-- Conteneur des options -->
+    <div class="items-center justify-between">
+        {% include 'settings/doc_text.html' %}
+    </div>
+</div>
+{% endblock body_table %}

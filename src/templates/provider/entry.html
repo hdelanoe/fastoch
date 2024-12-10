@@ -1,24 +1,31 @@
-<tr class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"></tr>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-
-        <form action="{% url 'update_provider' id=provider.id %}" method="post">{% csrf_token %}
-            <input size="50" min="1" max="50" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="name" type="text" name="name" value="{{provider.name}}" placeholder="{{provider.name}}" required="">
-        </form>
-    </td>
-    <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{provider.code}}</td>
-    <td class="px-4 py-2">
+<tr class="h-8">
+    <form action="{% url 'update_provider' id=provider.id %}" method="post">{% csrf_token %}
+        <!-- Name -->
+        <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <input size="32" min="1" max="32" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="name" type="text" name="name" value="{{provider.name}}" placeholder="{{provider.name}}" required="">
+        </td>
+        <!-- Code -->
+        <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <input size="4" min="1" max="4" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="code" type="text" name="code" value="{{provider.code}}" placeholder="{{provider.code}}" required="">
+        </td>
+        <input type="submit" value="submit" class="hidden"/>
+    </form>
+    <!-- Action -->
+    <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'delete_provider' id=provider.id %}" method="post">{% csrf_token %}
-            <button type="submit" 
-                class="items-center justify-center px-2 py-1 text-sm font-medium text-white rounded-lg bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
-                SUPPRIMER
+            <button class="bg-red-500 hover:bg-red-700 text-white font-bold px-2 py-1 rounded">
+                X
             </button>
         </form>
-    
-        <!--<button type="button" 
-        data-modal-target="confirm-delete-provider"
-        data-modal-toggle="confirm-delete-provider" 
-        class="items-center justify-center px-2 py-1 text-sm font-medium text-white rounded-lg bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
-            SUPPRIMER
-        </button>-->
     </td>
 </tr>
+
+<script>
+    $('form').on('submit', function (e) {
+    e.preventDefault();
+
+    var first = $('.first').val();
+    var next = $(".next").val();
+    alert(first + " " + next);
+});
+</script>

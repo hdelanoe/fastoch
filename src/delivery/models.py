@@ -1,12 +1,11 @@
 from django.db import models
 
-from inventory.models import Inventory, Provider, TransactionList
+from inventory.models import Provider
 
-delivery_columns = ['fournisseurs', 'inventaire', 'date de création', 'validé ?']
+delivery_columns = ['providers', 'date de livraison', 'validé ?']
 
-class Delivery(TransactionList):
-    inventory = models.ForeignKey(Inventory, on_delete=models.PROTECT, null=True)
-    providers = models.ManyToManyField(Provider)
-    date_creation = models.DateTimeField(auto_now_add=True)
+class Delivery(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.SET_NULL, null=True)
+    date_time = models.DateTimeField(auto_now_add=True)
     is_validated = models.BooleanField(default=False)
     
