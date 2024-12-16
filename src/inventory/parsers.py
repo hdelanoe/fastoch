@@ -91,6 +91,7 @@ def json_to_import(json_data, inventory):
     # format return obj
     return_obj = {'inventory': inventory, 'error_list': []}
     item_count = 0
+    saved_item = 0
 
     provider = get_or_create_provider(inventory.name)
 
@@ -108,6 +109,7 @@ def json_to_import(json_data, inventory):
                                                       product=product)
             iproduct.quantity+=values.get('quantity')
             iproduct.save()
+            saved_item += 1
         except ValueError as ex:
              return_obj['error_list'].append(f'Erreur lors de l\'import de {values.get('description')} : {ex}\n')
         except Exception as ex:
@@ -117,7 +119,8 @@ def json_to_import(json_data, inventory):
             logger.error(f'{message}')
 
     inventory.save()
-    logger.info(f'{len(inventory.iproducts.all())} produit(s) sur {len(json_data)} importé(s).')
+
+    logger.info(f'{saved_item} produit(s) sur {len(json_data)} importé(s).')
     return_obj['inventory'] = inventory
     return return_obj
 
