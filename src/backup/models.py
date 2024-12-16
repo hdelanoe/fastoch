@@ -8,7 +8,7 @@ class Backup(models.Model):
 
     class BackupType(models.TextChoices):
         MANUAL = "MANUAL", "Manuel"
-        AUTO = "AUTO", "Automatique"  
+        AUTO = "AUTO", "Automatique"
 
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
     iproducts_backup = models.JSONField()

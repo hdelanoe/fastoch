@@ -19,7 +19,7 @@ def dashboard_view(request):
     context = init_context()
     if not context["inventory"] :
         return render(request, "dashboard/dashboard_new_inventory.html", context)
-    return render(request, "dashboard/dashboard.html", context) 
+    return render(request, "dashboard/dashboard.html", context)
 
 @login_required
 def create_inventory(request):
@@ -30,7 +30,7 @@ def create_inventory(request):
                 Inventory.objects.create(
                     name=request.POST.get('name', "My inventory"),
                     is_current=True)
-            else:    
+            else:
                 Inventory.objects.create(name=request.POST.get('name', "My inventory"))
             messages.success(request, "Your inventory has been created.")
         except Inventory.DoesNotExist:
@@ -40,7 +40,7 @@ def create_inventory(request):
 @login_required
 def add_product_from_photo(request):
     if request.method == 'POST':
-        try:    
+        try:
             form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
             number = form.data['number']
@@ -49,7 +49,7 @@ def add_product_from_photo(request):
             file = fs.save(uploaded_file.name, uploaded_file)
             file_path = fs.path(file)
             logger.debug(f'file_path: {file_path}, type: {type(file_path)}')
-            if file_extension == ".png" or file_extension == ".heic":   
+            if file_extension == ".png" or file_extension == ".heic":
                 if file_extension == ".heic":
                     try:
                         png_path = convert_heic_to_png(filename, file_path)
@@ -68,18 +68,18 @@ def add_product_from_photo(request):
                     finally:
                         # Supprimer le fichier PNG temporaire s'il a été créé
                         if png_path and os.path.exists(png_path):
-                            os.remove(png_path) 
-                elif file_extension == ".png":   
+                            os.remove(png_path)
+                elif file_extension == ".png":
                     barcode = bar_decoder.decode(file_path)
                 if barcode is None:
                     messages.warning(request, f'Aucun code-barres détecté.')
-                    fs.delete(file_path)  
+                    fs.delete(file_path)
                     return redirect(reverse("dashboard"))
                 product, created = Product.objects.get_or_create(ean=barcode)
                 if created:
                         product.multicode=product.ean
-                        product.save()        
-                iproduct, created = iProduct.objects.get_or_create(product=product)        
+                        product.save()
+                iproduct, created = iProduct.objects.get_or_create(product=product)
                 iproduct.quantity = number
                 iproduct.container_name = Inventory.objects.get(is_current=True).name
                 iproduct.save()
@@ -92,7 +92,7 @@ def add_product_from_photo(request):
             logger.error(f'{e}')
             messages.error(request, f'Erreur lors de la sauvegarde du fichier.')
         if fs and file_path:
-            fs.delete(file_path)        
+            fs.delete(file_path)
     return redirect(reverse("dashboard"))
 
 def convert_heic_to_png(filename, file_path):
@@ -105,5 +105,3 @@ def convert_heic_to_png(filename, file_path):
     except Exception as e:
         logger.error(f"Error converting HEIC to PNG: {e}")
         return None
-
-

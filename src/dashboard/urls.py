@@ -9,4 +9,4 @@ urlpatterns = [
     path('', dashboard_view, name='dashboard'),
     path('create_inventory/', create_inventory),
     path('add_product_from_photo/', add_product_from_photo, name='add_product_from_photo'),
-]    
+]
