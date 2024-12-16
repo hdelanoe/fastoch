@@ -30,6 +30,9 @@ RUN apt-get update && apt-get install -y \
     gcc \
     poppler-utils \
     libzbar0 \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create the mini vm's code directory
@@ -83,6 +86,7 @@ RUN python manage.py collectstatic --noinput
 RUN python manage.py makemigrations
 RUN python manage.py migrate
 RUN python manage.py createsuperuser --noinput
+
 
 # whitenoise -> s3
 
