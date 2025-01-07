@@ -280,3 +280,11 @@ INVENTORY_COLUMNS_NAME = {
     "quantity": "STOCK",
     "achat_ht": "PMPA",
 }
+
+DELIVERY_COLUMNS_NAME = {
+    "multicode": "CODE",
+    "ean": "EAN",
+    "description": "DEF",
+    "quantity": "STOCK",
+    "achat_ht": "PMPA",
+}

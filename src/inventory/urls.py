@@ -12,7 +12,7 @@ urlpatterns = [
     path('<str:id>/backup_inventory', inventory_views.backup_inventory, name='backup_inventory'),
     path('<str:id>/delete_inventory', inventory_views.delete_inventory, name='delete_inventory'),
 
-    path('update_product/<int:product>', inventory_views.update_product, name='update_product'),
+    path('update_product/<int:iproduct>/<int:product>', inventory_views.update_product, name='update_product'),
     path('delete_product/<int:product>', inventory_views.delete_product, name='delete_product'),
 
     path('<int:id>/update_iproduct_quantity', inventory_views.update_iproduct_quantity, name='update_iproduct_quantity'),

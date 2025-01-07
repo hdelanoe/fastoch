@@ -48,7 +48,8 @@ class Mistral_PDF_API():
         content = [{
                     "type": "text",
                     "text": '''
-                        Voici le bon de livraison. Extrait les éléments et retourne les données dans un fichier JSON formatées comme ci-dessous :
+                        This is a sample delivery note. Please extract numeric data accurately.
+                        Extrait les éléments et retourne les données dans un fichier JSON formatées comme ci-dessous :
                         
                         [
                             {
@@ -89,6 +90,8 @@ class Mistral_PDF_API():
                                         - quantity
                                         - achat_ht
 
+
+                                    PREREQUIS : Extract all numeric values accurately. Focus on numbers such as EANs.    
 
                                     Chaque ligne du tableau correspond a un produit et doit etre traitée comme tel.    
                                     Pour ce faire, tu vas réaliser plusieurs étapes. Les étapes 1 et 2 contextualisent les données que tu dois extraire. 

@@ -53,7 +53,7 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
     context["total"] = total
     context["len"] = pagin
 
-
+    request.session["context"] = "inventory"
 
     return render(request, "inventory/inventory.html", context)
 
@@ -74,7 +74,7 @@ def move_from_file(request, *args, **kwargs):
                 error_list = return_obj.get('error_list')
                 if error_list:
                     messages.error(request, error_list)
-                    return redirect(reverse("inventory", args=[inventory.id, 0]))
+                    return redirect(reverse("inventory", args=[0]))
                 # Parsing json #
                 return_obj = json_to_delivery(providername, json_data, move_type)
                 error_list = return_obj.get('error_list')
@@ -94,26 +94,49 @@ def move_from_file(request, *args, **kwargs):
 
 
 @login_required
-def update_product(request, product=None, *args, **kwargs):
+def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         form = EntryForm(request.POST)
+        try:
+            iproduct_obj = iProduct.objects.get(id=iproduct)
+            logger.debug(f'iproduct = {iproduct_obj}')
+        except Product.DoesNotExist:
+            None      
         product_obj = Product.objects.get(id=product)
-        product_obj.multicode = request.POST.get('multicode', product_obj.multicode)
-        product_obj.description = request.POST.get('description', product_obj.description)
-        product_obj.ean = request.POST.get('ean', product_obj.ean)
+        ean = request.POST.get('ean', product_obj.ean)
+        if ean != product_obj:
+            try:
+                replace_product = Product.objects.get(ean=ean)
+                messages.warning(request, f'{product_obj.description} a ete remplace par {replace_product.description} lors du changement d\'EAN')
+                product_obj.delete()
+                replace_product.is_new=False
+                product_to_update = replace_product
+            except (Product.DoesNotExist, Product.MultipleObjectsReturned) :
+                product_to_update = product_obj    
+        else:
+            product_to_update = product_obj          
+        product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
+        product_to_update.description = request.POST.get('description', product_to_update.description)
+        product_to_update.ean = ean
 
         try:
             providername = form.data['providername']
             provider, created = Provider.objects.get_or_create(name = providername)
-            product_obj.provider = provider
-        except:
+            product_to_update.provider = provider
+        except Exception:
             None    
-        product_obj.achat_brut = re.search(
-                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_obj.achat_ht)).replace(',', '.')
+        product_to_update.achat_brut = re.search(
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_to_update.achat_ht)).replace(',', '.')
                     ).group(1)
 
-        product_obj.save()
+        product_to_update.save()
+        if iproduct_obj:
+            iproduct_obj.product = product_to_update
+            iproduct_obj.save()
         messages.success(request, f'Produit mis à jour!')
+
+        if str(request.session['context']) == "delivery":
+            return redirect(reverse("delivery", args=[request.session['contextid']]))
     return redirect(reverse("inventory", args=[0]))
 
 @login_required
@@ -150,7 +173,7 @@ def ask_question(request, id=None, *args, **kwargs):
         inventory.last_response = api.chat(form.data['question'], df)
         inventory.save()
     print(inventory.last_response)
-    return redirect(reverse("inventory", args=[id, 1]))
+    return redirect(reverse("inventory", args=[1]))
 
 
 @login_required

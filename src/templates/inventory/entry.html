@@ -1,20 +1,21 @@
 <tr class="h-8">
     <!-- MultiCode -->
     {% if iproduct.product.multicode_generated %}
-    <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
+        <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
     {% else %}
-    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
     {% endif %}
-        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+        <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
             <input size="16" min="1" max="16"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="multicode" type="text" name="multicode" value="{{iproduct.product.multicode}}" placeholder="{{iproduct.product.multicode}}" required=""
             style="padding: 4px;">
         </form>
     </td>
+    {% if not delivery %}
     <!-- Fournisseur -->
     <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+        <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
             <input type="text" name="providername" list="providername" value="{{ iproduct.product.provider.name }}" size="32" min="1" max="32"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-gray rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             style="padding: 4px;">
@@ -26,9 +27,14 @@
             </datalist>
         </form>    
     </td>
+    {% endif %}
     <!-- EAN -->
-    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+    {% if iproduct.product.is_new %}
+        <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
+    {% else %}
+        <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+    {% endif %}
+        <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
             <input size="16" min="1" max="16"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="ean" type="text" name="ean" value="{{iproduct.product.ean}}" placeholder="{{iproduct.product.ean}}" required=""
@@ -37,7 +43,7 @@
     </td>
     <!-- Description -->
     <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+        <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
             <input size="64" min="1" max="64"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="description" type="text" name="description" value="{{iproduct.product.description}}" placeholder="{{iproduct.product.description}}" required=""
@@ -56,7 +62,7 @@
     <!-- Achat HT -->
     {% if iproduct.product.has_changed %}
         <td class="px-2 py-1 truncate font-medium whitespace-nowrap dark:text-red">
-            <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
                 <input size="5" min="1" max="5"
                 class="text-sm text-red-900 whitespace-nowrap dark:text-red rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
                 id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
@@ -65,7 +71,7 @@
         </td>
     {% else %}
         <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-            <form action="{% url 'update_product' product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
                 <input size="5" min="1" max="5"
                 class="text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
                 id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""

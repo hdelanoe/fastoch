@@ -62,11 +62,14 @@ def delivery_view(request, id=None, *args, **kwargs):
 
 
     context["delivery"] = delivery
-    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
+    context["columns"] = settings.DELIVERY_COLUMNS_NAME.values()
     context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
+
+    request.session["context"] = "delivery"
+    request.session["contextid"] = delivery.id
 
     return render(request, "delivery/delivery.html", context)
 
