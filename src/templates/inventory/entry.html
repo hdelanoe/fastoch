@@ -61,24 +61,18 @@
     </td>
     <!-- Achat HT -->
     {% if iproduct.product.has_changed %}
-        <td class="px-2 py-1 truncate font-medium whitespace-nowrap dark:text-red">
-            <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
-                <input size="5" min="1" max="5"
-                class="text-sm text-red-900 whitespace-nowrap dark:text-red rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
-                id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
-                style="text-align: right; padding: 4px;">€
-            </form>
-        </td>
+    <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
     {% else %}
-        <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-            <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
-                <input size="5" min="1" max="5"
-                class="text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
-                id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
-                style="text-align: right; padding: 4px;">€
-            </form>
-        </td>
+        <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">        
     {% endif %}
+        <form action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}" method="post">{% csrf_token %}
+            <input size="5" min="1" max="5"
+            class="text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+            id="achat_ht" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
+            style="text-align: right; padding: 4px;">€
+        </form>
+    </td>
+    
     <!-- Action -->
     <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <form action="{% url 'delete_iproduct' id=iproduct.id %}" method="post">{% csrf_token %}

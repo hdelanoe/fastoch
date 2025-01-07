@@ -44,7 +44,11 @@ def delivery_list_view(request, *args, **kwargs):
 @login_required
 def delivery_view(request, id=None, *args, **kwargs):
     context = init_context()
-    delivery = Delivery.objects.get(id=id)
+    try:
+        delivery = Delivery.objects.get(id=id)
+    except Delivery.DoesNotExist:
+        messages.error(request, 'Erreur lors de l\'affichage de la livraison')
+        return render(request, "delivery/delivery_list/delivery.html", context)
     iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
 
     total = iproducts.count()

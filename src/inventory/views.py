@@ -67,7 +67,7 @@ def move_from_file(request, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".pdf" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
+            if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
                 # Parsing file #
                 return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
@@ -88,6 +88,8 @@ def move_from_file(request, *args, **kwargs):
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as e:
             messages.error(request, f'error while saving {e}')
+    if str(request.session['context']) == "delivery":
+        return redirect(reverse("delivery", args=[request.session['contextid']]))        
     return redirect(reverse("inventory", args=[0]))
 
 
@@ -96,6 +98,7 @@ def move_from_file(request, *args, **kwargs):
 @login_required
 def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
+        logger.debug(f'{request.POST.get('achat_brut', None)}')        
         form = EntryForm(request.POST)
         try:
             iproduct_obj = iProduct.objects.get(id=iproduct)
@@ -104,30 +107,42 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             None      
         product_obj = Product.objects.get(id=product)
         ean = request.POST.get('ean', product_obj.ean)
-        if ean != product_obj:
+        if ean != product_obj.ean:
             try:
+                logger.debug(f'new ean : {ean} -> {product_obj.ean}')
                 replace_product = Product.objects.get(ean=ean)
                 messages.warning(request, f'{product_obj.description} a ete remplace par {replace_product.description} lors du changement d\'EAN')
-                product_obj.delete()
                 replace_product.is_new=False
+                if replace_product.achat_ht != product_obj.achat_ht:
+                    replace_product.achat_ht = product_obj.achat_ht
+                    replace_product.has_changed = True
+                product_obj.delete()
                 product_to_update = replace_product
             except (Product.DoesNotExist, Product.MultipleObjectsReturned) :
-                product_to_update = product_obj    
+                product_to_update = product_obj
+                product_to_update.ean = ean    
         else:
-            product_to_update = product_obj          
-        product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
+            product_to_update = product_obj
+            product_to_update.ean = ean
+
+        if product_to_update.multicode != request.POST.get('multicode', product_to_update.multicode):        
+            product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
+            product_to_update.multicode_generated = False
         product_to_update.description = request.POST.get('description', product_to_update.description)
-        product_to_update.ean = ean
+
 
         try:
             providername = form.data['providername']
             provider, created = Provider.objects.get_or_create(name = providername)
             product_to_update.provider = provider
         except Exception:
-            None    
-        product_to_update.achat_brut = re.search(
-                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_brut', product_to_update.achat_ht)).replace(',', '.')
+            None
+
+
+        product_to_update.achat_ht = re.search(
+                    r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_ht', product_to_update.achat_ht)).replace(',', '.')
                     ).group(1)
+        product_to_update.has_changed=False
 
         product_to_update.save()
         if iproduct_obj:
@@ -146,6 +161,8 @@ def update_iproduct_quantity(request, id=None, *args, **kwargs):
         iproduct.quantity = request.POST.get('quantity', iproduct.quantity)
         iproduct.save()
         messages.success(request, f'Produit mis à jour!')
+    if str(request.session['context']) == "delivery":
+        return redirect(reverse("delivery", args=[request.session['contextid']]))    
     return redirect(reverse("inventory", args=[0]))
 
 @login_required
@@ -153,6 +170,8 @@ def delete_product(request, product=None, *args, **kwargs):
     if request.method == 'POST':
         product_obj = Product.objects.get(id=product)
         product_obj.delete()
+    if str(request.session['context']) == "delivery":
+        return redirect(reverse("delivery", args=[request.session['contextid']]))    
     return redirect(reverse("inventory", args=[0]))
 
 @login_required
@@ -161,6 +180,8 @@ def delete_iproduct(request, id=None, *args, **kwargs):
         iproduct = iProduct.objects.get(id=id)
         iproduct.delete()
         messages.success(request, f'Produit supprimé.')
+    if str(request.session['context']) == "delivery":
+        return redirect(reverse("delivery", args=[request.session['contextid']]))    
     return redirect(reverse("inventory", args=[0]))
 
 @login_required

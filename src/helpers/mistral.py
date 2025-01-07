@@ -40,7 +40,7 @@ class Codestral_Mamba():
 class Mistral_PDF_API():
 
     mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
-    model = "pixtral-12b-2409"
+    model = "pixtral-large-2411"
     client = Mistral(api_key=mistral_api_key)
 
 
@@ -48,27 +48,9 @@ class Mistral_PDF_API():
         content = [{
                     "type": "text",
                     "text": '''
-                        This is a sample delivery note. Please extract numeric data accurately.
-                        Extrait les éléments et retourne les données dans un fichier JSON formatées comme ci-dessous :
-                        
-                        [
-                            {
-                                code_art : value,
-                                ean : value,
-                                description : value,
-                                quantity : value,
-                                achat_ht : value,
-                            },
-                            {
-                                code_art : value,
-                                ean : value,
-                                description : value,
-                                quantity : value,
-                                achat_ht : value,
-                            }
-                        ]
-
-                        Si aucun élément du tableau ne correspond a une clé, ne l'ajoute pas. Si un produit est en double, compte le deux fois.
+                        This is a sample delivery note.
+                        Please extract numeric data accurately, it's very important.
+                       
                     '''
                 }]
         for fi in formatted_images:
@@ -82,49 +64,40 @@ class Mistral_PDF_API():
                         {
                             "type": "text",
                             "text" : '''
-                                    L'utilisateur fourni une ou des images correspondants a un  bon de livraison. Ce dernier comporte un tableau détaillant chaque produit.
-                                    Le but est de créer un fichier JSON, avec pour chaque produits : 
-                                        - code_art
-                                        - ean
-                                        - description
-                                        - quantity
-                                        - achat_ht
+                                Extraire les données des images des bons de livraison en respectant les consignes suivantes :
 
+                                    1. Correspondance des colonnes :
+                                        'code_art' : correspond aux colonnes intitulées 'Code art.', 'Réf.' ou 'REF'.
+                                        'ean' : correspond aux colonnes intitulées 'ean' ou 'EAN'.
+                                        'description' : correspond au nom ou à la description du produit.
+                                        'quantity' : correspond, par ordre de priorité, aux colonnes intitulées 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
+                                        'achat_ht' : correspond aux colonnes intitulées 'PU HT', 'Prix U. HT' ou 'PU H.T.'.
 
-                                    PREREQUIS : Extract all numeric values accurately. Focus on numbers such as EANs.    
+                                    2. Précision des valeurs numériques :
+                                    Toutes les valeurs numériques doivent être extraites avec une précision absolue, sans erreurs.
 
-                                    Chaque ligne du tableau correspond a un produit et doit etre traitée comme tel.    
-                                    Pour ce faire, tu vas réaliser plusieurs étapes. Les étapes 1 et 2 contextualisent les données que tu dois extraire. 
-                                    L'étape 3 est importante car elle explicite les limites et regles que tu dois appliquer. Les étapes 4 et 5 figurent la construction du JSON.
+                                    3. Fusion des colonnes pour un même produit :
+                                    Si plusieurs colonnes contiennent des informations liées au même produit, fusionnez les valeurs correspondantes pour créer un objet unique.
 
-                                    
-                                    ETAPE 1 - Identifier les colonnes du tableau qui correspondent aux élements du fichier JSON :
-                                        - code_art - un code unique identifiant le produit. Prend bien toute la chaine de caracteres.
-                                        - ean - le code EAN du produit. Il consiste en une suite de 13 chiffres.
-                                        - description - le nom ou la description du produit
-                                        - quantity - La quantité du produit.
-                                        - achat_ht - Le prix unitaire hors taxe.
+                                    4. Colonnes ignorées :
+                                    Ignorez complètement les colonnes non pertinentes telles que 'Poids' ou 'Colis'.
 
-                                    ETAPE 2 - Vérifier l'intégrité des ensembles clé/valeurs :
-                                        - 'code_art' ne peut correspondre qu'avec une colonne 'Code art.', 'Réf.' ou 'REF'.
-                                        - 'ean' ne peut correspondre qu'avec une colonne 'ean' ou 'EAN'
-                                        - 'quantity' ne peut correspondre qu'avec une colonne, dans l'ordre des priorités, 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.  
-                                        - 'achat_ht' ne peut correspondre qu'avec une colonne 'PU HT', 'Prix U. HT' ou 'PU H.T.'     
+                                    5. Format de sortie JSON :
+                                    Le résultat doit être une liste JSON. Chaque produit doit être représenté par un objet structuré de la manière suivante :
 
-                                    ETAPE 3 - Prend en compte les précisions suivantes : 
-                                        - Il y a autant d'objets dans la liste JSON que de produits dans le tableau a analyser.
-                                        - Si la colonne d'une clé n'existe pas dans le tableau, ne l'invente pas et ne l'inclue pas dans le JSON final. Par example, si il n'y a pas de colonne EAN, ne l'ajoute pas.
-                                        ne fait pas non plus correspondre le PU HT au poids.
-                                        - Si le meme produit est présent plusieurs fois dans le tableau, crée donc autant d'entrée dans le JSON final.
-                                        - 'code_art' et 'ean' sont deux identifiants différents.
-                                        - 'achat_ht' est le prix unitaire hors taxe, pas le prix total.    
+                                        [
+                                        {
+                                            "code_art": "<valeur>",
+                                            "ean": "<valeur>",
+                                            "description": "<valeur>",
+                                            "quantity": <valeur>,
+                                            "achat_ht": <valeur>
+                                        },
+                                        ...
+                                        ]
 
-                                    ETAPE 4 - Construire le JSON
-                                        - Le fichier correspond a une liste JSON, contenant les produits.
-                                        - Le JSON est une liste, pas un objet contenant une liste.
-                                    
-                                    ETAPE 5 - Renvoyer le JSON
-                                        - Ta réponse ne doit comporter UNIQUEMENT la liste JSON et rien d'autre. Ne soit pas verbeux.
+                                    Si une donnée est absente pour un produit, excluez la clé correspondante de l’objet.
+                                    Le format doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
                                     '''
                         }
                     ]
