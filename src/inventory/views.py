@@ -103,8 +103,8 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         try:
             iproduct_obj = iProduct.objects.get(id=iproduct)
             logger.debug(f'iproduct = {iproduct_obj}')
-        except Product.DoesNotExist:
-            None      
+        except iProduct.DoesNotExist:
+            iproduct_obj = None      
         product_obj = Product.objects.get(id=product)
         ean = request.POST.get('ean', product_obj.ean)
         if ean != product_obj.ean:
@@ -147,11 +147,12 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         product_to_update.save()
         if iproduct_obj:
             iproduct_obj.product = product_to_update
-            iproduct_obj.quantity = request.POST.get('quantity', iproduct.quantity)
+            iproduct_obj.quantity = request.POST.get('quantity', iproduct_obj.quantity)
 
             iproduct_obj.save()
+        return HttpResponse("sucess")    
         return JsonResponse({'success': True, 'message': 'Produit mis à jour avec succès !'})
-
+    return HttpResponse("failed")
     return JsonResponse({'success': False, 'message': 'Requête invalide.'})
 
 @login_required
