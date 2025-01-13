@@ -6,7 +6,7 @@ import pandas as pd
 from itertools import chain
 
 from django.conf import settings
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -147,23 +147,12 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         product_to_update.save()
         if iproduct_obj:
             iproduct_obj.product = product_to_update
+            iproduct_obj.quantity = request.POST.get('quantity', iproduct.quantity)
+
             iproduct_obj.save()
-        messages.success(request, f'Produit mis à jour!')
+        return JsonResponse({'success': True, 'message': 'Produit mis à jour avec succès !'})
 
-        if str(request.session['context']) == "delivery":
-            return redirect(reverse("delivery", args=[request.session['contextid']]))
-    return redirect(reverse("inventory", args=[0]))
-
-@login_required
-def update_iproduct_quantity(request, id=None, *args, **kwargs):
-    if request.method == 'POST':
-        iproduct = iProduct.objects.get(id=id)
-        iproduct.quantity = request.POST.get('quantity', iproduct.quantity)
-        iproduct.save()
-        messages.success(request, f'Produit mis à jour!')
-    if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
-    return redirect(reverse("inventory", args=[0]))
+    return JsonResponse({'success': False, 'message': 'Requête invalide.'})
 
 @login_required
 def delete_product(request, product=None, *args, **kwargs):
