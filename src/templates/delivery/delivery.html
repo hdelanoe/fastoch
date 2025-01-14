@@ -42,8 +42,8 @@
             Ajouter un produit
         </button>
     {% endif %}
+    {% include 'modal/add_iproduct.html' %}
 {% endblock body_buttons %}
-
 {% block body_table %}
     {% if iproducts %}
     <div class="flex-grow flex flex-col">

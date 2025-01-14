@@ -27,7 +27,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_POR
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
 LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=str(BASE_DIR / 'logs/debug.log'))
-TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
+#TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
 ADMINS=[('Hugo', 'hug33k@protonmail.com')]
