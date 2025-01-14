@@ -39,6 +39,9 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /code/staticfiles/theme/
 RUN mkdir -p /code/staticfiles/tw/
 
+# Create log directory
+RUN mkdir -p /code/logs
+
 # Set the working directory to that same code directory
 WORKDIR /code
 
