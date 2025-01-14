@@ -3,6 +3,7 @@ import logging
 from django.shortcuts import redirect, render
 from django.conf import settings
 import os
+import re
 
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -11,8 +12,9 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Inventory, Receipt, iProduct
+from inventory.models import Inventory, Receipt, Product, iProduct
 from .models import Delivery, delivery_columns
+from .forms import AddiProductForm
 from home.views import init_context
 from django.contrib import messages
 
@@ -65,12 +67,20 @@ def delivery_view(request, id=None, *args, **kwargs):
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
 
+    # Disable paginator
+    #paginator = Paginator(iproducts, 25)  # 25 produits par page
+    #page_number = request.GET.get('page')
+    #page_obj = paginator.get_page(page_number)
+    #pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
+    #context["pages"] = page_obj
+    #context["len"] = pagin
+    context["total"] = total
+
+
+    context["iproducts"] = iproducts
     context["delivery"] = delivery
     context["columns"] = settings.DELIVERY_COLUMNS_NAME.values()
-    context["iproducts"] = page_obj.object_list
-    context["pages"] = page_obj
-    context["total"] = total
-    context["len"] = pagin
 
     request.session["context"] = "delivery"
     request.session["contextid"] = delivery.id
@@ -148,16 +158,21 @@ def receipt_view(request, *args, **kwargs):
     else:
         total = iproducts.count()
 
-    paginator = Paginator(iproducts, 25)  # 25 produits par page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
+    # Disable paginator
+    #paginator = Paginator(iproducts, 25)  # 25 produits par page
+    #page_number = request.GET.get('page')
+    #page_obj = paginator.get_page(page_number)
+    #pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+
+    #context["pages"] = page_obj
+    #context["len"] = pagin
+    context["total"] = total
+
 
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
-    context["iproducts"] = page_obj.object_list
-    context["pages"] = page_obj
-    context["total"] = total
-    context["len"] = pagin
+    context["iproducts"] = iproducts
+   
     return render(request, "inventory/receipt.html", context)
 
 
@@ -192,6 +207,44 @@ def empty_receipt(request, *args, **kwargs):
     receipt.save()
     messages.success(request, 'Tout les produits ont été transferés dans l\'inventaire.')
     return redirect(reverse("receipt"))
+
+@login_required
+def add_iproduct(request, delivery=None, *args, **kwargs):
+    if request.method == 'POST':
+        form = AddiProductForm(request.POST)
+        delivery = Delivery.objects.get(id=delivery)
+        multicode = str(form.data['multicode'])
+        ean = int(form.data['ean'])
+        description = str(form.data['description'])
+        quantity = int(form.data['quantity'])
+        achat_ht = float(form.data['achat_ht'])
+
+        try:
+            product, created = Product.objects.get_or_create(ean=ean)
+            product.multicode = multicode
+            product.ean = ean
+            product.description = description
+            product.achat_ht = float(
+            re.search(
+                r'([0-9]+.?[0-9]+)', str(achat_ht).replace(',', '.')
+                ).group(1)
+            )
+            product.is_new=False
+            product.has_changed=False
+            product.multicode_generated=False
+            product.save()
+            iproduct = iProduct.objects.create(
+                container_name = str(delivery.date_time),
+                product=product,
+                quantity = quantity
+            )
+            iproduct.save()
+            messages.success(request, f'Produit ajouté.')
+        except Exception:
+           messages.error(request, f'Erreur lors de l\'ajout.')
+    if str(request.session['context']) == "delivery":
+        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+    return redirect(reverse("inventory", args=[0]))
 
 #@login_required
 #def update_delivery_product(request, delivery=None, product=None, *args, **kwargs):

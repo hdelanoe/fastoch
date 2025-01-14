@@ -68,6 +68,9 @@ def process_png(filepath):
         # Appliquer l'anti-aliasing
         #anti_aliased = apply_antialiasing(binarized_image)
         antied = lanczos(image)
-        tesseract(antied)
+
+        # remove tesseract for now
+        #tesseract(antied)
+
         processed_images.append(antied)
     return processed_images

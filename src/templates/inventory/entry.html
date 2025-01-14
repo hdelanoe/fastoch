@@ -38,7 +38,7 @@
         </td>
         <!-- Description -->
         <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-            <input size="64" min="1" max="64"
+            <input size="32" min="1" max="64"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="description-{{ iproduct.id }}" type="text" name="description" value="{{iproduct.product.description}}" placeholder="{{iproduct.product.description}}" required=""
             style="padding: 4px;">
@@ -65,10 +65,6 @@
     </form>
     <!-- Action -->
     <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <button class="hidden bg-red-500 hover:bg-red-700 text-white font-bold px-2 py-1 rounded">
-            maj
-        </button>
-    
         <form action="{% url 'delete_iproduct' id=iproduct.id %}" method="post">{% csrf_token %}
             <button class="bg-red-500 hover:bg-red-700 text-white font-bold px-2 py-1 rounded">
                 X
@@ -79,16 +75,20 @@
 
 <script type="text/javascript">
      $(document).ready(function() {
-        $('form[id^="entry-form-"]').on('submit', function(e) {
+        $(document).off('submit', 'form[id^="entry-form-"]');
+        $(document).on('submit', 'form[id^="entry-form-"]', function(e) {
         e.preventDefault();  // Empêche le rafraîchissement de la page
-        console.log('ajax')
-        const form = $(this);
+        const form = $(this); // Récupère le formulaire actuel soumis
+        const formId = form.attr('id'); // ID du formulaire (ex: entry-form-1)
+        console.log(`Soumission du formulaire : ${formId}`); // Debugging
             $.ajax({
                 type: 'POST',
                 url: form.attr('action'),
                 data: form.serialize(),
                 success: function (data) {
-                   messages('ok')
+                    console.log(`Mise à jour réussie pour : ${formId}`);
+                    $("#updateMessage").show();
+                    setTimeout(function() { $("#updateMessage").hide(); }, 5000);
                 },
                 error: function (xhr, status, error) {
                     console.error('Erreur : ', error);

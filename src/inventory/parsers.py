@@ -109,6 +109,11 @@ def json_to_import(json_data, inventory):
             product = get_or_create_product(values)
             if not product:
                 raise Exception('no products')
+            
+            # Remove is_new from import
+            product.is_new = False
+            product.save()
+
 
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
