@@ -120,11 +120,12 @@ def validate_delivery(request, id=None, *args, **kwargs):
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
+    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
     df = pd.DataFrame.from_dict(
-        [t.iproduct.as_dict() for t in delivery.transactions.all()],
+        [t.iproduct.as_dict() for t in iproducts],
         orient='columns'
         )
-    file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_creation)[:10]}.xlsx'
+    file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_time)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:
