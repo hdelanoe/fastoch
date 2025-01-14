@@ -260,7 +260,7 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = ['https://tarrabio-staging.up.railway.app',]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
