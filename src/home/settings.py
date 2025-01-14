@@ -27,6 +27,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_POR
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
 LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=False)
+TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
 ADMINS=[('Hugo', 'hug33k@protonmail.com')]
@@ -275,6 +276,14 @@ KESIA2_COLUMNS_NAME = {
 INVENTORY_COLUMNS_NAME = {
     "multicode": "CODE",
     "provider": "NOM_FOURNISSEUR",
+    "ean": "EAN",
+    "description": "DEF",
+    "quantity": "STOCK",
+    "achat_ht": "PMPA",
+}
+
+DELIVERY_COLUMNS_NAME = {
+    "multicode": "CODE",
     "ean": "EAN",
     "description": "DEF",
     "quantity": "STOCK",

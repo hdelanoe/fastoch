@@ -102,7 +102,7 @@ def restore_backup(request, id=None, *args, **kwargs):
         #    inventory.add(t)
         inventory.save()
         messages.success(request, f'Le backup a été restaurer.')
-        return redirect(reverse("inventory", args=[inventory.id, 0]))
+        return redirect(reverse("inventory", args=[0]))
     except Exception as e:
         messages.error(request, f'Erreur lors de la restauration du backup : {e}')
     return redirect(reverse("backup"))

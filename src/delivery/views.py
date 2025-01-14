@@ -28,11 +28,11 @@ def delivery_list_view(request, *args, **kwargs):
     if query:
         delivery_list = delivery_list.filter(provider__name=query)
     total = len(delivery_list)
-    
+
     paginator = Paginator(delivery_list, 25)  # 25 produits par page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)  
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25    
+    page_obj = paginator.get_page(page_number)
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
     context['columns'] = delivery_columns
     context['delivery_list'] = page_obj.object_list
@@ -44,7 +44,11 @@ def delivery_list_view(request, *args, **kwargs):
 @login_required
 def delivery_view(request, id=None, *args, **kwargs):
     context = init_context()
-    delivery = Delivery.objects.get(id=id)
+    try:
+        delivery = Delivery.objects.get(id=id)
+    except Delivery.DoesNotExist:
+        messages.error(request, 'Erreur lors de l\'affichage de la livraison')
+        return render(request, "delivery/delivery_list/delivery.html", context)
     iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
 
     total = iproducts.count()
@@ -62,11 +66,14 @@ def delivery_view(request, id=None, *args, **kwargs):
 
 
     context["delivery"] = delivery
-    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
+    context["columns"] = settings.DELIVERY_COLUMNS_NAME.values()
     context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
+
+    request.session["context"] = "delivery"
+    request.session["contextid"] = delivery.id
 
     return render(request, "delivery/delivery.html", context)
 
@@ -84,10 +91,10 @@ def validate_delivery(request, id=None, *args, **kwargs):
                     already = iProduct.objects.get(product=iproduct.product,
                                                 container_name=receipt.name)
                     already.quantity += iproduct.quantity
-                    already.save() 
+                    already.save()
                     iproduct.delete()
                 except:
-                    iproduct.container_name=receipt.name 
+                    iproduct.container_name=receipt.name
                     iproduct.save()
             receipt.save()
             delivery.is_validated = True
@@ -152,7 +159,7 @@ def receipt_view(request, *args, **kwargs):
     context["total"] = total
     context["len"] = pagin
     return render(request, "inventory/receipt.html", context)
-    
+
 
 @login_required
 def export_receipt(*args, **kwargs):
@@ -184,7 +191,7 @@ def empty_receipt(request, *args, **kwargs):
     receipt.is_waiting=True
     receipt.save()
     messages.success(request, 'Tout les produits ont été transferés dans l\'inventaire.')
-    return redirect(reverse("receipt")) 
+    return redirect(reverse("receipt"))
 
 #@login_required
 #def update_delivery_product(request, delivery=None, product=None, *args, **kwargs):
