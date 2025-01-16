@@ -14,8 +14,6 @@ from .forms import SettingsForm
 def settings_view(request, *args, **kwargs):
     context = init_context()
     settings, created = Settings.objects.get_or_create(id=1)
-    if created:
-        settings.erase_multicode=False
     context['inventory_list'] = Inventory.objects.all()
     context['erase_multicode'] = settings.erase_multicode
     return render(request, "settings/settings.html", context)
@@ -39,8 +37,8 @@ def update_preferences(request, *args, **kwargs):
     if request.method == 'POST':
         form = SettingsForm(request.POST)
         settings, created = Settings.objects.get_or_create(id=1)
-        erase = bool(form.data['erase'])
-        settings.erase_multicode = erase
+        erase_multicode = bool(form.data['erase_multicode'])
+        settings.erase_multicode = erase_multicode
         settings.save()
         messages.success(request, "Preferences mis a jour.")
     return redirect(reverse("settings"))

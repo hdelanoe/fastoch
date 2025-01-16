@@ -69,7 +69,7 @@ def move_from_file(request, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
+            if file_extension == ".pdf" or file_extension == ".png" or file_extension==".heic" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
                 # Parsing file #
                 return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
@@ -169,14 +169,14 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         return HttpResponse("sucess")    
     return HttpResponse("failed")
 
-@login_required
-def delete_product(request, product=None, *args, **kwargs):
-    if request.method == 'POST':
-        product_obj = Product.objects.get(id=product)
-        product_obj.delete()
-    if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
-    return redirect(reverse("inventory", args=[0]))
+#@login_required
+#def delete_product(request, product=None, *args, **kwargs):
+#    if request.method == 'POST':
+#        product_obj = Product.objects.get(id=product)
+#        product_obj.delete()
+#    if str(request.session['context']) == "delivery":
+#        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+#    return redirect(reverse("inventory", args=[0]))
 
 @login_required
 def delete_iproduct(request, id=None, *args, **kwargs):
@@ -185,7 +185,9 @@ def delete_iproduct(request, id=None, *args, **kwargs):
         iproduct.delete()
         messages.success(request, f'Produit supprimé.')
     if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+        return redirect(reverse("delivery", args=[request.session['contextid']]))
+    elif str(request.session['context']) == "receipt":    
+         return redirect(reverse("receipt"))
     return redirect(reverse("inventory", args=[0]))
 
 @login_required

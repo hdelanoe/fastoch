@@ -19,7 +19,7 @@ def file_to_json(uploaded_file, file_extension):
     fs = FileSystemStorage()
     file = fs.save(uploaded_file.name, uploaded_file)
     file_path = fs.path(file)
-    if file_extension == ".pdf" or file_extension == ".png":
+    if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".heic":
         image_content = []
         if file_extension == ".pdf":
             pages = helpers.preprocesser.process_png(file_path)
@@ -32,6 +32,11 @@ def file_to_json(uploaded_file, file_extension):
                 logger.error(f"Error while saving file - {e}")
                 return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
         else:
+            if file_extension == ".heic":
+                png_path = helpers.preprocesser.convert_heic_to_png(uploaded_file.name, file_path)
+                if not png_path:
+                    return_obj['error_list'] = f"Erreur lors de la conversion du fichier HEIC."
+                    return (return_obj)
             image_content.append(format_content_from_image_path(file_path))                
         try:
             api = Mistral_PDF_API()

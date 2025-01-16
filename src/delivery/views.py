@@ -173,6 +173,8 @@ def receipt_view(request, *args, **kwargs):
 
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["iproducts"] = iproducts
+
+    request.session["context"] = "receipt"
    
     return render(request, "inventory/receipt.html", context)
 

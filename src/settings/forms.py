@@ -2,7 +2,7 @@ from django import forms
 
 
 class SettingsForm(forms.Form):
-    erase = forms.BooleanField()
+    erase_multicode = forms.BooleanField()
 
     def isvalid(self):
         """Return True if the form has no errors, or False otherwise."""
