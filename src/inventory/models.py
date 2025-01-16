@@ -12,7 +12,7 @@ class Container(models.Model):
 class Product(models.Model):
     provider = models.ForeignKey(Provider, on_delete=models.SET_NULL, blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
-    multicode = models.CharField(max_length=16, unique=True, blank=True, null=True)
+    multicode = models.CharField(max_length=13, unique=True, blank=True, null=True)
     description = models.CharField(max_length=64, blank=True, null=True)
     achat_ht = models.FloatField(default=0.00)
     is_new=models.BooleanField(default=True)

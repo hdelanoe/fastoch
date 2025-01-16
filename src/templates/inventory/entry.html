@@ -6,7 +6,7 @@
         {% else %}
             <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
         {% endif %}
-            <input size="16" min="1" max="16"
+            <input size="13" min="1" max="13"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="multicode-{{ iproduct.id }}" type="text" name="multicode" value="{{iproduct.product.multicode}}" placeholder="{{iproduct.product.multicode}}" required=""
             style="padding: 4px;">
@@ -14,7 +14,7 @@
         {% if not delivery %}
         <!-- Fournisseur -->
         <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-            <input type="text" name="providername" list="providername" value="{{ iproduct.product.provider.name }}" size="32" min="1" max="32"
+            <input type="text" name="providername" list="providername" value="{{ iproduct.product.provider.name }}" size="16" min="1" max="32"
             id='provider-{{ iproduct.id }}' class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-gray rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             style="padding: 4px;">
             <datalist id="providername">
@@ -31,14 +31,14 @@
         {% else %}
             <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
         {% endif %}
-            <input size="16" min="1" max="16"
+            <input size="13" min="1" max="13"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="ean-{{ iproduct.id }}" type="text" name="ean" value="{{iproduct.product.ean}}" placeholder="{{iproduct.product.ean}}" id="{{iproduct.product.ean}}" required=""
             style="padding: 4px;">
         </td>
         <!-- Description -->
         <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-            <input size="32" min="1" max="64"
+            <input size="24" min="1" max="64"
             class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
             id="description-{{ iproduct.id }}" type="text" name="description" value="{{iproduct.product.description}}" placeholder="{{iproduct.product.description}}" required=""
             style="padding: 4px;">
