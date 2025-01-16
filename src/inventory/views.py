@@ -15,10 +15,11 @@ from django.contrib import messages
 
 from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, EntryForm, QuestionForm
-from .parsers import file_to_json, json_to_delivery, json_to_import
+from .parsers import file_to_json, json_to_delivery, json_to_import, validate_ean
 from inventory.models import Inventory, Product, iProduct, Provider
 from backup.models import Backup
 from settings.models import Settings
+from delivery.views import receipt_view
 
 from home.views import init_context
 
@@ -56,6 +57,7 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
 
     request.session["context"] = "inventory"
     request.session["query"] = query
+    context["temp"] =False
 
     return render(request, "inventory/inventory.html", context)
 
@@ -112,12 +114,10 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         except iProduct.DoesNotExist:
             iproduct_obj = None      
         product_obj = Product.objects.get(id=product)
-
         ean = request.POST.get('ean', product_obj.ean)
-        if ean is None or ean =='None':
-            logger.debug(f'ean is None')
-            product_to_update = product_obj
-        elif ean != product_obj.ean:
+        if validate_ean(ean) is True:
+            logger.debug('ean valid')
+        if validate_ean(ean) is True and ean != product_obj.ean:
             try:
                 logger.debug(f'new ean : {ean} -> {product_obj.ean}')
                 replace_product = Product.objects.get(ean=ean)
@@ -136,13 +136,18 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
 
         else:
             product_to_update = product_obj
-            product_to_update.ean = ean
+            if validate_ean(ean) is True:
+                product_to_update.ean = ean
             product_to_update.description = request.POST.get('description', product_to_update.description)
+            logger.debug('update desc')
 
-
-        if settings.erase_multicode:
-            product_to_update.multicode = product_to_update.ean
-            product_to_update.multicode_generated = False
+        if settings.erase_multicode is True and validate_ean(product_to_update.ean) is True:
+            try:
+                same_multicode=Product.objects.get(multicode=product_to_update.ean)
+                logger.error(f'product {same_multicode.description} a le meme multicode -> {product_to_update.ean}')
+            except Product.DoesNotExist:    
+                product_to_update.multicode = product_to_update.ean
+                product_to_update.multicode_generated = False
         else:
             if product_to_update.multicode != request.POST.get('multicode', product_to_update.multicode):        
                 product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
@@ -160,14 +165,18 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
                     r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_ht', product_to_update.achat_ht)).replace(',', '.')
                     ).group(1)
         product_to_update.has_changed=False
+        try:
+            product_to_update.save()
+        except Exception as e:
+            logger.error(f'Erreur pendant la mis a jour du produit : {e}')
+            raise Http404
 
-        product_to_update.save()
         if iproduct_obj:
             iproduct_obj.product = product_to_update
             iproduct_obj.quantity = request.POST.get('quantity', iproduct_obj.quantity)
             iproduct_obj.save()
         return HttpResponse("sucess")    
-    return HttpResponse("failed")
+    raise Http404
 
 #@login_required
 #def delete_product(request, product=None, *args, **kwargs):

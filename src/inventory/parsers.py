@@ -249,11 +249,14 @@ def get_or_create_product(values):
     return product
 
 def validate_ean(ean):
-    if len(ean) != 13 or not ean.isdigit():
-        return False
+    try:
+        if len(ean) != 13 or not ean.isdigit():
+            return False
     #checksum = sum((3 if i % 2 else 1) * int(x) for i, x in enumerate(ean[:-1]))
     #return (10 - (checksum % 10)) % 10 == int(ean[-1])
-    return True
+        return True
+    except:
+        return False
 
 def kesia_get(jd, key):
     value = jd.get(key)

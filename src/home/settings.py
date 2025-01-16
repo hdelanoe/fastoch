@@ -129,9 +129,12 @@ LOGGING = {
     "handlers": {
         "file": {
             "level": "ERROR",
-            "class": "logging.FileHandler",
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 3,
             "filename": LOGFILE_PATH,
-            'formatter': 'simple'
+            'formatter': 'verbose'
 
         },
         "console": {

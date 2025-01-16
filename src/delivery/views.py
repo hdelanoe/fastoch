@@ -84,6 +84,7 @@ def delivery_view(request, id=None, *args, **kwargs):
 
     request.session["context"] = "delivery"
     request.session["contextid"] = delivery.id
+    context["temp"] = True
 
     return render(request, "delivery/delivery.html", context)
 
@@ -175,6 +176,7 @@ def receipt_view(request, *args, **kwargs):
     context["iproducts"] = iproducts
 
     request.session["context"] = "receipt"
+    context["temp"] = True
    
     return render(request, "inventory/receipt.html", context)
 

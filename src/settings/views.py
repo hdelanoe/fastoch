@@ -1,4 +1,5 @@
 import os
+import logging
 from django.conf import settings
 from django.http import HttpResponse, Http404
 from django.contrib import messages
@@ -9,6 +10,8 @@ from home.views import init_context
 from inventory.models import Inventory
 from .models import Settings
 from .forms import SettingsForm
+
+logger = logging.getLogger('fastoch')
 
 @login_required
 def settings_view(request, *args, **kwargs):
@@ -37,8 +40,11 @@ def update_preferences(request, *args, **kwargs):
     if request.method == 'POST':
         form = SettingsForm(request.POST)
         settings, created = Settings.objects.get_or_create(id=1)
-        erase_multicode = bool(form.data['erase_multicode'])
+        # Récupération de la valeur du champ erase_multicode
+        erase_multicode_value = form.data['erase_multicode']
+        erase_multicode = erase_multicode_value == "Oui"  # Convertit explicitement en booléen
         settings.erase_multicode = erase_multicode
         settings.save()
+        logger.debug(f'new settings : erase_multicode -> {settings.erase_multicode}')
         messages.success(request, "Preferences mis a jour.")
     return redirect(reverse("settings"))

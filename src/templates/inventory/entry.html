@@ -1,7 +1,7 @@
 <tr class="h-8">
     <!-- MultiCode -->
     <form id="entry-form-{{ iproduct.id }}" action="{% url 'update_product' iproduct=iproduct.id product=iproduct.product.id %}">{% csrf_token %}
-        {% if iproduct.product.multicode_generated %}
+        {% if iproduct.product.multicode_generated and temp %}
             <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
         {% else %}
             <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
@@ -26,7 +26,7 @@
         </td>
         {% endif %}
         <!-- EAN -->
-        {% if iproduct.product.is_new %}
+        {% if iproduct.product.is_new and temp %}
             <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
         {% else %}
             <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
@@ -51,7 +51,7 @@
             style="padding: 4px;">
         </td>
         <!-- Achat HT -->
-        {% if iproduct.product.has_changed %}
+        {% if iproduct.product.has_changed and temp %}
         <td class="px-2 py-1 truncate font-medium border-2 border-red-700 text-gray-900 whitespace-nowrap dark:text-white">
         {% else %}
             <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">        
@@ -91,6 +91,8 @@
                     setTimeout(function() { $("#updateMessage").hide(); }, 5000);
                 },
                 error: function (xhr, status, error) {
+                    $("#updateErrorMessage").show();
+                    setTimeout(function() { $("#updateErrorMessage").hide(); }, 5000);
                     console.error('Erreur : ', error);
                 }
             });

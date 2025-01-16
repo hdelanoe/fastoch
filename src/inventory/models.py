@@ -21,7 +21,7 @@ class Product(models.Model):
 
     def get_format_achat_ht(self):
         return format(self.achat_ht, '.2f')
-
+    
 
 class iProduct(models.Model):
     container_name = models.CharField(max_length=32, null=True)
@@ -46,7 +46,7 @@ class iProduct(models.Model):
         }
     
     def __str__(self):
-        return f'{self.product.provider} {self.product.multicode} {self.product.description} { self.quantity} {self.product.achat_ht}'
+        return f'{self.product.multicode} {self.product.provider.name} {self.product.ean} {self.product.description} { self.quantity} {self.product.achat_ht}'
 
 
 class Inventory(Container):
