@@ -91,8 +91,13 @@
                     setTimeout(function() { $("#updateMessage").hide(); }, 5000);
                 },
                 error: function (xhr, status, error) {
-                    $("#updateErrorMessage").show();
-                    setTimeout(function() { $("#updateErrorMessage").hide(); }, 5000);
+                    if (error == "Internal Server Error") {
+                        $("#updateWrongMessage").show();
+                        setTimeout(function() { $("#updateWrongMessage").hide(); }, 5000);
+                    } else {
+                        $("#updateErrorMessage").show();
+                        setTimeout(function() { $("#updateErrorMessage").hide(); }, 5000);        
+                    }
                     console.error('Erreur : ', error);
                 }
             });

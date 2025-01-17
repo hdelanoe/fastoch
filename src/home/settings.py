@@ -27,6 +27,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_POR
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
 LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=str(BASE_DIR / 'logs/debug.log'))
+MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE_DIR / '../media/'))
 #TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 

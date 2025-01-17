@@ -48,3 +48,19 @@ def update_preferences(request, *args, **kwargs):
         logger.debug(f'new settings : erase_multicode -> {settings.erase_multicode}')
         messages.success(request, "Preferences mis a jour.")
     return redirect(reverse("settings"))
+
+@login_required
+def delete_media_files(request, *args, **kwargs):
+    directory_path = settings.MEDIA_DIRECTORY_PATH
+    logger.debug(f'media path -> {directory_path}')
+    try:
+        files = os.listdir(directory_path)
+        logger.debug(f'files -> {files}')
+        for file in files:
+            file_path = os.path.join(directory_path, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        messages.success(request, "Medias supprimes.")
+    except OSError as e:
+        messages.error(request, f'Erreur lors de la suppresion des medias : {e}')
+    return redirect(reverse("settings")) 

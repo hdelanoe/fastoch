@@ -6,7 +6,7 @@ import pandas as pd
 from itertools import chain
 
 from django.conf import settings
-from django.http import Http404, HttpResponse
+from django.http import Http404,HttpResponseBadRequest, HttpResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -117,6 +117,9 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         ean = request.POST.get('ean', product_obj.ean)
         if validate_ean(ean) is True:
             logger.debug('ean valid')
+        else:
+            logger.debug(f'EAN non valide.')
+            raise HttpResponseBadRequest        
         if validate_ean(ean) is True and ean != product_obj.ean:
             try:
                 logger.debug(f'new ean : {ean} -> {product_obj.ean}')
