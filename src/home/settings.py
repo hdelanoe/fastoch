@@ -31,7 +31,7 @@ MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE
 #TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
-ADMINS=[('Hugo', 'hug33k@protonmail.com')]
+ADMINS=[('Fort Loop', 'contact@fortloop.fr')]
 MANAGERS=ADMINS
 
 # Quick-start development settings - unsuitable for production
@@ -269,7 +269,10 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://tarrabio-staging.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = [
+    'https://tarrabio-staging.up.railway.app',
+    'https://tarrabio-prod.up.railway.app',
+    ]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
