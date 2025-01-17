@@ -29,6 +29,7 @@ def documentation_view(request, *args, **kwargs):
 @login_required
 def download_logfile(request):
     if os.path.exists(settings.LOGFILE_PATH):
+        logger.debug(f'log path -> {settings.LOGFILE_PATH}')
         with open(settings.LOGFILE_PATH, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(settings.LOGFILE_PATH)

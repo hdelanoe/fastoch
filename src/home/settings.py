@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 from decouple import config
 
@@ -26,7 +26,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str, default=None)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_PORT 587 for TLS
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
-LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=str(BASE_DIR / 'logs/debug.log'))
+
 MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE_DIR / '../media/'))
 #TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
@@ -114,6 +114,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
+LOGFILE_PATH = BASE_DIR / "../logs/debug.log"
+# Création du dossier logs si nécessaire
+os.makedirs(os.path.dirname(LOGFILE_PATH), exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -129,7 +133,7 @@ LOGGING = {
     },
     "handlers": {
         "file": {
-            "level": "ERROR",
+            "level": "DEBUG",
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'when': 'D',
             'interval': 1,
@@ -139,7 +143,7 @@ LOGGING = {
 
         },
         "console": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "class": "logging.StreamHandler",
             'formatter': 'verbose',
         },
