@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 from decouple import config
 
@@ -26,7 +26,9 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str, default=None)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True) # Use EMAIL_PORT 587 for TLS
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PORT 465 for SSL
 
-LOGFILE_PATH = config('LOGFILE_PATH', cast=str, default=False)
+
+MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE_DIR / '../media/'))
+#TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
 ADMINS=[('Hugo', 'hug33k@protonmail.com')]
@@ -112,6 +114,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
+LOGFILE_PATH = BASE_DIR / "../logs/debug.log"
+# Création du dossier logs si nécessaire
+os.makedirs(os.path.dirname(LOGFILE_PATH), exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -127,14 +133,17 @@ LOGGING = {
     },
     "handlers": {
         "file": {
-            "level": "ERROR",
-            "class": "logging.FileHandler",
+            "level": "DEBUG",
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 3,
             "filename": LOGFILE_PATH,
-            'formatter': 'simple'
+            'formatter': 'verbose'
 
         },
         "console": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "class": "logging.StreamHandler",
             'formatter': 'verbose',
         },
@@ -260,7 +269,7 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://fastoch-prod.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = ['https://tarrabio-staging.up.railway.app',]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
@@ -275,6 +284,14 @@ KESIA2_COLUMNS_NAME = {
 INVENTORY_COLUMNS_NAME = {
     "multicode": "CODE",
     "provider": "NOM_FOURNISSEUR",
+    "ean": "EAN",
+    "description": "DEF",
+    "quantity": "STOCK",
+    "achat_ht": "PMPA",
+}
+
+DELIVERY_COLUMNS_NAME = {
+    "multicode": "CODE",
     "ean": "EAN",
     "description": "DEF",
     "quantity": "STOCK",

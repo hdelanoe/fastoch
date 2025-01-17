@@ -1,0 +1,84 @@
+<!-- Overlay de la modale -->
+<div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+<!-- Main modal -->
+<div id="add_iproduct" tabindex="-1" aria-hidden="true" class="fixed inset-0 flex items-center justify-center hidden z-50">
+    <div class="flex p-4">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    Ajouter un produit
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="add_iproduct">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4">
+                <form action="{% url 'add_iproduct'  delivery=delivery.id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <table class="table-auto w-full max-w-full divide-y text-sm sm:text-xs text-center text-gray-500 dark:text-gray-400 bg-white shadow-md dark:bg-gray-800 rounded-lg">
+                        <thead class="sticky top-0 z-10 bg-mate">
+                            <tr>
+                                {% for column in columns %}
+                                    <th scope="col" class="px-2 py-1 truncate">{{ column }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            <tr class="h-8">
+                                <!-- MultiCode -->
+                                <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    <input size="16" min="1" max="16"
+                                    class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                                    id="multicode" type="text" name="multicode" placeholder="multicode" required=""
+                                    style="padding: 4px;">
+                                </td>
+                                <!-- EAN -->
+                                <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    <input size="16" min="1" max="16"
+                                    class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                                    id="ean" type="text" name="ean" placeholder="ean" required=""
+                                    style="padding: 4px;">
+                                </td>
+                                <!-- Description -->
+                                <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    <input size="32" min="1" max="64"
+                                    class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                                    id="description" type="text" name="description"  placeholder="description" required=""
+                                    style="padding: 4px;">
+                                </td>
+                                <!-- Quantité -->
+                                <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    <input size="5" min="1" max="5"
+                                    class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                                    id="quantity" type="text" name="quantity" value="0" placeholder="0" required=""
+                                    style="padding: 4px;">
+                                </td>
+                                <!-- Achat HT -->
+                                    <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">        
+                                    <input size="5" min="1" max="5"
+                                    class="text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate"
+                                    id="achat_ht" type="text" name="achat_ht" value="0,00" placeholder="0,00" required=""
+                                    style="text-align: right; padding: 4px;">€
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+
+                    <div class="flex items-center justify-between p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+                        <button data-modal-hide="add_iproduct" 
+                        data-modal-target="waiting"
+                        data-modal-toggle="waiting" 
+                        type="submit" value="OK" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Add</button>
+                        <button data-modal-hide="add_iproduct" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Back</button>
+                    </div>    
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+Extract data from the provided images of delivery notes. Identify and map columns to the following keys in the JSON output:
+
+'code_art': Matches columns titled 'Code art.', 'Réf.', or 'REF'.
+'ean': Matches columns titled 'ean' or 'EAN'.
+'description': Represents the name or description of the product.
+'quantity': Matches, in order of priority, 'Qté totale', 'Qté', 'PCB', 'Pièces', or 'Quantité'.
+'achat_ht': Matches columns titled 'PU HT', 'Prix U. HT', or 'PU H.T.'.
+
+Ignore all other columns (e.g., 'Poids', 'Colis').
+
+
+
+The output must be a JSON list with each product as an object. Ensure the JSON contains only the requested data fields in the format below:
+
+[
+{
+    "code_art": "<value>",
+    "ean": "<value>",
+    "description": "<value>",
+    "quantity": <value>,
+    "achat_ht": <value>
+},
+...
+]
+
+Ensure strict adherence to this format, with no extra text or explanations. If a field is missing for a product, exclude that key from the corresponding object.
+                                        

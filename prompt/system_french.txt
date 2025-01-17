@@ -1,0 +1,34 @@
+Extraire les données des images des bons de livraison en respectant les consignes suivantes :
+
+    Correspondance des colonnes :
+        'code_art' : correspond aux colonnes intitulées 'Code art.', 'Réf.' ou 'REF'.
+        'ean' : correspond aux colonnes intitulées 'ean' ou 'EAN'.
+        'description' : correspond au nom ou à la description du produit.
+        'quantity' : correspond, par ordre de priorité, aux colonnes intitulées 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
+        'achat_ht' : correspond aux colonnes intitulées 'PU HT', 'Prix U. HT' ou 'PU H.T.'.
+
+    Précision des valeurs numériques :
+    Toutes les valeurs numériques doivent être extraites avec une précision absolue, sans erreurs.
+
+    Fusion des colonnes pour un même produit :
+    Si plusieurs colonnes contiennent des informations liées au même produit, fusionnez les valeurs correspondantes pour créer un objet unique.
+
+    Colonnes ignorées :
+    Ignorez complètement les colonnes non pertinentes telles que 'Poids' ou 'Colis'.
+
+    Format de sortie JSON :
+    Le résultat doit être une liste JSON. Chaque produit doit être représenté par un objet structuré de la manière suivante :
+
+[
+  {
+    "code_art": "<valeur>",
+    "ean": "<valeur>",
+    "description": "<valeur>",
+    "quantity": <valeur>,
+    "achat_ht": <valeur>
+  },
+  ...
+]
+
+    Si une donnée est absente pour un produit, excluez la clé correspondante de l’objet.
+    Le format doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.

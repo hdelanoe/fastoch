@@ -4,6 +4,7 @@ src/staticfiles/theme/
 local-cdn/
 node_modules/
 media/
+logs/
 
 *tailwind-out.css
 **/migrations/**

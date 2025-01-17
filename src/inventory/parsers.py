@@ -10,7 +10,7 @@ from provider.models import Provider
 from delivery.models import Delivery
 
 from helpers.mistral import Mistral_PDF_API, format_content_from_image_path
-from pdf2image import convert_from_path
+import helpers.preprocesser
 
 logger = logging.getLogger('fastoch')
 
@@ -19,26 +19,36 @@ def file_to_json(uploaded_file, file_extension):
     fs = FileSystemStorage()
     file = fs.save(uploaded_file.name, uploaded_file)
     file_path = fs.path(file)
-    if file_extension == ".pdf":
-        pages = convert_from_path(file_path, 2000, jpegopt='quality', use_pdftocairo=True, size=(None,1080))
-        api = Mistral_PDF_API()
+    if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".heic":
         image_content = []
-        try:
-            for count, page in enumerate(pages):
-                page.save(f'{settings.MEDIA_ROOT}/pdf{count}.jpg', 'JPEG')
-                jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                image_content.append(format_content_from_image_path(jpg_path))
+        if file_extension == ".pdf":
+            pages = helpers.preprocesser.process_png(file_path)
             try:
-                return_obj['json'] = api.extract_json_from_image(image_content)
+                for count, page in enumerate(pages):
+                    page.save(f'{settings.MEDIA_ROOT}/pdf{count}.png', 'PNG')
+                    png_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.png')
+                    image_content.append(format_content_from_image_path(png_path))
             except Exception as e:
-                logger.error(f"Error while extracting data from pdf with mistral - {e}")
+                logger.error(f"Error while saving file - {e}")
                 return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
-            for count, page in enumerate(pages):
-                jpg_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.jpg')
-                fs.delete(jpg_path)
+        else:
+            if file_extension == ".heic":
+                png_path = helpers.preprocesser.convert_heic_to_png(uploaded_file.name, file_path)
+                if not png_path:
+                    return_obj['error_list'] = f"Erreur lors de la conversion du fichier HEIC."
+                    return (return_obj)
+            image_content.append(format_content_from_image_path(file_path))                
+        try:
+            api = Mistral_PDF_API()
+            return_obj['json'] = api.extract_json_from_image(image_content)
         except Exception as e:
-            logger.error(f"Error while saving file - {e}")
+            logger.error(f"Error while extracting data from pdf with mistral - {e}")
             return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
+        if file_extension == ".pdf":
+            for count, page in enumerate(pages):
+                png_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.png')
+                fs.delete(png_path)
+        
     else:
         try:
             if file_extension == ".xlsx" or file_extension == ".xls":
@@ -65,7 +75,10 @@ def json_to_delivery(providername, json_data, operator=1):
     return_obj = {'delivery': delivery, 'error_list': [], 'report': ''}
     item_count = 0
 
-
+    try:
+        json_data = json_data['products']
+    except:
+        None
     for jd in json_data:
         try:
             values=format_json_values(jd, provider, operator)
@@ -77,7 +90,7 @@ def json_to_delivery(providername, json_data, operator=1):
             iproduct.save()
             logger.debug(f'iproduct from {product.description} created !')
             item_count += 1
-        except Exception as e:
+        except (Exception, UnboundLocalError) as e:
             return_obj['error_list'].append(f'product {values.get('description')} : {e}')
             logger.error(f'product {values.get('description')} : {e}')
 
@@ -91,6 +104,7 @@ def json_to_import(json_data, inventory):
     # format return obj
     return_obj = {'inventory': inventory, 'error_list': []}
     item_count = 0
+    saved_item = 0
 
     provider = get_or_create_provider(inventory.name)
 
@@ -100,6 +114,11 @@ def json_to_import(json_data, inventory):
             product = get_or_create_product(values)
             if not product:
                 raise Exception('no products')
+            
+            # Remove is_new from import
+            product.is_new = False
+            product.save()
+
 
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
@@ -108,6 +127,7 @@ def json_to_import(json_data, inventory):
                                                       product=product)
             iproduct.quantity+=values.get('quantity')
             iproduct.save()
+            saved_item += 1
         except ValueError as ex:
              return_obj['error_list'].append(f'Erreur lors de l\'import de {values.get('description')} : {ex}\n')
         except Exception as ex:
@@ -117,7 +137,8 @@ def json_to_import(json_data, inventory):
             logger.error(f'{message}')
 
     inventory.save()
-    logger.info(f'{len(inventory.iproducts.all())} produit(s) sur {len(json_data)} importé(s).')
+
+    logger.info(f'{saved_item} produit(s) sur {len(json_data)} importé(s).')
     return_obj['inventory'] = inventory
     return return_obj
 
@@ -172,6 +193,7 @@ def format_json_values(jd, provider, operator=1):
     values['description']=description
     values['quantity']=quantity
     values['achat_ht']=achat_ht
+    logger.debug(values)
     return values
 
 def get_or_create_provider(providername):
@@ -186,11 +208,12 @@ def get_or_create_provider(providername):
 
 def get_or_create_product(values):
     try:
-        if values.get('ean').isdigit():
+        if validate_ean(values.get('ean')):
             product = Product.objects.get(multicode=values.get('ean'))
             product.is_new=False
         else:
-            raise Product.DoesNotExist('EAN is not a digit')
+            logger.debug('EAN is not valid')
+            raise Product.DoesNotExist('EAN is not valid')
     except Product.DoesNotExist:
         try:
             if values.get('code_art') is not None:
@@ -204,7 +227,7 @@ def get_or_create_product(values):
                 description=values.get('description'),
                 provider=values.get('provider'))
 
-            if  values.get('ean').isdigit():
+            if  validate_ean(values.get('ean')):
                 product.ean = values.get('ean')
                 product.multicode = values.get('ean')
             else:
@@ -215,14 +238,25 @@ def get_or_create_product(values):
                     product.multicode = f'{values.get('provider').code}{product.id}'
                 product.multicode_generated = True
 
-    if product.achat_ht != values.get('achat_ht'):
+    if product.achat_ht != values.get('achat_ht') and product.is_new==False:
         logger.debug("Product achat_ht has changed")
-        product.achat_ht=values.get('achat_ht')
         product.has_changed=True
+    elif product.is_new:
+        product.achat_ht=values.get('achat_ht')
     else:
         product.has_changed=False
     product.save()
     return product
+
+def validate_ean(ean):
+    try:
+        if len(ean) != 13 or not ean.isdigit():
+            return False
+    #checksum = sum((3 if i % 2 else 1) * int(x) for i, x in enumerate(ean[:-1]))
+    #return (10 - (checksum % 10)) % 10 == int(ean[-1])
+        return True
+    except:
+        return False
 
 def kesia_get(jd, key):
     value = jd.get(key)

@@ -8,8 +8,9 @@ from django.core.files.storage import FileSystemStorage
 
 from inventory.forms import ImportForm
 from inventory.models import Inventory, Product, iProduct
+from delivery.models import Delivery
 from helpers.pyzbar import bar_decoder
-from heic2png import HEIC2PNG
+from helpers.preprocesser import convert_heic_to_png
 from home.views import init_context
 
 logger = logging.getLogger('fastoch')
@@ -44,6 +45,8 @@ def add_product_from_photo(request):
             form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
             number = form.data['number']
+            container = form.data['container']
+            logger.debug(f'container : {container}')
             filename, file_extension = os.path.splitext(uploaded_file.name)
             fs = FileSystemStorage()
             file = fs.save(uploaded_file.name, uploaded_file)
@@ -75,33 +78,35 @@ def add_product_from_photo(request):
                     messages.warning(request, f'Aucun code-barres détecté.')
                     fs.delete(file_path)
                     return redirect(reverse("dashboard"))
+                # Create product from barcode
                 product, created = Product.objects.get_or_create(ean=barcode)
                 if created:
                         product.multicode=product.ean
                         product.save()
                 iproduct, created = iProduct.objects.get_or_create(product=product)
                 iproduct.quantity = number
-                iproduct.container_name = Inventory.objects.get(is_current=True).name
-                iproduct.save()
-                messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
-                return redirect(f'{reverse("inventory", args=[0])}?search={product.ean}')
+                if container is True:
+                    iproduct.container_name = Inventory.objects.get(is_current=True).name
+                    iproduct.save()
+                    fs.delete(file_path)
+                    messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
+                    return redirect(f'{reverse("inventory", args=[0])}?search={product.ean}')
+                else:
+                    delivery = Delivery.objects.create()
+                    iproduct.container_name = delivery.date_time
+                    iproduct.save()
+                    fs.delete(file_path)
+                    messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
+                    return redirect(reverse("delivery", args=[delivery.id]))
             else:
-               messages.error(request, f'extension {file_extension} non supportée.')
-               return redirect(reverse("dashboard"))
+                messages.error(request, f'extension {file_extension} non supportée.')
+                if fs and file_path:
+                    fs.delete(file_path)
+                return redirect(reverse("dashboard"))
         except Exception as e:
             logger.error(f'{e}')
             messages.error(request, f'Erreur lors de la sauvegarde du fichier.')
-        if fs and file_path:
-            fs.delete(file_path)
+        
     return redirect(reverse("dashboard"))
 
-def convert_heic_to_png(filename, file_path):
-    try:
-        # Conversion HEIC -> PNG
-        heic_image = HEIC2PNG(file_path, quality=90)
-        png_path = heic_image.save(f'{filename}.png')
 
-        return png_path
-    except Exception as e:
-        logger.error(f"Error converting HEIC to PNG: {e}")
-        return None

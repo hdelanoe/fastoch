@@ -1,5 +1,5 @@
-{% if messages %}
-    <div class="mb-4">
+<div class="mb-4">
+    {% if messages %}
         {% for message in messages %}
             {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
                 <div class="flex items-center px-2 py-1 text-sm font-bold text-white bg-red-500"
@@ -16,7 +16,19 @@
                     role="alert">
                     <p>{{ message }}</p>
             </div>  
-            {% endif %}              
+            {% endif %}                
         {% endfor %}
+    {% endif %}
+    <div class="flex items-center px-2 py-1 text-sm font-bold text-black bg-gray-50"
+    role="alert">
+        <p id="updateMessage" style="display:none">Produit mis à jour</p>
     </div>
-{% endif %}
+    <div class="flex items-center px-2 py-1 text-sm font-bold text-red bg-gray-50" style="color: red"
+    role="alert">
+        <p id="updateErrorMessage" style="display:none">ERREUR LORS DE LA MIS A JOUR</p>
+    </div>
+    <div class="flex items-center px-2 py-1 text-sm font-bold text-red bg-gray-50" style="color: red"
+    role="alert">
+        <p id="updateWrongMessage" style="display:none">Valeur non autorisée</p>
+    </div>
+</div>
