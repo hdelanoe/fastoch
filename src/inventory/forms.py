@@ -5,6 +5,7 @@ class ImportForm(forms.Form):
     provider = forms.CharField(max_length=50)
     move_type = forms.RadioSelect()
     number = forms.IntegerField()
+    container = forms.RadioSelect()
 
     def isvalid(self):
         """Return True if the form has no errors, or False otherwise."""

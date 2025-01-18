@@ -6,7 +6,7 @@ import pandas as pd
 from itertools import chain
 
 from django.conf import settings
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404,HttpResponseBadRequest, HttpResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -15,9 +15,11 @@ from django.contrib import messages
 
 from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, EntryForm, QuestionForm
-from .parsers import file_to_json, json_to_delivery, json_to_import
+from .parsers import file_to_json, json_to_delivery, json_to_import, validate_ean
 from inventory.models import Inventory, Product, iProduct, Provider
 from backup.models import Backup
+from settings.models import Settings
+from delivery.views import receipt_view
 
 from home.views import init_context
 
@@ -41,10 +43,12 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
     else:
         total = iproducts.count()
 
-    paginator = Paginator(iproducts, 25)  # 25 produits par page
+    settings_value, created = Settings.objects.get_or_create(id=1)
+
+    paginator = Paginator(iproducts, settings_value.pagin)  # settings_value.pagin produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin
 
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
     context["response"] = response
@@ -54,6 +58,8 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
     context["len"] = pagin
 
     request.session["context"] = "inventory"
+    request.session["query"] = query
+    context["temp"] =False
 
     return render(request, "inventory/inventory.html", context)
 
@@ -67,7 +73,7 @@ def move_from_file(request, *args, **kwargs):
             providername = form.data['provider']
             move_type = int(form.data['move_type'])
             filename, file_extension = os.path.splitext(uploaded_file.name)
-            if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
+            if file_extension == ".pdf" or file_extension == ".png" or file_extension==".heic" or file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
                 # Parsing file #
                 return_obj = file_to_json(uploaded_file, file_extension)
                 json_data = return_obj.get('json')
@@ -99,6 +105,10 @@ def move_from_file(request, *args, **kwargs):
 def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         logger.debug(f'{request.POST.get('achat_brut', None)}')        
+        logger.debug(f' REQUEST : {request.POST}')
+        settings, created = Settings.objects.get_or_create(id=1)  
+        if created:
+            settings.erase_multicode=False      
         form = EntryForm(request.POST)
         try:
             iproduct_obj = iProduct.objects.get(id=iproduct)
@@ -107,7 +117,12 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             iproduct_obj = None      
         product_obj = Product.objects.get(id=product)
         ean = request.POST.get('ean', product_obj.ean)
-        if ean != product_obj.ean:
+        if validate_ean(ean) is True:
+            logger.debug('ean valid')
+        else:
+            logger.debug(f'EAN non valide.')
+            raise HttpResponseBadRequest        
+        if validate_ean(ean) is True and ean != product_obj.ean:
             try:
                 logger.debug(f'new ean : {ean} -> {product_obj.ean}')
                 replace_product = Product.objects.get(ean=ean)
@@ -120,16 +135,28 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
                 product_to_update = replace_product
             except (Product.DoesNotExist, Product.MultipleObjectsReturned) :
                 product_to_update = product_obj
-                product_to_update.ean = ean    
+                product_to_update.ean = ean
+                
+                product_to_update.description = request.POST.get('description', product_to_update.description)
+
         else:
             product_to_update = product_obj
-            product_to_update.ean = ean
+            if validate_ean(ean) is True:
+                product_to_update.ean = ean
+            product_to_update.description = request.POST.get('description', product_to_update.description)
+            logger.debug('update desc')
 
-        if product_to_update.multicode != request.POST.get('multicode', product_to_update.multicode):        
-            product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
-            product_to_update.multicode_generated = False
-        product_to_update.description = request.POST.get('description', product_to_update.description)
-
+        if settings.erase_multicode is True and validate_ean(product_to_update.ean) is True:
+            try:
+                same_multicode=Product.objects.get(multicode=product_to_update.ean)
+                logger.error(f'product {same_multicode.description} a le meme multicode -> {product_to_update.ean}')
+            except Product.DoesNotExist:    
+                product_to_update.multicode = product_to_update.ean
+                product_to_update.multicode_generated = False
+        else:
+            if product_to_update.multicode != request.POST.get('multicode', product_to_update.multicode):        
+                product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
+                product_to_update.multicode_generated = False
 
         try:
             providername = form.data['providername']
@@ -143,26 +170,27 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
                     r'([0-9]+.?[0-9]+)', str(request.POST.get('achat_ht', product_to_update.achat_ht)).replace(',', '.')
                     ).group(1)
         product_to_update.has_changed=False
+        try:
+            product_to_update.save()
+        except Exception as e:
+            logger.error(f'Erreur pendant la mis a jour du produit : {e}')
+            raise Http404
 
-        product_to_update.save()
         if iproduct_obj:
             iproduct_obj.product = product_to_update
             iproduct_obj.quantity = request.POST.get('quantity', iproduct_obj.quantity)
-
             iproduct_obj.save()
         return HttpResponse("sucess")    
-        return JsonResponse({'success': True, 'message': 'Produit mis à jour avec succès !'})
-    return HttpResponse("failed")
-    return JsonResponse({'success': False, 'message': 'Requête invalide.'})
+    raise Http404
 
-@login_required
-def delete_product(request, product=None, *args, **kwargs):
-    if request.method == 'POST':
-        product_obj = Product.objects.get(id=product)
-        product_obj.delete()
-    if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
-    return redirect(reverse("inventory", args=[0]))
+#@login_required
+#def delete_product(request, product=None, *args, **kwargs):
+#    if request.method == 'POST':
+#        product_obj = Product.objects.get(id=product)
+#        product_obj.delete()
+#    if str(request.session['context']) == "delivery":
+#        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+#    return redirect(reverse("inventory", args=[0]))
 
 @login_required
 def delete_iproduct(request, id=None, *args, **kwargs):
@@ -171,7 +199,9 @@ def delete_iproduct(request, id=None, *args, **kwargs):
         iproduct.delete()
         messages.success(request, f'Produit supprimé.')
     if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+        return redirect(reverse("delivery", args=[request.session['contextid']]))
+    elif str(request.session['context']) == "receipt":    
+         return redirect(reverse("receipt"))
     return redirect(reverse("inventory", args=[0]))
 
 @login_required

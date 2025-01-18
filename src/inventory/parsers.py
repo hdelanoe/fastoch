@@ -11,7 +11,6 @@ from delivery.models import Delivery
 
 from helpers.mistral import Mistral_PDF_API, format_content_from_image_path
 import helpers.preprocesser
-from pdf2image import convert_from_path
 
 logger = logging.getLogger('fastoch')
 
@@ -20,7 +19,7 @@ def file_to_json(uploaded_file, file_extension):
     fs = FileSystemStorage()
     file = fs.save(uploaded_file.name, uploaded_file)
     file_path = fs.path(file)
-    if file_extension == ".pdf" or file_extension == ".png":
+    if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".heic":
         image_content = []
         if file_extension == ".pdf":
             pages = helpers.preprocesser.process_png(file_path)
@@ -33,6 +32,11 @@ def file_to_json(uploaded_file, file_extension):
                 logger.error(f"Error while saving file - {e}")
                 return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
         else:
+            if file_extension == ".heic":
+                png_path = helpers.preprocesser.convert_heic_to_png(uploaded_file.name, file_path)
+                if not png_path:
+                    return_obj['error_list'] = f"Erreur lors de la conversion du fichier HEIC."
+                    return (return_obj)
             image_content.append(format_content_from_image_path(file_path))                
         try:
             api = Mistral_PDF_API()
@@ -43,7 +47,7 @@ def file_to_json(uploaded_file, file_extension):
         if file_extension == ".pdf":
             for count, page in enumerate(pages):
                 png_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.png')
-                #fs.delete(png_path)
+                fs.delete(png_path)
         
     else:
         try:
@@ -98,7 +102,7 @@ def json_to_delivery(providername, json_data, operator=1):
 
 def json_to_import(json_data, inventory):
     # format return obj
-    return_obj = {'inventory': inventory, 'error_list': []}
+    return_obj = {'inventory': inventory, 'error_list': [], 'report': ''}
     item_count = 0
     saved_item = 0
 
@@ -110,6 +114,11 @@ def json_to_import(json_data, inventory):
             product = get_or_create_product(values)
             if not product:
                 raise Exception('no products')
+            
+            # Remove is_new from import
+            product.is_new = False
+            product.save()
+
 
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
@@ -131,6 +140,8 @@ def json_to_import(json_data, inventory):
 
     logger.info(f'{saved_item} produit(s) sur {len(json_data)} importé(s).')
     return_obj['inventory'] = inventory
+    return_obj['report'] = f'product {product.description} saved ! {item_count}/{len(json_data)}'
+    logger.debug(return_obj['report'])
     return return_obj
 
 
@@ -240,11 +251,14 @@ def get_or_create_product(values):
     return product
 
 def validate_ean(ean):
-    if len(ean) != 13 or not ean.isdigit():
-        return False
+    try:
+        if len(ean) != 13 or not ean.isdigit():
+            return False
     #checksum = sum((3 if i % 2 else 1) * int(x) for i, x in enumerate(ean[:-1]))
     #return (10 - (checksum % 10)) % 10 == int(ean[-1])
-    return True
+        return True
+    except:
+        return False
 
 def kesia_get(jd, key):
     value = jd.get(key)

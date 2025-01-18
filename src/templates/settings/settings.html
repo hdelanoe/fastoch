@@ -85,6 +85,36 @@
                 </a>
             </div>
         </div>
+        <!-- Option 4 : Preferences -->
+        <div class="w-full flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
+            <h2 class="m-4 text-lg font-bold text-gray-900 dark:text-white text-center">
+                Preferences
+            </h2>
+            <div class="mb-4">
+                <button type="button" 
+                    data-modal-target="preferences"
+                    data-modal-toggle="preferences" 
+                    class="m-4 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                    Configurer
+                </button>
+            </div>
+            {% include 'modal/preferences.html' %}
+        </div>
+         <!-- Option 5 : Media -->
+         <div class="w-full flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white p-6 m-4 px-4 lg:px-12">
+            <h2 class="m-4 text-lg font-bold text-gray-900 dark:text-white text-center">
+                Media
+            </h2>
+            <div class="mb-4">
+                <a href="{% url 'delete_media_files' %}">
+                    <button type="button"
+                            class="m-4 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                            Supprimer les fichiers
+                        </button>
+                    </a>
+            </div>
+           
+        </div>
     </div>
 </div>
 {% endblock body_table %}

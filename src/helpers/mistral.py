@@ -4,7 +4,7 @@ from decouple import config
 from mistralai import Mistral
 
 class Codestral_Mamba():
-    
+
     mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
     model = "open-mistral-nemo"
     client = Mistral(api_key=mistral_api_key)
@@ -25,14 +25,14 @@ class Codestral_Mamba():
                                 Ce Dataframe correspond a une liste de produits dans un inventaire.
                                 N'oublie pas que le DataFrame commence avec l'index 0.
                                 Extrais-en les éléments demandées par l'utilisateur puis repond uniquement avec la réponse et quelques détails.
-                                
+
                                 ''',
                 },
                 {
                     "role": "user",
                     "content": f'{content}',
                 },
-              
+
             ]
         )
         return chat_response.choices[0].message.content
@@ -50,7 +50,7 @@ class Mistral_PDF_API():
                     "text": '''
                         This is a sample delivery note.
                         Please extract numeric data accurately, it's very important.
-                       
+
                     '''
                 }]
         for fi in formatted_images:
@@ -126,5 +126,3 @@ def format_content_from_image_path(image_path):
     except Exception as e:  # Added general exception handling
         print(f"Error: {e}")
         return None
-
-   

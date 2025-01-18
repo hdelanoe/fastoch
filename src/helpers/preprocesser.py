@@ -5,6 +5,8 @@ from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 import pytesseract
+from heic2png import HEIC2PNG
+
 
 from django.conf import settings
 
@@ -68,6 +70,18 @@ def process_png(filepath):
         # Appliquer l'anti-aliasing
         #anti_aliased = apply_antialiasing(binarized_image)
         antied = lanczos(image)
-        tesseract(antied)
+
+        # remove tesseract for now
+        #tesseract(antied)
+
         processed_images.append(antied)
     return processed_images
+
+def convert_heic_to_png(filename, file_path):
+    # Conversion HEIC -> PNG
+    try:
+        heic_image = HEIC2PNG(file_path, quality=90)
+        png_path = heic_image.save(f'{filename}.png')
+        return png_path
+    except:
+        return None

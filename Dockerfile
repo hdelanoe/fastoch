@@ -39,6 +39,10 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /code/staticfiles/theme/
 RUN mkdir -p /code/staticfiles/tw/
 
+# Create log directory
+RUN mkdir -p /code/logs
+ENV LOGFILE_PATH=/code/logs/debug.log
+
 # Set the working directory to that same code directory
 WORKDIR /code
 
@@ -52,13 +56,13 @@ COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
-ENV NODE_VERSION=22.11.0
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-ENV NVM_DIR=/root/.nvm
-RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
-RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
-RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
-ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+#ENV NODE_VERSION=22.11.0
+#RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+#ENV NVM_DIR=/root/.nvm
+#RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+#RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+#RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+#ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 
 
 ARG DJANGO_SECRET_KEY
@@ -98,7 +102,7 @@ RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "python manage.py makemigrations --no-input\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
     printf "python manage.py createsuperuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
-    printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
+    printf "gunicorn ${PROJ_NAME}.wsgi:application --timeout 0 --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
 
 # make the bash script executable
