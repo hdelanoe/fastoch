@@ -32,12 +32,12 @@ def delivery_list_view(request, *args, **kwargs):
         delivery_list = delivery_list.filter(provider__name=query)
     total = len(delivery_list)
 
-    settings_value = Settings.objects.get_or_create(id=1)
+    settings_value, created = Settings.objects.get_or_create(id=1)
 
-    paginator = Paginator(delivery_list, settings_value)  # settings_value produits par page
+    paginator = Paginator(delivery_list, settings_value.pagin)  # settings_value.pagin produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin
 
     context['columns'] = delivery_columns
     context['delivery_list'] = page_obj.object_list

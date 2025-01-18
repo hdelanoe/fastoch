@@ -43,9 +43,9 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
     else:
         total = iproducts.count()
 
-    settings_value = Settings.objects.get_or_create(id=1)
+    settings_value, created = Settings.objects.get_or_create(id=1)
 
-    paginator = Paginator(iproducts, settings_value.pagin)  # 25 produits par page
+    paginator = Paginator(iproducts, settings_value.pagin)  # settings_value.pagin produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin

@@ -46,7 +46,7 @@ def update_preferences(request, *args, **kwargs):
         erase_multicode = erase_multicode_value == "Oui"  # Convertit explicitement en booléen
         settings.erase_multicode = erase_multicode
 
-        pagin_value = int(form.data['erase_multicode'])
+        pagin_value = int(form.data['pagin'])
         settings.pagin = pagin_value
         settings.save()
         logger.debug(f'new settings : erase_multicode -> {settings.erase_multicode}')
