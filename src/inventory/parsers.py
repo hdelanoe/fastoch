@@ -102,7 +102,7 @@ def json_to_delivery(providername, json_data, operator=1):
 
 def json_to_import(json_data, inventory):
     # format return obj
-    return_obj = {'inventory': inventory, 'error_list': []}
+    return_obj = {'inventory': inventory, 'error_list': [], 'report': ''}
     item_count = 0
     saved_item = 0
 
@@ -140,6 +140,8 @@ def json_to_import(json_data, inventory):
 
     logger.info(f'{saved_item} produit(s) sur {len(json_data)} importé(s).')
     return_obj['inventory'] = inventory
+    return_obj['report'] = f'product {product.description} saved ! {item_count}/{len(json_data)}'
+    logger.debug(return_obj['report'])
     return return_obj
 
 

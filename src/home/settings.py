@@ -31,7 +31,7 @@ MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE
 #TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
-ADMINS=[('Hugo', 'hug33k@protonmail.com')]
+ADMINS=[('Fort Loop', 'contact@fortloop.fr')]
 MANAGERS=ADMINS
 
 # Quick-start development settings - unsuitable for production
@@ -40,17 +40,21 @@ MANAGERS=ADMINS
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DJANGO_DEBUG', cast=bool)
+DEBUG = config('DJANGO_DEBUG', cast=bool, default=False)
 
 BASE_URL = config('BASE_URL', default=None)
+
 ALLOWED_HOSTS = [
     '.railway.app'
 ]
+
 if DEBUG:
     ALLOWED_HOSTS += [
         '127.0.0.1',
         'localhost',
     ]
+
+
 
 
 # Application definition
@@ -155,6 +159,12 @@ LOGGING = {
             "propagate": True,
         },
     },
+     'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+    },
 }
 
 
@@ -178,8 +188,14 @@ if DATABASE_URL is not None:
             default=DATABASE_URL,
             conn_max_age=CONN_MAX_AGE,
             conn_health_checks=True,
+            ssl_require=True,  # Force l'utilisation de SSL
         )
     }
+     # Ajoute manuellement les options SSL pour s'assurer qu'elles sont bien transmises
+    DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
+    DATABASES['default']['OPTIONS'].update({
+        'sslmode': 'require',
+    })
 
 
 
@@ -269,7 +285,12 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-CSRF_TRUSTED_ORIGINS = ['https://tarrabio-staging.up.railway.app',]
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'https://tarrabio-staging.up.railway.app',
+    'https://tarrabio-prod.up.railway.app',
+    ]
 
 KESIA2_COLUMNS_NAME = {
     "code_art": "IDART",
