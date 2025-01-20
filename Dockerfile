@@ -9,6 +9,8 @@ RUN python -m venv /opt/venv
 # Set the virtual environment as the current location
 ENV PATH=/opt/venv/bin:$PATH
 
+ENV TESSDATA_PREFIX=/usr/local/share/tessdata
+
 # Upgrade pip
 RUN pip install --upgrade pip
 
@@ -16,7 +18,19 @@ RUN pip install --upgrade pip
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install os dependencies for our mini vm
+# Install Tesseract from master
+RUN mkdir /usr/local/share/tessdata \
+    && mkdir tesseract \
+    && cd tesseract \
+    && wget https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata -P "$TESSDATA_PREFIX" \
+    && git clone --depth 1 https://github.com/tesseract-ocr/tesseract.git . \
+    && ./autogen.sh \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install
+
+
+    # Install os dependencies for our mini vm
 RUN apt-get update && apt-get install -y \
     # for postgres
     libpq-dev \
@@ -27,17 +41,14 @@ RUN apt-get update && apt-get install -y \
     # for nvm
     curl \
     # for tesseract
-    tesseract-ocr \
+    #tesseract-ocr \
     leptonica \
     autoconf automake libtool \
     pkg-config \ 
     libpng-dev \
-    libjpeg8-dev \
     libtiff5-dev \
     zlib1g-dev \
     libwebpdemux2 libwebp-dev \
-    libopenjp2-7-dev \
-    libgif-dev \
     libarchive-dev libcurl4-openssl-dev \
     # other
     gcc \
