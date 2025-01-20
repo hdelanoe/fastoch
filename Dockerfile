@@ -36,10 +36,6 @@ RUN apt-get update && apt-get install -y \
     autoconf automake libtool \
     pkg-config \ 
     libpng-dev \
-    libtiff5-dev \
-    zlib1g-dev \
-    libwebpdemux2 libwebp-dev \
-    libarchive-dev libcurl4-openssl-dev \
     # other
     gcc \
     poppler-utils \
