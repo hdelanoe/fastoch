@@ -18,17 +18,6 @@ RUN pip install --upgrade pip
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install Tesseract from master
-RUN mkdir /usr/local/share/tessdata \
-    && mkdir tesseract \
-    && cd tesseract \
-    && wget https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata -P "$TESSDATA_PREFIX" \
-    && git clone --depth 1 https://github.com/tesseract-ocr/tesseract.git . \
-    && ./autogen.sh \
-    && ./configure \
-    && make -j$(nproc) \
-    && make install
-
 
     # Install os dependencies for our mini vm
 RUN apt-get update && apt-get install -y \
@@ -42,7 +31,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     # for tesseract
     #tesseract-ocr \
-    #leptonica \
+    wget \
+    leptonica \
     autoconf automake libtool \
     pkg-config \ 
     libpng-dev \
@@ -58,6 +48,17 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Tesseract from master
+RUN mkdir /usr/local/share/tessdata \
+    && mkdir tesseract \
+    && cd tesseract \
+    && wget https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata -P "$TESSDATA_PREFIX" \
+    && git clone --depth 1 https://github.com/tesseract-ocr/tesseract.git . \
+    && ./autogen.sh \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install    
 
 # Create the mini vm's code directory
 RUN mkdir -p /code/staticfiles/theme/
