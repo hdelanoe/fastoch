@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     # for tesseract
     tesseract-ocr \
+    libtesseract-dev \
     autoconf automake libtool \
     pkg-config \ 
     libpng-dev \
