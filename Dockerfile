@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     libsm6 \
     libxext6 \
-    git-all \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Tesseract from master
