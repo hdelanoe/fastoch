@@ -22,7 +22,9 @@ def file_to_json(uploaded_file, file_extension):
     if file_extension == ".pdf" or file_extension == ".png" or file_extension == ".heic":
         image_content = []
         if file_extension == ".pdf":
-            pages = helpers.preprocesser.process_png(file_path)
+            process_return = helpers.preprocesser.process_png(file_path)
+            text =  process_return['text']
+            pages = process_return['processed_images']
             try:
                 for count, page in enumerate(pages):
                     page.save(f'{settings.MEDIA_ROOT}/pdf{count}.png', 'PNG')
@@ -34,13 +36,17 @@ def file_to_json(uploaded_file, file_extension):
         else:
             if file_extension == ".heic":
                 png_path = helpers.preprocesser.convert_heic_to_png(uploaded_file.name, file_path)
+                process_return = helpers.preprocesser.process_png(png_path)
+                text =  process_return['text']
                 if not png_path:
                     return_obj['error_list'] = f"Erreur lors de la conversion du fichier HEIC."
                     return (return_obj)
             image_content.append(format_content_from_image_path(file_path))                
         try:
             api = Mistral_PDF_API()
-            return_obj['json'] = api.extract_json_from_image(image_content)
+            first_json = api.extract_json_from_image(image_content)
+            return_obj['json'] = api.replace_ean_by_tesseract(first_json, text)
+            #return_obj['json'] = api.extract_json_from_image(image_content)
         except Exception as e:
             logger.error(f"Error while extracting data from pdf with mistral - {e}")
             return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
@@ -78,11 +84,15 @@ def json_to_delivery(providername, json_data, operator=1):
     try:
         json_data = json_data['products']
     except:
-        None
+        try:
+            json_data = json_data['articles']
+        except:
+            None    
     for jd in json_data:
         try:
             values=format_json_values(jd, provider, operator)
             product=get_or_create_product(values)
+
 
             iproduct = iProduct.objects.create(product=product, 
                                                quantity=values.get('quantity'),
@@ -211,7 +221,7 @@ def get_or_create_provider(providername):
 def get_or_create_product(values):
     try:
         if validate_ean(values.get('ean')):
-            product = Product.objects.get(multicode=values.get('ean'))
+            product = Product.objects.get(ean=values.get('ean'))
             product.is_new=False
         else:
             logger.debug('EAN is not valid')
@@ -222,6 +232,7 @@ def get_or_create_product(values):
                 product = Product.objects.get(multicode=values.get('code_art'))
                 product.is_new=False
             else:
+                logger.debug('No code article')
                 raise Product.DoesNotExist('No code article')
         except Product.DoesNotExist:
             logger.debug("Create object")
@@ -232,6 +243,7 @@ def get_or_create_product(values):
             if  validate_ean(values.get('ean')):
                 product.ean = values.get('ean')
                 product.multicode = values.get('ean')
+                logger.debug('ean ok')
             else:
                 logger.debug("Generate MultiCode")
                 if values.get('code_art'):
@@ -243,10 +255,12 @@ def get_or_create_product(values):
     if product.achat_ht != values.get('achat_ht') and product.is_new==False:
         logger.debug("Product achat_ht has changed")
         product.has_changed=True
+        product.achat_ht=values.get('achat_ht')
     elif product.is_new:
         product.achat_ht=values.get('achat_ht')
     else:
         product.has_changed=False
+    logger.debug(f'finale porudct : {product}')    
     product.save()
     return product
 

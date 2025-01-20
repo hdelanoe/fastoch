@@ -111,6 +111,63 @@ class Mistral_PDF_API():
         )
         print(chat_response.choices[0].message.content)
         return json.loads(chat_response.choices[0].message.content, strict=False)
+    
+    def replace_ean_by_tesseract(self, json, text):
+        prebuild_content = {
+                    "type": "text",
+                    "text": '''
+                        First it's the JSON, second the text.
+                        Please replace all the JSON "ean" values by those in the text.
+                        ---- 
+
+                    '''
+                }
+        prebuild_content["text"] += str(json)
+        prebuild_content["text"] += '''
+                                    -----
+                                    '''
+        prebuild_content["text"] += str(text)
+        content = [prebuild_content]
+        chat_response = self.client.chat.complete(
+            model = self.model,
+            messages = [
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text" : '''
+                                    "I will provide a JSON file and a text. The JSON is a list of elements who contains a key called EAN with associated values. 
+                                    EAN are a string of 13 numbers.
+                                    Analyze the text to find matches with the JSON elements and replace only the EAN values with those extracted from the text when they match. 
+                                    Replace Only the EAN. Other values MUST stay unchanged. 
+                                    Return the modified JSON with the same format :
+
+                                    [
+                                        {
+                                            "code_art": "<unchanged value>",
+                                            "ean": "<replaced value>",
+                                            "description": "<unchanged value>",
+                                            "quantity": <unchanged value>,
+                                            "achat_ht": <unchanged value>
+                                        },
+                                        ...
+                                    ]
+                                    
+                                    Return only the JSON, nothing else.
+                                    '''
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            ],
+            response_format = {"type": "json_object"}
+        )
+        print(chat_response.choices[0].message.content)
+        return json.loads(chat_response.choices[0].message.content, strict=False)
 
 def format_content_from_image_path(image_path):
     try:

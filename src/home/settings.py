@@ -28,7 +28,7 @@ EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PO
 
 
 MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE_DIR / '../media/'))
-#TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
+TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
 ADMINS=[('Fort Loop', 'contact@fortloop.fr')]
@@ -147,7 +147,7 @@ LOGGING = {
 
         },
         "console": {
-            "level": "ERROR",
+            "level": "DEBUG",
             "class": "logging.StreamHandler",
             'formatter': 'verbose',
         },
@@ -159,12 +159,7 @@ LOGGING = {
             "propagate": True,
         },
     },
-     'loggers': {
-        'django.db.backends': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-        },
-    },
+    
 }
 
 
