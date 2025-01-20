@@ -9,8 +9,6 @@ RUN python -m venv /opt/venv
 # Set the virtual environment as the current location
 ENV PATH=/opt/venv/bin:$PATH
 
-ENV TESSDATA_PREFIX=/usr/local/share/tessdata
-
 # Upgrade pip
 RUN pip install --upgrade pip
 
