@@ -112,7 +112,7 @@ class Mistral_PDF_API():
         print(chat_response.choices[0].message.content)
         return json.loads(chat_response.choices[0].message.content, strict=False)
     
-    def replace_ean_by_tesseract(self, json, text):
+    def replace_ean_by_tesseract(self, old_json, text):
         prebuild_content = {
                     "type": "text",
                     "text": '''
@@ -122,7 +122,7 @@ class Mistral_PDF_API():
 
                     '''
                 }
-        prebuild_content["text"] += str(json)
+        prebuild_content["text"] += str(old_json)
         prebuild_content["text"] += '''
                                     -----
                                     '''

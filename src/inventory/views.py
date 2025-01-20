@@ -104,25 +104,26 @@ def move_from_file(request, *args, **kwargs):
 @login_required
 def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
-        logger.debug(f'{request.POST.get('achat_brut', None)}')        
         logger.debug(f' REQUEST : {request.POST}')
         settings, created = Settings.objects.get_or_create(id=1)  
-        if created:
-            settings.erase_multicode=False      
         form = EntryForm(request.POST)
+
         try:
             iproduct_obj = iProduct.objects.get(id=iproduct)
             logger.debug(f'iproduct = {iproduct_obj}')
+
         except iProduct.DoesNotExist:
             iproduct_obj = None      
+        
         product_obj = Product.objects.get(id=product)
         ean = request.POST.get('ean', product_obj.ean)
+
         if validate_ean(ean) is True:
             logger.debug('ean valid')
         else:
             logger.debug(f'EAN non valide.')
             raise HttpResponseBadRequest        
-        if validate_ean(ean) is True and ean != product_obj.ean:
+        if validate_ean(ean) is True and str(ean) != str(product_obj.ean):
             try:
                 logger.debug(f'new ean : {ean} -> {product_obj.ean}')
                 replace_product = Product.objects.get(ean=ean)

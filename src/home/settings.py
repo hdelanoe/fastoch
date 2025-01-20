@@ -118,7 +118,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
-LOGFILE_PATH = BASE_DIR / "logs/debug.log"
+LOGFILE_PATH = BASE_DIR / "./logs/debug.log"
 # Création du dossier logs si nécessaire
 os.makedirs(os.path.dirname(LOGFILE_PATH), exist_ok=True)
 
@@ -158,18 +158,20 @@ LOGGING = {
             "handlers": ["file", "console"],
             "propagate": True,
         },
+    },
+     "loggers": {
         "error": {
-            'level': 'error',
+            'level': 'ERROR',
             "handlers": ["file", "console"],
             "propagate": True,
         },
-    },
-     'loggers': {
-        'django.db.backends': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-        },
-    },
+     },
+    # 'loggers': {
+    #    'django.db.backends': {
+    #        'level': 'DEBUG',
+    #        'handlers': ['console'],
+    #    },
+    #},
 }
 
 

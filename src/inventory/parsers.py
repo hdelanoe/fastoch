@@ -45,11 +45,13 @@ def file_to_json(uploaded_file, file_extension):
         try:
             api = Mistral_PDF_API()
             first_json = api.extract_json_from_image(image_content)
+            logger.debug('first_json ok')
             return_obj['json'] = api.replace_ean_by_tesseract(first_json, text)
+            logger.debug('replace by tesseract ok')
             #return_obj['json'] = api.extract_json_from_image(image_content)
         except Exception as e:
             logger.error(f"Error while extracting data from pdf with mistral - {e}")
-            return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
+            return_obj['error_list'] = f'Erreur lors de la lecture du .pdf : {e}'
         if file_extension == ".pdf":
             for count, page in enumerate(pages):
                 png_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.png')
