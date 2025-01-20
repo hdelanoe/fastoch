@@ -21,6 +21,7 @@ ENV PYTHONUNBUFFERED=1
 
     # Install os dependencies for our mini vm
 RUN apt-get update && apt-get install -y \
+    gcc \
     # for postgres
     libpq-dev \
     # for Pillow
@@ -39,7 +40,6 @@ RUN apt-get update && apt-get install -y \
     pkg-config \ 
     libpng-dev \
     # other
-    gcc \
     poppler-utils \
     libzbar0 \
     ffmpeg \
