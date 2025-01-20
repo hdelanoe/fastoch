@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y \
     autoconf automake libtool \
     pkg-config \ 
     libpng-dev \
+    libleptonica-dev \
     # other
     poppler-utils \
     libzbar0 \
@@ -44,7 +45,7 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     git \
-    clang++ \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Tesseract from master
