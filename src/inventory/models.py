@@ -22,6 +22,9 @@ class Product(models.Model):
     def get_format_achat_ht(self):
         return format(self.achat_ht, '.2f')
     
+    def __str__(self):
+        return f'{self.multicode} {self.ean} {self.description} {self.achat_ht} {self.is_new} {self.has_changed} {self.multicode_generated}'
+    
 
 class iProduct(models.Model):
     container_name = models.CharField(max_length=32, null=True)

@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     # for nvm
     curl \
+    # for tesseract
+    tesseract-ocr \
+    libtesseract-dev \
     # other
     gcc \
     poppler-utils \
