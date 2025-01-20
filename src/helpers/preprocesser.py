@@ -1,4 +1,5 @@
 import cv2
+import re
 import pymupdf
 import numpy as np
 from PIL import Image
@@ -12,9 +13,15 @@ from django.conf import settings
 
 
 def tesseract(img):
-    pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_PATH
+    if settings.DEBUG:
+            pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_PATH
     text = pytesseract.image_to_string(img, lang='eng', config='--psm 6')
-    print(text)
+    find = [m.start() for m in re.finditer('\s([0-9]{13})\s', text)]
+    eans = []
+    for f in find:
+        ean = text[f+1:f+14]
+        eans.append(ean)
+    return text
 
 
 def apply_antialiasing(image, blur_strength=10):
@@ -72,10 +79,11 @@ def process_png(filepath):
         antied = lanczos(image)
 
         # remove tesseract for now
-        #tesseract(antied)
+        text = tesseract(antied)
 
         processed_images.append(antied)
-    return processed_images
+        process_return = {'text': text, 'processed_images': processed_images }
+    return process_return
 
 def convert_heic_to_png(filename, file_path):
     # Conversion HEIC -> PNG
