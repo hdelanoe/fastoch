@@ -33,7 +33,6 @@ RUN apt-get update && apt-get install -y \
     # for tesseract
     #tesseract-ocr \
     wget \
-    git-all \
     #leptonica \
     autoconf automake libtool \
     pkg-config \ 
