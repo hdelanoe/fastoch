@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y \
     # for tesseract
     #tesseract-ocr \
     wget \
-    leptonica \
+    #leptonica \
     autoconf automake libtool \
     pkg-config \ 
     libpng-dev \
