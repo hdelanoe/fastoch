@@ -118,7 +118,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
-LOGFILE_PATH = BASE_DIR / "../logs/debug.log"
+LOGFILE_PATH = BASE_DIR / "logs/debug.log"
 # Création du dossier logs si nécessaire
 os.makedirs(os.path.dirname(LOGFILE_PATH), exist_ok=True)
 
@@ -153,8 +153,13 @@ LOGGING = {
         },
     },
     "loggers": {
-        "fastoch": {
+        "debug": {
             'level': 'DEBUG',
+            "handlers": ["file", "console"],
+            "propagate": True,
+        },
+        "error": {
+            'level': 'error',
             "handlers": ["file", "console"],
             "propagate": True,
         },
