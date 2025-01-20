@@ -28,7 +28,17 @@ RUN apt-get update && apt-get install -y \
     curl \
     # for tesseract
     tesseract-ocr \
-    libtesseract-dev \
+    leptonica \
+    autoconf automake libtool \
+    pkg-config \ 
+    libpng-dev \
+    libjpeg8-dev \
+    libtiff5-dev \
+    zlib1g-dev \
+    libwebpdemux2 libwebp-dev \
+    libopenjp2-7-dev \
+    libgif-dev \
+    libarchive-dev libcurl4-openssl-dev \
     # other
     gcc \
     poppler-utils \
@@ -92,6 +102,9 @@ RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 
 # whitenoise -> s3
+
+# check Tesseract
+RUN tesseract -v
 
 
 # set the Django default project name
