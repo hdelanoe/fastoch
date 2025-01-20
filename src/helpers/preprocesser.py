@@ -6,11 +6,13 @@ from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 import pytesseract
+import logging
 from heic2png import HEIC2PNG
 
 
 from django.conf import settings
 
+logger = logging.getLogger('fastoch')
 
 def tesseract(img):
     if settings.DEBUG:
@@ -21,6 +23,7 @@ def tesseract(img):
     for f in find:
         ean = text[f+1:f+14]
         eans.append(ean)
+    logger.debug(eans)    
     return text
 
 
