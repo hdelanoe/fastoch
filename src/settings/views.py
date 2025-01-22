@@ -10,6 +10,9 @@ from home.views import init_context
 from inventory.models import Inventory
 from .models import Settings
 from .forms import SettingsForm
+from datetime import date
+
+
 
 logger = logging.getLogger('fastoch')
 
@@ -28,11 +31,12 @@ def documentation_view(request, *args, **kwargs):
 
 @login_required
 def download_logfile(request):
-    if os.path.exists(settings.LOGFILE_PATH):
-        logger.debug(f'log path -> {settings.LOGFILE_PATH}')
-        with open(settings.LOGFILE_PATH, 'rb') as fh:
+    logfile = str(settings.LOG_FILE_PATH)
+    if os.path.exists(logfile):
+        logger.debug(f'log path -> {logfile}')
+        with open(logfile, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="text/plain")
-            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(settings.LOGFILE_PATH)
+            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(logfile)
             return response
     raise Http404
 

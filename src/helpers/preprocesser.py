@@ -23,7 +23,7 @@ def tesseract(img):
     for f in find:
         ean = text[f+1:f+14]
         eans.append(ean)
-    logger.debug(eans)    
+    logger.debug(text)    
     return text
 
 
