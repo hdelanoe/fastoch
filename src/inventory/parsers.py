@@ -245,6 +245,7 @@ def get_or_create_provider(providername):
 def get_or_create_product(values):
     logger.debug('get_or_create')
     product = find_existant_product(values)
+    logger.debug(f"Product returned from find_existant_product: {product}, type: {type(product)}")
     if product is None:
         logger.debug("Create object")
         product = Product.objects.create(
@@ -277,29 +278,36 @@ def find_existant_product(values):
     ean = values.get('ean')
     code_art = values.get('code_art')
     if validate_ean(ean):
-        return find_ean(ean, code_art)
+        result = find_ean(ean, code_art)
     else:
-        return find_multicode(code_art)
+        result = find_multicode(code_art)
+    
+    logger.debug(f"find_existant_product returned: {result}")
+    return result
     
 def find_ean(ean, code_art):
     try:
-        logger.debug(f"Aucun produit avec l\'ean {ean}")
+        logger.debug(f"Trying to find product by ean: {ean}")
         return Product.objects.get(ean=ean)
     except:
         try:
-            logger.debug(f"Aucun produit avec le multicode {ean}") 
+            logger.debug(f"Trying to find product by multicode: {ean}")
             return Product.objects.get(multicode=ean)
         except:
-            return find_multicode(code_art)
+            result = find_multicode(code_art)
+            logger.debug(f"find_ean ultimately returned: {result}")
+            return result
 
 def find_multicode(code_art):
     try:
         if code_art is not None:
-            logger.debug(f"Aucun produit avec le multicode {code_art}") 
+            logger.debug(f"Trying to find product by multicode: {code_art}")
             return Product.objects.get(multicode=code_art)
         else:
+            logger.debug("No code_art provided")
             return None
     except:
+        logger.debug(f"find_multicode returned None for code_art: {code_art}")
         return None        
 
 def validate_ean(ean):
