@@ -115,7 +115,7 @@ def json_to_delivery(providername, json_data, operator=1):
         try:
             values=format_json_values(jd, provider, operator)
             product=get_or_create_product(values)
-
+            logger.debug(f'product {product} return by get_or_create')
             iproduct = iProduct.objects.create(product=product,
                                                quantity=values.get('quantity'),
                                                container_name=str(delivery.date_time))
@@ -186,7 +186,7 @@ def format_json_values(jd, provider, operator=1):
 
     logger.debug(f'{provider.name}')
     logger.debug(
-                f"{kesia_get(jd, 'provider')} "
+                f"{kesia_get(jd, 'provider').name} "
                 f"{kesia_get(jd, 'code_art')} "
                 f"{kesia_get(jd, 'ean')} "
                 f"{kesia_get(jd, 'description')[:64]} "
