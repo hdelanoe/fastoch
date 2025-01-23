@@ -186,12 +186,12 @@ def format_json_values(jd, provider, operator=1):
 
     logger.debug(f'{provider.name}')
     logger.debug(
-                f"{kesia_get(jd, 'provider').name} "
-                f"{kesia_get(jd, 'code_art')} "
+                f"{kesia_get(jd, 'provider')}"
+                f"{kesia_get(jd, 'code_art')}"
                 f"{kesia_get(jd, 'ean')} "
-                f"{kesia_get(jd, 'description')[:64]} "
-                f"{kesia_get(jd, 'quantity')} "
-                f"{kesia_get(jd, 'achat_ht')} "
+                f"{kesia_get(jd, 'description')[:64]}"
+                f"{kesia_get(jd, 'quantity')}"
+                f"{kesia_get(jd, 'achat_ht')}"
                 )
 
     p = re.compile(r'\w+')
