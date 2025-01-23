@@ -244,7 +244,7 @@ def get_or_create_provider(providername):
     return provider
 
 def get_or_create_product(values):
-    settings = Settings.objects.get_or_create(id=1)
+    settings, created = Settings.objects.get_or_create(id=1)
     logger.debug('get_or_create')
     product = find_existant_product(values)
     logger.debug(f"Product returned from find_existant_product: {product}, type: {type(product)}")
