@@ -229,7 +229,7 @@ def format_json_values(jd, provider, operator=1):
     values['description']=description
     values['quantity']=quantity
     values['achat_ht']=achat_ht
-    logger.debug(values)
+    logger.debug(f'values {values}')
     return values
 
 def get_or_create_provider(providername):
@@ -243,35 +243,23 @@ def get_or_create_provider(providername):
     return provider
 
 def get_or_create_product(values):
-    try:
-        if validate_ean(values.get('ean')):
-            product = Product.objects.get(multicode=values.get('ean'))
-            product.is_new=False
-        else:
-            logger.debug('EAN is not valid')
-            raise Product.DoesNotExist('EAN is not valid')
-    except Product.DoesNotExist:
-        try:
-            if values.get('code_art') is not None:
-                product = Product.objects.get(multicode=values.get('code_art'))
-                product.is_new=False
-            else:
-                raise Product.DoesNotExist('No code article')
-        except Product.DoesNotExist:
-            logger.debug("Create object")
-            product = Product.objects.create(
-                description=values.get('description'),
-                provider=values.get('provider'))
+    logger.debug('get_or_create')
+    product = find_existant_product(values)
+    if product is None:
+        logger.debug("Create object")
+        product = Product.objects.create(
+            description=values.get('description'),
+            provider=values.get('provider'))
 
-            if  validate_ean(values.get('ean')):
-                product.ean = values.get('ean')
-                product.multicode = values.get('ean')
+        if  validate_ean(values.get('ean')):
+            product.ean = values.get('ean')
+            product.multicode = values.get('ean')
+        else:
+            if values.get('code_art') is not None:
+                product.multicode = values.get('code_art')
             else:
                 logger.debug("Generate MultiCode")
-                if values.get('code_art'):
-                    product.multicode = values.get('code_art')
-                else:
-                    product.multicode = f"{values.get('provider').code}{product.id}"
+                product.multicode = f"{values.get('provider').code}{product.id}"
                 product.multicode_generated = True
 
     if product.achat_ht != values.get('achat_ht') and product.is_new==False:
@@ -283,6 +271,35 @@ def get_or_create_product(values):
         product.has_changed=False
     product.save()
     return product
+
+def find_existant_product(values):
+    ean = values.get('ean')
+    code_art = values.get('code_art')
+    if validate_ean(ean):
+        return find_ean(ean, code_art)
+    else:
+        return find_multicode(code_art)
+    
+def find_ean(ean, code_art):
+    try:
+        logger.debug(f"Aucun produit avec l\'ean {ean}")
+        return Product.objects.get(ean=ean)
+    except:
+        try:
+            logger.debug(f"Aucun produit avec le multicode {ean}") 
+            return Product.objects.get(multicode=ean)
+        except:
+            return find_multicode(code_art)
+
+def find_multicode(code_art):
+    try:
+        if code_art is not None:
+            logger.debug(f"Aucun produit avec le multicode {code_art}") 
+            return Product.objects.get(multicode=code_art)
+        else:
+            return None
+    except:
+        return None        
 
 def validate_ean(ean):
     try:
