@@ -207,7 +207,11 @@ def format_json_values(jd, provider, operator=1):
         code_art = ''.join(p.findall(code_art)).upper()
         code_art = f'{provider.code}{code_art}'
 
-    ean = ''.join(p.findall(str(int(kesia_get(jd, 'ean'))))).upper()
+    try:
+        str_ean = str(int(kesia_get(jd, 'ean')))
+    except:
+        str_ean = str(kesia_get(jd, 'ean'))
+    ean = ''.join(p.findall(str_ean)).upper()
     description = kesia_get(jd, 'description')[:64]
     quantity = int(float(str(kesia_get(jd, 'quantity')).replace(',', '.')))*operator
     try:
