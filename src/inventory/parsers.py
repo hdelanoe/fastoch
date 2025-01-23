@@ -208,7 +208,7 @@ def format_json_values(jd, provider, operator=1):
         code_art = f'{provider.code}{code_art}'
 
     try:
-        str_ean = str(int(kesia_get(jd, 'ean')))
+        str_ean = str(int(float(kesia_get(jd, 'ean'))))
     except:
         str_ean = str(kesia_get(jd, 'ean'))
     ean = ''.join(p.findall(str_ean)).upper()
