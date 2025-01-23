@@ -9,6 +9,7 @@ from django.conf import settings
 from inventory.models import Product, iProduct
 from provider.models import Provider
 from delivery.models import Delivery
+from settings.models import Settings
 
 from helpers.mistral import Mistral_PDF_API, Mistral_Nemo_API, format_content_from_image_path
 from helpers.paddlepaddle import table_recognition
@@ -243,6 +244,7 @@ def get_or_create_provider(providername):
     return provider
 
 def get_or_create_product(values):
+    settings = Settings.objects.get_or_create(id=1)
     logger.debug('get_or_create')
     product = find_existant_product(values)
     logger.debug(f"Product returned from find_existant_product: {product}, type: {type(product)}")
@@ -252,16 +254,17 @@ def get_or_create_product(values):
             description=values.get('description'),
             provider=values.get('provider'))
 
-        if  validate_ean(values.get('ean')):
-            product.ean = values.get('ean')
+    if  validate_ean(values.get('ean')):
+        product.ean = values.get('ean')
+        if settings.erase_multicode is True:
             product.multicode = values.get('ean')
-        else:
-            if values.get('code_art') is not None:
-                product.multicode = values.get('code_art')
-            else:
-                logger.debug("Generate MultiCode")
-                product.multicode = f"{values.get('provider').code}{product.id}"
-                product.multicode_generated = True
+    else:
+        if values.get('code_art') is not None:
+            product.multicode = values.get('code_art')
+        elif product.is_new:
+            logger.debug("Generate MultiCode")
+            product.multicode = f"{values.get('provider').code}{product.id}"
+            product.multicode_generated = True
 
     if product.achat_ht != values.get('achat_ht') and product.is_new==False:
         logger.debug("Product achat_ht has changed")
