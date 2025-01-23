@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     # for nvm
     curl \
+    # for paddle
+    python3-matplotlib \
     # other
     gcc \
     poppler-utils \
@@ -54,7 +56,6 @@ COPY ./src /code
 
 # Install the Python project requirements
 RUN python -m pip install --upgrade setuptools
-RUN python -m pip install --upgrade matplotlib
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
