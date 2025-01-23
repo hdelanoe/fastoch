@@ -264,6 +264,7 @@ def get_or_create_product(values):
 
     if product.achat_ht != values.get('achat_ht') and product.is_new==False:
         logger.debug("Product achat_ht has changed")
+        product.achat_ht=values.get('achat_ht')
         product.has_changed=True
     elif product.is_new:
         product.achat_ht=values.get('achat_ht')
