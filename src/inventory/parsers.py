@@ -258,9 +258,11 @@ def get_or_create_product(values):
         product.ean = values.get('ean')
         if settings.erase_multicode is True:
             product.multicode = values.get('ean')
+            product.multicode_generated = False    
     else:
         if values.get('code_art') is not None:
             product.multicode = values.get('code_art')
+            product.multicode_generated = False 
         elif product.is_new:
             logger.debug("Generate MultiCode")
             product.multicode = f"{values.get('provider').code}{product.id}"

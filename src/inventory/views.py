@@ -116,11 +116,11 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
         product_obj = Product.objects.get(id=product)
         ean = request.POST.get('ean', product_obj.ean)
 
-        if validate_ean(ean) is True:
-            logger.debug('ean valid')
-        else:
-            logger.debug(f'EAN non valide.')
-            raise HttpResponseBadRequest        
+        #if validate_ean(ean) is True:
+        #    logger.debug('ean valid')
+        #else :
+        #    logger.debug(f'EAN non valide.')
+        #    raise HttpResponseBadRequest        
         if validate_ean(ean) is True and str(ean) != str(product_obj.ean):
             try:
                 logger.debug(f'new ean : {ean} -> {product_obj.ean}')
