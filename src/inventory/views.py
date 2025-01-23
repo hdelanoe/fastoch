@@ -102,7 +102,7 @@ def move_from_file(request, *args, **kwargs):
 @login_required
 def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
-        logger.debug(f'{request.POST.get('achat_brut', None)}')        
+        logger.debug(f"{request.POST.get('achat_brut', None)}")        
         logger.debug(f' REQUEST : {request.POST}')
         settings, created = Settings.objects.get_or_create(id=1)  
         if created:
