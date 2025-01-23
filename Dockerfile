@@ -54,6 +54,7 @@ COPY ./src /code
 
 # Install the Python project requirements
 RUN python -m pip install setuptools
+RUN python -m pip install -U matplotlib --prefer-binary
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
