@@ -50,7 +50,8 @@ class Mistral_Nemo_API():
         prebuild = {
                     "type": "text",
                     "text": '''
-                        Voici un tableur mal formaté issu de l'OCR d'une image.
+                        Voici un tableau mal formaté issu de l'OCR d'une image.
+                        Il décrit un bon de livraison et les informations de chaque produit.
                         Veuillez trier les données et les ranger dans un fichier JSON.
                         -----
 
@@ -67,8 +68,9 @@ class Mistral_Nemo_API():
                         {
                             "type": "text",
                             "text" : '''
-                                L'utilisateur va fournir un tableau mal formaté sous forme de csv.
-                                Ton rôle est d'analyser le tableau, de le trier correctement et de créer une liste JSON issu des données de chaque produit du tableau.
+                                L'utilisateur va fournir un tableau mal formaté sous la forme d'un csv.
+                                Ton rôle est d'analyser le tableau, de trier correctement les données de chaque produit.
+                                Ensuite il faut créer une liste JSON détaillant certaines colonnes pour chaque produit du tableau.
 
 
                                  1. Format de sortie JSON :
@@ -90,7 +92,7 @@ class Mistral_Nemo_API():
                                     'code_art' : correspond aux colonnes intitulées 'Code art.', 'Réf.' ou 'REF'.
                                         Une suite de lettres et/ou chiffres. Il n'est pas toujours présent.
                                     'ean' : correspond aux colonnes intitulées 'ean' ou 'EAN'.
-                                        C'est un entier de 13 chiffres. Il n'est pas toujours présent.
+                                        C'est le seul entier de 13 chiffres de la ligne. Il n'est pas toujours présent.
                                     'description' : correspond par ordre de priorité aux colonnes intitulées 'Produit', 'Désignation' ou 'Description'.
                                         Une phrase décrivant le produit.
                                     'quantity' : correspond, par ordre de priorité, aux colonnes intitulées 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
