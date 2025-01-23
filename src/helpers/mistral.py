@@ -52,7 +52,7 @@ class Mistral_Nemo_API():
                     "text": '''
                         Voici un tableau mal formaté issu de l'OCR d'une image.
                         Il décrit un bon de livraison et les informations de chaque produit.
-                        Veuillez trier les données et les ranger dans un fichier JSON.
+                        Veuillez trier les données et ranger les produits dans une liste JSON.
                         -----
 
                     '''
@@ -74,7 +74,7 @@ class Mistral_Nemo_API():
 
 
                                  1. Format de sortie JSON :
-                                    Le résultat doit être une liste JSON. Chaque produit doit être représenté par un objet structuré de la manière suivante :
+                                    Le résultat doit être une liste JSON avec un élément pour chaque produit. Il doit être structuré de la manière suivante :
 
                                         [
                                         {
@@ -101,7 +101,7 @@ class Mistral_Nemo_API():
                                         Un nombre flottant.
 
 
-                                Le format doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
+                                Le retour doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
                                     '''
                         }
                     ]
