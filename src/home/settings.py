@@ -115,9 +115,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
-LOGFILE_PATH = BASE_DIR / "../logs/debug.log"
-# Création du dossier logs si nécessaire
-os.makedirs(os.path.dirname(LOGFILE_PATH), exist_ok=True)
+# Chemin du fichier de log
+LOG_DIR = BASE_DIR / "logs"
+os.makedirs(LOG_DIR, exist_ok=True)  # Crée le répertoire logs s'il n'existe pas
+LOG_FILE_PATH = LOG_DIR / "fastoch.log"
 
 LOGGING = {
     "version": 1,
@@ -133,16 +134,6 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file": {
-            "level": "DEBUG",
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'when': 'D',
-            'interval': 1,
-            'backupCount': 3,
-            "filename": LOGFILE_PATH,
-            'formatter': 'verbose'
-
-        },
         "file": {
             "level": "DEBUG",
             "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",  # Utilisation du ConcurrentRotatingFileHandler
