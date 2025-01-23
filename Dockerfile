@@ -10,7 +10,7 @@ RUN python -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 
 # Upgrade pip
-RUN pip install --upgrade pip
+RUN python -m pip install --upgrade pip
 
 # Set Python-related environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -53,8 +53,8 @@ COPY requirements.txt /tmp/requirements.txt
 COPY ./src /code
 
 # Install the Python project requirements
-RUN python -m pip install setuptools
-RUN python -m pip install -U matplotlib --prefer-binary
+RUN python -m pip install --upgrade setuptools
+RUN python -m pip install --upgrade matplotlib
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
