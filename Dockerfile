@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.13.0-slim-bullseye
+ARG PYTHON_VERSION=3.11-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -53,6 +53,7 @@ COPY requirements.txt /tmp/requirements.txt
 COPY ./src /code
 
 # Install the Python project requirements
+RUN python -m pip install setuptools
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)

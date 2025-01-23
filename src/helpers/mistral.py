@@ -2,6 +2,9 @@ import base64
 import json
 from decouple import config
 from mistralai import Mistral
+import logging
+
+logger = logging.getLogger('fastoch')
 
 class Codestral_Mamba():
 
@@ -37,11 +40,87 @@ class Codestral_Mamba():
         )
         return chat_response.choices[0].message.content
 
+class Mistral_Nemo_API():
+
+    mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
+    model = "open-mistral-nemo"
+    client = Mistral(api_key=mistral_api_key)
+
+    def extract_json_from_html(self, table):
+        prebuild = {
+                    "type": "text",
+                    "text": '''
+                        Voici un tableur mal formaté issu de l'OCR d'une image.
+                        Veuillez trier les données et les ranger dans un fichier JSON.
+                        -----
+
+                    '''
+                }
+        prebuild["text"] += table
+        content = [prebuild]
+        chat_response = self.client.chat.complete(
+            model = self.model,
+            messages = [
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text" : '''
+                                L'utilisateur va fournir un tableau mal formaté sous forme de csv.
+                                Ton rôle est d'analyser le tableau, de le trier correctement et de créer une liste JSON issu des données de chaque produit du tableau.
+
+
+                                 1. Format de sortie JSON :
+                                    Le résultat doit être une liste JSON. Chaque produit doit être représenté par un objet structuré de la manière suivante :
+
+                                        [
+                                        {
+                                            "code_art": "<valeur>",
+                                            "ean": "<valeur>",
+                                            "description": "<valeur>",
+                                            "quantity": <valeur>,
+                                            "achat_ht": <valeur>
+                                        },
+                                        ...
+                                        ]
+
+
+                                2. Correspondance des colonnes :
+                                    'code_art' : correspond aux colonnes intitulées 'Code art.', 'Réf.' ou 'REF'.
+                                        Une suite de lettres et/ou chiffres. Il n'est pas toujours présent.
+                                    'ean' : correspond aux colonnes intitulées 'ean' ou 'EAN'.
+                                        C'est un entier de 13 chiffres. Il n'est pas toujours présent.
+                                    'description' : correspond par ordre de priorité aux colonnes intitulées 'Produit', 'Désignation' ou 'Description'.
+                                        Une phrase décrivant le produit.
+                                    'quantity' : correspond, par ordre de priorité, aux colonnes intitulées 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
+                                        Un nombre entier
+                                    'achat_ht' : correspond aux colonnes intitulées 'PU HT', 'Prix U. HT' ou 'PU H.T.'. Ignorez la colonne 'Total HT'.
+                                        Un nombre flottant.
+
+
+                                Le format doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
+                                    '''
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            ],
+            response_format = {"type": "json_object"}
+        )
+        logger.debug('extract_json_from_html')
+        logger.debug(chat_response.choices[0].message.content)
+        return json.loads(chat_response.choices[0].message.content, strict=False)
+
 class Mistral_PDF_API():
 
     mistral_api_key = config("MISTRAL_API_KEY", default="", cast=str)
     model = "pixtral-large-2411"
     client = Mistral(api_key=mistral_api_key)
+
 
 
     def extract_json_from_image(self, formatted_images):
@@ -109,7 +188,66 @@ class Mistral_PDF_API():
             ],
             response_format = {"type": "json_object"}
         )
-        print(chat_response.choices[0].message.content)
+        logger.debug('extract_json_from_image')
+        logger.debug(chat_response.choices[0].message.content)
+        return json.loads(chat_response.choices[0].message.content, strict=False)
+
+    def replace_ean_by_tesseract(self, old_json, text):
+        prebuild_content = {
+                    "type": "text",
+                    "text": '''
+                        First it's the JSON, second the text.
+                        Please replace all the JSON "ean" values by those in the text.
+                        ----
+
+                    '''
+                }
+        prebuild_content["text"] += str(old_json)
+        prebuild_content["text"] += '''
+                                    -----
+                                    '''
+        prebuild_content["text"] += str(text)
+        content = [prebuild_content]
+        chat_response = self.client.chat.complete(
+            model = self.model,
+            messages = [
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text" : '''
+                                    "I will provide a JSON file and a text. The JSON is a list of elements who contains a key called EAN with associated values.
+                                    EAN are a string of 13 numbers.
+                                    Analyze the text to find matches with the JSON elements and replace only the EAN values with those extracted from the text when they match.
+                                    Replace Only the EAN. Other values MUST stay unchanged.
+                                    Return the modified JSON with the same format :
+
+                                    [
+                                        {
+                                            "code_art": "<unchanged value>",
+                                            "ean": "<replaced value>",
+                                            "description": "<unchanged value>",
+                                            "quantity": <unchanged value>,
+                                            "achat_ht": <unchanged value>
+                                        },
+                                        ...
+                                    ]
+
+                                    Return only the JSON, nothing else.
+                                    '''
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            ],
+            response_format = {"type": "json_object"}
+        )
+        logger.debug('replace_ean_by_tesseract')
+        logger.debug(chat_response.choices[0].message.content)
         return json.loads(chat_response.choices[0].message.content, strict=False)
 
 def format_content_from_image_path(image_path):
@@ -118,7 +256,7 @@ def format_content_from_image_path(image_path):
              base64_image =  base64.b64encode(image_file.read()).decode('utf-8')
              return {
                 "type": "image_url",
-                "image_url": f"data:image/jpeg;base64,{base64_image}",
+                "image_url": f"data:image/png;base64,{base64_image}",
             }
     except FileNotFoundError:
         print(f"Error: The file {image_path} was not found.")

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
+from concurrent_log_handler import ConcurrentRotatingFileHandler
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -142,17 +143,20 @@ LOGGING = {
             'formatter': 'verbose'
 
         },
-        "console": {
-            "level": "ERROR",
-            "class": "logging.StreamHandler",
-            'formatter': 'verbose',
+        "file": {
+            "level": "DEBUG",
+            "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",  # Utilisation du ConcurrentRotatingFileHandler
+            "filename": LOG_FILE_PATH,
+            "maxBytes": 10 * 1024 * 1024,  # Taille max (10 Mo) avant rotation
+            "backupCount": 7,  # Conserver 7 fichiers
+            "formatter": "verbose",
         },
     },
     "loggers": {
-        "fastoch": {
-            'level': 'DEBUG',
-            "handlers": ["file", "console"],
-            "propagate": True,
+        "fastoch": {  # Logger pour l'application Fastoch
+            "handlers": ["console", "file"],  # Envoie les logs à la console et dans le fichier
+            "level": "DEBUG",  # Niveau minimal pour ce logger
+            "propagate": False,  # Propagation des logs aux autres loggers parents
         },
     },
 }

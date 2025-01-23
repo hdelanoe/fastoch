@@ -18,6 +18,7 @@ logger = logging.getLogger('fastoch')
 @login_required
 def dashboard_view(request):
     context = init_context()
+    request.session['context'] = 'dashboard'
     if not context["inventory"] :
         return render(request, "dashboard/dashboard_new_inventory.html", context)
     return render(request, "dashboard/dashboard.html", context)
