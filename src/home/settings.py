@@ -121,25 +121,31 @@ os.makedirs(LOG_DIR, exist_ok=True)  # Crée le répertoire logs s'il n'existe p
 LOG_FILE_PATH = LOG_DIR / "fastoch.log"
 
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters":{
-        "verbose":{
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
-            "style": "{",
+    "version": 1,  # Version de la configuration de logging
+    "disable_existing_loggers": False,  # Ne pas désactiver les loggers par défaut de Django
+    "formatters": {
+        "verbose": {  # Format détaillé pour les messages de log
+            "format": "{levelname} {asctime} {name} {message}",
+            "style": "{",  # Utilise les accolades `{}` pour le style
         },
-        "simple":{
-            "format": "{levelname} {message}",
+        "simple": {  # Format simplifié (pour la console par exemple)
+            "format": "{levelname}: {message}",
             "style": "{",
         },
     },
     "handlers": {
-        "file": {
+        "console": {  # Handler pour afficher les logs dans la console
             "level": "DEBUG",
-            "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",  # Utilisation du ConcurrentRotatingFileHandler
+            "class": "logging.StreamHandler",
+            "formatter": "simple",  # Utilise le format simple
+        },
+         "file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": LOG_FILE_PATH,
-            "maxBytes": 10 * 1024 * 1024,  # Taille max (10 Mo) avant rotation
-            "backupCount": 7,  # Conserver 7 fichiers
+            "when": "midnight",       # Rotation quotidienne
+            "interval": 1,            # Tous les jours
+            "backupCount": 7,         # Conserver 7 fichiers
             "formatter": "verbose",
         },
     },
@@ -147,9 +153,18 @@ LOGGING = {
         "fastoch": {  # Logger pour l'application Fastoch
             "handlers": ["console", "file"],  # Envoie les logs à la console et dans le fichier
             "level": "DEBUG",  # Niveau minimal pour ce logger
-            "propagate": False,  # Propagation des logs aux autres loggers parents
+            "propagate": True,  # Propagation des logs aux autres loggers parents
         },
+        
     },
+    # Optionnel : loggers pour les bases de données
+    # 'loggers': {
+    #     'django.db.backends': {  # Logs pour les requêtes SQL exécutées
+    #         'level': 'DEBUG',
+    #         'handlers': ['console'],
+    #         'propagate': False,
+    #     },
+    # },
 }
 
 
