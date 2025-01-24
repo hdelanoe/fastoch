@@ -19,3 +19,9 @@ opencv-python
 heic2png
 pymupdf
 pytesseract
+basemap
+setuptools
+paddlepaddle==3.0.0b2
+paddleocr>=2.0.1
+https://paddle-model-ecology.bj.bcebos.com/paddlex/whl/paddlex-3.0.0b2-py3-none-any.whl
+concurrent-log-handler

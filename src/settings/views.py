@@ -72,4 +72,4 @@ def delete_media_files(request, *args, **kwargs):
         messages.success(request, "Medias supprimes.")
     except OSError as e:
         messages.error(request, f'Erreur lors de la suppresion des medias : {e}')
-    return redirect(reverse("settings")) 
+    return redirect(reverse("settings"))

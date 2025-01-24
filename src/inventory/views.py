@@ -30,7 +30,7 @@ logger = logging.getLogger('fastoch')
 def inventory_view(request, response=0, query=None, *args, **kwargs):
     context = init_context()
     iproducts = iProduct.objects.filter(container_name=context["inventory"].name)
-    
+
     if not query:
         query = request.GET.get('search', '')  # Récupère le texte de recherche
     # Filtre les produits si une recherche est spécifiée
@@ -95,7 +95,7 @@ def move_from_file(request, *args, **kwargs):
         except Exception as e:
             messages.error(request, f'error while saving {e}')
     if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))        
+        return redirect(reverse("delivery", args=[request.session['contextid']]))
     return redirect(reverse("inventory", args=[0]))
 
 
@@ -105,7 +105,7 @@ def move_from_file(request, *args, **kwargs):
 def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         logger.debug(f' REQUEST : {request.POST}')
-        settings, created = Settings.objects.get_or_create(id=1)  
+        settings, created = Settings.objects.get_or_create(id=1)
         form = EntryForm(request.POST)
 
         try:
@@ -113,16 +113,16 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             logger.debug(f'iproduct = {iproduct_obj}')
 
         except iProduct.DoesNotExist:
-            iproduct_obj = None      
-        
+            iproduct_obj = None
+
         product_obj = Product.objects.get(id=product)
         ean = request.POST.get('ean', product_obj.ean)
 
-        if validate_ean(ean) is True:
-            logger.debug('ean valid')
-        else:
-            logger.debug(f'EAN non valide.')
-            raise HttpResponseBadRequest        
+        #if validate_ean(ean) is True:
+        #    logger.debug('ean valid')
+        #else :
+        #    logger.debug(f'EAN non valide.')
+        #    raise HttpResponseBadRequest
         if validate_ean(ean) is True and str(ean) != str(product_obj.ean):
             try:
                 logger.debug(f'new ean : {ean} -> {product_obj.ean}')
@@ -137,7 +137,7 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             except (Product.DoesNotExist, Product.MultipleObjectsReturned) :
                 product_to_update = product_obj
                 product_to_update.ean = ean
-                
+
                 product_to_update.description = request.POST.get('description', product_to_update.description)
 
         else:
@@ -151,11 +151,11 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             try:
                 same_multicode=Product.objects.get(multicode=product_to_update.ean)
                 logger.error(f'product {same_multicode.description} a le meme multicode -> {product_to_update.ean}')
-            except Product.DoesNotExist:    
+            except Product.DoesNotExist:
                 product_to_update.multicode = product_to_update.ean
                 product_to_update.multicode_generated = False
         else:
-            if product_to_update.multicode != request.POST.get('multicode', product_to_update.multicode):        
+            if product_to_update.multicode != request.POST.get('multicode', product_to_update.multicode):
                 product_to_update.multicode = request.POST.get('multicode', product_to_update.multicode)
                 product_to_update.multicode_generated = False
 
@@ -181,7 +181,7 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             iproduct_obj.product = product_to_update
             iproduct_obj.quantity = request.POST.get('quantity', iproduct_obj.quantity)
             iproduct_obj.save()
-        return HttpResponse("sucess")    
+        return HttpResponse("sucess")
     raise Http404
 
 #@login_required
@@ -190,7 +190,7 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
 #        product_obj = Product.objects.get(id=product)
 #        product_obj.delete()
 #    if str(request.session['context']) == "delivery":
-#        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+#        return redirect(reverse("delivery", args=[request.session['contextid']]))
 #    return redirect(reverse("inventory", args=[0]))
 
 @login_required
@@ -201,7 +201,7 @@ def delete_iproduct(request, id=None, *args, **kwargs):
         messages.success(request, f'Produit supprimé.')
     if str(request.session['context']) == "delivery":
         return redirect(reverse("delivery", args=[request.session['contextid']]))
-    elif str(request.session['context']) == "receipt":    
+    elif str(request.session['context']) == "receipt":
          return redirect(reverse("receipt"))
     return redirect(reverse("inventory", args=[0]))
 
@@ -245,7 +245,7 @@ def import_inventory(request, *args, **kwargs):
                     for error in error_list:
                         logger.error(error)
                         messages.error(request, error)
-                messages.warning(return_obj['report'])        
+                messages.warning(return_obj['report'])
                 return redirect(reverse("inventory", args=[0]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
