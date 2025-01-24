@@ -95,10 +95,6 @@ RUN python manage.py collectstatic --noinput
 
 # whitenoise -> s3
 
-# check Tesseract
-RUN tesseract -v
-
-
 # set the Django default project name
 ARG PROJ_NAME="home"
 
