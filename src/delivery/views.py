@@ -14,7 +14,6 @@ from django.http import Http404, HttpResponse
 import pandas as pd
 from inventory.models import Inventory, Receipt, Product, iProduct
 from .models import Delivery, delivery_columns
-from settings.models import Settings
 from .forms import AddiProductForm
 from home.views import init_context
 from django.contrib import messages
@@ -180,7 +179,7 @@ def receipt_view(request, *args, **kwargs):
 
     request.session["context"] = "receipt"
     context["temp"] = True
-   
+
     return render(request, "inventory/receipt.html", context)
 
 
@@ -251,7 +250,7 @@ def add_iproduct(request, delivery=None, *args, **kwargs):
         except Exception:
            messages.error(request, f'Erreur lors de l\'ajout.')
     if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+        return redirect(reverse("delivery", args=[request.session['contextid']]))
     return redirect(reverse("inventory", args=[0]))
 
 #@login_required

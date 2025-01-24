@@ -28,11 +28,12 @@ def documentation_view(request, *args, **kwargs):
 
 @login_required
 def download_logfile(request):
-    if os.path.exists(settings.LOGFILE_PATH):
-        logger.debug(f'log path -> {settings.LOGFILE_PATH}')
-        with open(settings.LOGFILE_PATH, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(settings.LOGFILE_PATH)
+    logfile = str(settings.LOG_FILE_PATH)
+    if os.path.exists(logfile):
+        logger.debug(f'log path -> {logfile}')
+        with open(logfile, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="text/plain")
+            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(logfile)
             return response
     raise Http404
 
@@ -68,4 +69,4 @@ def delete_media_files(request, *args, **kwargs):
         messages.success(request, "Medias supprimes.")
     except OSError as e:
         messages.error(request, f'Erreur lors de la suppresion des medias : {e}')
-    return redirect(reverse("settings")) 
+    return redirect(reverse("settings"))

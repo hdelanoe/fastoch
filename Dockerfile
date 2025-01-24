@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.13.0-slim-bullseye
+ARG PYTHON_VERSION=3.10-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -10,7 +10,7 @@ RUN python -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 
 # Upgrade pip
-RUN pip install --upgrade pip
+RUN python -m pip install --upgrade pip
 
 # Set Python-related environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -26,9 +26,8 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     # for nvm
     curl \
-    # for tesseract
-    tesseract-ocr \
-    libtesseract-dev \
+    # for paddle
+    python3-matplotlib \
     # other
     gcc \
     poppler-utils \
@@ -56,6 +55,7 @@ COPY requirements.txt /tmp/requirements.txt
 COPY ./src /code
 
 # Install the Python project requirements
+RUN python -m pip install --upgrade setuptools
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)

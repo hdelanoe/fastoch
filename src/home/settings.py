@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
+from concurrent_log_handler import ConcurrentRotatingFileHandler
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -28,7 +29,7 @@ EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Use EMAIL_PO
 
 
 MEDIA_DIRECTORY_PATH = config('MEDIA_DIRECTORY_PATH', cast=str, default=str(BASE_DIR / '../media/'))
-TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
+#TESSERACT_PATH = config('TESSERACT_PATH', cast=str, default=False)
 
 
 ADMINS=[('Fort Loop', 'contact@fortloop.fr')]
@@ -118,48 +119,56 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
-LOGFILE_PATH = BASE_DIR / "../logs/debug.log"
-# Création du dossier logs si nécessaire
-os.makedirs(os.path.dirname(LOGFILE_PATH), exist_ok=True)
+# Chemin du fichier de log
+LOG_DIR = BASE_DIR / "logs"
+os.makedirs(LOG_DIR, exist_ok=True)  # Crée le répertoire logs s'il n'existe pas
+LOG_FILE_PATH = LOG_DIR / "fastoch.log"
 
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters":{
-        "verbose":{
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
-            "style": "{",
+    "version": 1,  # Version de la configuration de logging
+    "disable_existing_loggers": False,  # Ne pas désactiver les loggers par défaut de Django
+    "formatters": {
+        "verbose": {  # Format détaillé pour les messages de log
+            "format": "{levelname} {asctime} {name} {message}",
+            "style": "{",  # Utilise les accolades `{}` pour le style
         },
-        "simple":{
-            "format": "{levelname} {message}",
+        "simple": {  # Format simplifié (pour la console par exemple)
+            "format": "{levelname}: {message}",
             "style": "{",
         },
     },
     "handlers": {
-        "file": {
-            "level": "DEBUG",
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'when': 'D',
-            'interval': 1,
-            'backupCount': 3,
-            "filename": LOGFILE_PATH,
-            'formatter': 'verbose'
-
-        },
-        "console": {
+        "console": {  # Handler pour afficher les logs dans la console
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            'formatter': 'verbose',
+            "formatter": "simple",  # Utilise le format simple
+        },
+         "file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": LOG_FILE_PATH,
+            "when": "midnight",       # Rotation quotidienne
+            "interval": 1,            # Tous les jours
+            "backupCount": 7,         # Conserver 7 fichiers
+            "formatter": "verbose",
         },
     },
     "loggers": {
-        "fastoch": {
-            'level': 'DEBUG',
-            "handlers": ["file", "console"],
-            "propagate": True,
+        "fastoch": {  # Logger pour l'application Fastoch
+            "handlers": ["console", "file"],  # Envoie les logs à la console et dans le fichier
+            "level": "DEBUG",  # Niveau minimal pour ce logger
+            "propagate": True,  # Propagation des logs aux autres loggers parents
         },
+
     },
-    
+    # Optionnel : loggers pour les bases de données
+    # 'loggers': {
+    #     'django.db.backends': {  # Logs pour les requêtes SQL exécutées
+    #         'level': 'DEBUG',
+    #         'handlers': ['console'],
+    #         'propagate': False,
+    #     },
+    # },
 }
 
 
