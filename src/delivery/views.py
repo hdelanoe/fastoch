@@ -15,6 +15,7 @@ import pandas as pd
 from inventory.models import Inventory, Receipt, Product, iProduct
 from .models import Delivery, delivery_columns
 from .forms import AddiProductForm
+from settings.models import Settings
 from home.views import init_context
 from django.contrib import messages
 
