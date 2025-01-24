@@ -1,17 +1,17 @@
 import PIL
 import cv2
+import re
 import pymupdf
-import numpy as np
 import pandas as pd
 from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 import pytesseract
 from heic2png import HEIC2PNG
-
-
+import logging
 from django.conf import settings
 
+logger = logging.getLogger('fastoch')
 
 def tesseract(img):
     if settings.DEBUG:
