@@ -294,6 +294,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'https://tarrabio-staging.up.railway.app',
     'https://tarrabio-prod.up.railway.app',
+    'https://fastoch-test.up.railway.app',
     ]
 
 KESIA2_COLUMNS_NAME = {
