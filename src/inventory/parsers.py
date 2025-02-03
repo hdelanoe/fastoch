@@ -68,7 +68,7 @@ def file_to_json(uploaded_file, file_extension):
         try:
             #api = Mistral_PDF_API()
             api = Mistral_Nemo_API()
-            return_obj['json'] = api.extract_json_from_html(table)
+            return_obj['json'] = api.extract_json_from_csv(table)
             #first_json = api.extract_json_from_image(image_content)
             #logger.debug('first_json ok')
             #return_obj['json'] = api.replace_ean_by_tesseract(first_json, text)
@@ -194,12 +194,12 @@ def format_json_values(jd, provider, operator=1):
 
     logger.debug(f'{provider.name}')
     logger.debug(
-                f"{kesia_get(jd, 'provider')}"
-                f"{kesia_get(jd, 'code_art')}"
+                f"{kesia_get(jd, 'provider')} "
+                f"{kesia_get(jd, 'code_art')} "
                 f"{kesia_get(jd, 'ean')} "
-                f"{kesia_get(jd, 'description')[:64]}"
-                f"{kesia_get(jd, 'quantity')}"
-                f"{kesia_get(jd, 'achat_ht')}"
+                f"{kesia_get(jd, 'description')[:64]} "
+                f"{kesia_get(jd, 'quantity')} "
+                f"{kesia_get(jd, 'achat_ht')} "
                 )
 
     p = re.compile(r'\w+')
