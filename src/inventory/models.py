@@ -34,7 +34,7 @@ class iProduct(models.Model):
 
     def as_dict(self):
         return {
-            "NOM_FOURNISSEUR": self.product.provider,
+            "NOM_FOURNISSEUR": self.product.provider.name,
             "EAN": self.product.ean,
             "Code": self.product.multicode,
             "DEF": self.product.description,
