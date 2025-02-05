@@ -36,7 +36,7 @@ def file_to_json(uploaded_file, file_extension):
                     #helpers.preprocesser.image_processing(png_path)
                     #logger.debug('- png processed -')
                     table_recognition(png_path)
-                    logger.debug('- html saved -')
+                    logger.debug('- xlsx saved -')
                     try:
                         xlsx_path=f'{settings.MEDIA_ROOT}/table{count}/table{count}.xlsx'
                         csv_path = helpers.preprocesser.xlsx_to_csv(xlsx_path)
@@ -47,6 +47,7 @@ def file_to_json(uploaded_file, file_extension):
                         os.remove(csv_path)
                     except Exception as e :
                         logger.warning(f"Error while analyzing table{count} : {e}")
+                        return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
                     #text += helpers.preprocesser.tesseract(png_path)
                     #path = fs.path(png_path)
                     #image_content.append(format_content_from_image_path(path))

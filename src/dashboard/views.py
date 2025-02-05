@@ -53,7 +53,7 @@ def add_product_from_photo(request):
             file = fs.save(uploaded_file.name, uploaded_file)
             file_path = fs.path(file)
             logger.debug(f'file_path: {file_path}, type: {type(file_path)}')
-            if file_extension == ".png" or file_extension == ".heic":
+            if file_extension == ".png" or file_extension== ".jpeg" or file_extension== ".jpg" or file_extension == ".heic":
                 if file_extension == ".heic":
                     try:
                         png_path = convert_heic_to_png(filename, file_path)
@@ -73,7 +73,7 @@ def add_product_from_photo(request):
                         # Supprimer le fichier PNG temporaire s'il a été créé
                         if png_path and os.path.exists(png_path):
                             os.remove(png_path)
-                elif file_extension == ".png":
+                elif file_extension == ".png" or file_extension== ".jpeg" or file_extension== ".jpg":
                     barcode = bar_decoder.decode(file_path)
                 if barcode is None:
                     messages.warning(request, f'Aucun code-barres détecté.')
