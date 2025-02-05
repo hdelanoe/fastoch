@@ -46,7 +46,7 @@ def add_product_from_photo(request):
             form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
             number = form.data['number']
-            container = form.data['container']
+            container = bool(form.data['container'])
             logger.debug(f'container : {container}')
             filename, file_extension = os.path.splitext(uploaded_file.name)
             fs = FileSystemStorage()
@@ -84,6 +84,7 @@ def add_product_from_photo(request):
                 if created:
                         product.multicode=product.ean
                         product.save()
+                        logger.debug("product created!")
                 iproduct, created = iProduct.objects.get_or_create(product=product)
                 iproduct.quantity = number
                 if container is True:
@@ -97,7 +98,7 @@ def add_product_from_photo(request):
                     iproduct.container_name = delivery.date_time
                     iproduct.save()
                     fs.delete(file_path)
-                    messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
+                    messages.success(request, f'produit {product.ean} mis à jour dans la livraison !')
                     return redirect(reverse("delivery", args=[delivery.id]))
             else:
                 messages.error(request, f'extension {file_extension} non supportée.')
