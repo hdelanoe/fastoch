@@ -103,7 +103,6 @@ def move_from_file(request, *args, **kwargs):
 def update_product(request, iproduct=None, product=None, *args, **kwargs):
     if request.method == 'POST':
         logger.debug(f' REQUEST : {request.POST}')
-        settings, created = Settings.objects.get_or_create(id=1)  
         form = EntryForm(request.POST)
 
         try:
@@ -114,6 +113,7 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             iproduct_obj = None      
         
         product_obj = Product.objects.get(id=product)
+        provider = product_obj.provider
         ean = request.POST.get('ean', product_obj.ean)
 
         #if validate_ean(ean) is True:
@@ -145,7 +145,7 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
             product_to_update.description = request.POST.get('description', product_to_update.description)
             logger.debug('update desc')
 
-        if settings.erase_multicode is True and validate_ean(product_to_update.ean) is True:
+        if provider.erase_multicode is True and validate_ean(product_to_update.ean) is True:
             try:
                 same_multicode=Product.objects.get(multicode=product_to_update.ean)
                 logger.error(f'product {same_multicode.description} a le meme multicode -> {product_to_update.ean}')
