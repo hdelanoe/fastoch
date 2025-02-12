@@ -12,6 +12,9 @@ from home.views import init_context
 from inventory.models import Inventory
 from .models import Settings
 from .forms import SettingsForm
+from datetime import date
+
+
 
 logger = logging.getLogger('fastoch')
 
@@ -20,6 +23,7 @@ def settings_view(request, *args, **kwargs):
     context = init_context()
     settings, created = Settings.objects.get_or_create(id=1)
     context['inventory_list'] = Inventory.objects.all()
+    context['erase_multicode'] = settings.erase_multicode
     return render(request, "settings/settings.html", context)
 
 @login_required
@@ -65,4 +69,4 @@ def delete_media_files(request, *args, **kwargs):
         messages.success(request, "Medias supprimes.")
     except OSError as e:
         messages.error(request, f'Erreur lors de la suppresion des medias : {e}')
-    return redirect(reverse("settings")) 
+    return redirect(reverse("settings"))

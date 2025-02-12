@@ -46,7 +46,7 @@ class Mistral_Nemo_API():
     model = "open-mistral-nemo"
     client = Mistral(api_key=mistral_api_key)
 
-    def extract_json_from_html(self, table):
+    def extract_json_from_csv(self, table):
         prebuild = {
                     "type": "text",
                     "text": '''
@@ -68,12 +68,16 @@ class Mistral_Nemo_API():
                         {
                             "type": "text",
                             "text" : '''
-                                L'utilisateur va fournir un tableau mal formaté sous la forme d'un csv.
-                                Ton rôle est d'analyser le tableau, de trier correctement les données de chaque produit.
-                                Ensuite il faut créer une liste JSON détaillant certaines colonnes pour chaque produit du tableau.
 
+                                L'utilisateur fournira un fichier CSV mal formaté contenant une liste de produits.
 
-                                 1. Format de sortie JSON :
+                                Objectif :
+
+                                - Corriger la disposition des données et extraire uniquement les informations nécessaires.
+                                - Générer un JSON structuré avec les détails clés de chaque produit.
+                               
+
+                                Format de sortie attendu (JSON) :
                                     Le résultat doit être une liste JSON avec un élément pour chaque produit. Il doit être structuré de la manière suivante :
 
                                         [
@@ -88,20 +92,23 @@ class Mistral_Nemo_API():
                                         ]
 
 
-                                2. Correspondance des colonnes :
-                                    'code_art' : correspond aux colonnes intitulées 'Code art.', 'Réf.' ou 'REF'.
-                                        Une suite de lettres et/ou chiffres. Il n'est pas toujours présent.
-                                    'ean' : correspond aux colonnes intitulées 'ean' ou 'EAN'.
-                                        C'est le seul entier de 13 chiffres de la ligne. Il n'est pas toujours présent.
-                                    'description' : correspond par ordre de priorité aux colonnes intitulées 'Produit', 'Désignation' ou 'Description'.
-                                        Une phrase décrivant le produit.
-                                    'quantity' : correspond, par ordre de priorité, aux colonnes intitulées 'Qté totale', 'Qté', 'PCB', 'Pièces' ou 'Quantité'.
-                                        Un nombre entier
-                                    'achat_ht' : correspond aux colonnes intitulées 'PU HT', 'Prix U. HT' ou 'PU H.T.'. Ignorez la colonne 'Total HT'.
-                                        Un nombre flottant.
+                                Instructions détaillées :
 
+                                    1. Correspondance des colonnes :
+                                        code_art : Correspond aux colonnes intitulées "Code art.", "Réf.", ou "REF". Il s'agit d'une suite de lettres et/ou chiffres. Cette information peut être absente.
+                                        ean : Un entier de 13 chiffres.
+                                            Priorité à la colonne "EAN" ou "ean".
+                                            Si cette colonne contient plusieurs nombres, extraire uniquement celui de 13 chiffres.
+                                            Supprimer tout chiffre supplémentaire avant le EAN (ex. 6 3760099539351 → 3760099539351 ; 3339526272040 6 → 3339526272040).
+                                            Supprimer les .0 éventuels (ex. 3760099539535.0 → 3760099539535).
+                                            Si la colonne "EAN" est vide ou invalide, vérifier la colonne adjacente.
+                                            Ne jamais concaténer plusieurs nombres.
+                                        description : Correspond aux colonnes "Produit", "Désignation", ou "Description". Contient une phrase décrivant le produit.
+                                        quantity : Correspond aux colonnes "Qté totale", "Qté", "PCB", "Pièces", ou "Quantité". Il s'agit d'un nombre entier.
+                                        achat_ht : Correspond aux colonnes "PU HT", "Prix U. HT", ou "PU H.T.". Il s'agit d'un nombre décimal. Ne pas utiliser la colonne "Total HT".
 
-                                Le retour doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
+                                  
+                                    2. Le retour doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
                                     '''
                         }
                     ]
@@ -113,7 +120,7 @@ class Mistral_Nemo_API():
             ],
             response_format = {"type": "json_object"}
         )
-        logger.debug('extract_json_from_html')
+        logger.debug('extract_json_from_csv')
         logger.debug(chat_response.choices[0].message.content)
         return json.loads(chat_response.choices[0].message.content, strict=False)
 

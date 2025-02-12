@@ -1,24 +1,31 @@
 import PIL
 import cv2
+import csv
+import re
 import pymupdf
-import numpy as np
 import pandas as pd
 from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 import pytesseract
+import logging
 from heic2png import HEIC2PNG
-
-
+import logging
 from django.conf import settings
 
+logger = logging.getLogger('fastoch')
 
-def tesseract(img_path):
+def tesseract(img):
     if settings.DEBUG:
             pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_PATH
-    img = Image.open(img_path)
     text = pytesseract.image_to_string(img, lang='eng', config='--psm 6')
-    print(text)
+    find = [m.start() for m in re.finditer('\s([0-9]{13})\s', text)]
+    eans = []
+    for f in find:
+        ean = text[f+1:f+14]
+        eans.append(ean)
+    logger.debug(text)    
+    return text
 
 
 def apply_antialiasing(image, blur_strength=10):
@@ -168,14 +175,20 @@ def image_processing(image_path):
     #logger.debug('disted')
 
 def xlsx_to_csv(xlsx_path):
-    read_file = pd.read_excel (xlsx_path)
+    read_file = pd.read_excel(xlsx_path)
 
     # Write the dataframe object
     # into csv file
-    read_file.to_csv (f'{settings.MEDIA_ROOT}/Test.csv',
+    read_file.to_csv(f'{settings.MEDIA_ROOT}/Test.csv',
                   index = None,
                   header=True)
 
     # read csv file and convert
     # into a dataframe object
-    return f'{settings.MEDIA_ROOT}/Test.csv'
+    path = f'{settings.MEDIA_ROOT}/Test.csv'
+    logger.debug('csv file : ')
+    with open(path, newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for row in spamreader:
+            logger.debug(', '.join(row))
+    return path

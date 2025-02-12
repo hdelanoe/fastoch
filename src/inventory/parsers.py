@@ -36,7 +36,7 @@ def file_to_json(uploaded_file, file_extension):
                     #helpers.preprocesser.image_processing(png_path)
                     #logger.debug('- png processed -')
                     table_recognition(png_path)
-                    logger.debug('- html saved -')
+                    logger.debug('- xlsx saved -')
                     try:
                         xlsx_path=f'{settings.MEDIA_ROOT}/table{count}/table{count}.xlsx'
                         csv_path = helpers.preprocesser.xlsx_to_csv(xlsx_path)
@@ -47,6 +47,7 @@ def file_to_json(uploaded_file, file_extension):
                         os.remove(csv_path)
                     except Exception as e :
                         logger.warning(f"Error while analyzing table{count} : {e}")
+                        return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
                     #text += helpers.preprocesser.tesseract(png_path)
                     #path = fs.path(png_path)
                     #image_content.append(format_content_from_image_path(path))
@@ -68,7 +69,7 @@ def file_to_json(uploaded_file, file_extension):
         try:
             #api = Mistral_PDF_API()
             api = Mistral_Nemo_API()
-            return_obj['json'] = api.extract_json_from_html(table)
+            return_obj['json'] = api.extract_json_from_csv(table)
             #first_json = api.extract_json_from_image(image_content)
             #logger.debug('first_json ok')
             #return_obj['json'] = api.replace_ean_by_tesseract(first_json, text)
@@ -76,7 +77,7 @@ def file_to_json(uploaded_file, file_extension):
             #return_obj['json'] = api.extract_json_from_image(image_content)
         except Exception as e:
             logger.error(f"Error while extracting data from pdf with mistral - {e}")
-            return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
+            return_obj['error_list'] = f'Erreur lors de la lecture du .pdf : {e}'
         if file_extension == ".pdf":
             for count, page in enumerate(pages):
                 png_path = fs.path(f'{settings.MEDIA_ROOT}/pdf{count}.png')
@@ -135,7 +136,7 @@ def json_to_delivery(providername, json_data, operator=1):
 
 def json_to_import(json_data, inventory):
     # format return obj
-    return_obj = {'inventory': inventory, 'error_list': []}
+    return_obj = {'inventory': inventory, 'error_list': [], 'report': ''}
     item_count = 0
     saved_item = 0
 
@@ -173,6 +174,8 @@ def json_to_import(json_data, inventory):
 
     logger.info(f'{saved_item} produit(s) sur {len(json_data)} importé(s).')
     return_obj['inventory'] = inventory
+    return_obj['report'] = f'product {product.description} saved ! {item_count}/{len(json_data)}'
+    logger.debug(return_obj['report'])
     return return_obj
 
 
@@ -187,12 +190,12 @@ def format_json_values(jd, provider, operator=1):
 
     logger.debug(f'{provider.name}')
     logger.debug(
-                f"{kesia_get(jd, 'provider')}"
-                f"{kesia_get(jd, 'code_art')}"
+                f"{kesia_get(jd, 'provider')} "
+                f"{kesia_get(jd, 'code_art')} "
                 f"{kesia_get(jd, 'ean')} "
-                f"{kesia_get(jd, 'description')[:64]}"
-                f"{kesia_get(jd, 'quantity')}"
-                f"{kesia_get(jd, 'achat_ht')}"
+                f"{kesia_get(jd, 'description')[:64]} "
+                f"{kesia_get(jd, 'quantity')} "
+                f"{kesia_get(jd, 'achat_ht')} "
                 )
 
     p = re.compile(r'\w+')
@@ -243,7 +246,7 @@ def get_or_create_provider(providername):
         provider.save()
     return provider
 
-def get_or_create_product(values, provider):
+def get_or_create_product(values):
     settings, created = Settings.objects.get_or_create(id=1)
     logger.debug('get_or_create')
     product = find_existant_product(values)
@@ -263,7 +266,7 @@ def get_or_create_product(values, provider):
     if not validate_ean(values.get('ean')) or not provider.erase_multicode:
         if values.get('code_art') is not None:
             product.multicode = values.get('code_art')
-            product.multicode_generated = False 
+            product.multicode_generated = False
         elif product.is_new:
             logger.debug("Generate MultiCode")
             product.multicode = f"{values.get('provider').code}{product.id}"
@@ -271,12 +274,13 @@ def get_or_create_product(values, provider):
 
     if product.achat_ht != values.get('achat_ht') and product.is_new==False:
         logger.debug("Product achat_ht has changed")
-        product.achat_ht=values.get('achat_ht')
         product.has_changed=True
+        product.achat_ht=values.get('achat_ht')
     elif product.is_new:
         product.achat_ht=values.get('achat_ht')
     else:
         product.has_changed=False
+    logger.debug(f'finale porudct : {product}')
     product.save()
     return product
 
@@ -287,10 +291,10 @@ def find_existant_product(values):
         result = find_ean(ean, code_art)
     else:
         result = find_multicode(code_art)
-    
+
     logger.debug(f"find_existant_product returned: {result}")
     return result
-    
+
 def find_ean(ean, code_art):
     try:
         logger.debug(f"Trying to find product by ean: {ean}")
@@ -314,7 +318,7 @@ def find_multicode(code_art):
             return None
     except:
         logger.debug(f"find_multicode returned None for code_art: {code_art}")
-        return None        
+        return None
 
 def validate_ean(ean):
     try:

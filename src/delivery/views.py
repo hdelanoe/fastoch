@@ -32,7 +32,7 @@ def delivery_list_view(request, query=None, *args, **kwargs):
         delivery_list = delivery_list.filter(provider__name=query)
         total = len(delivery_list)
     else:
-        total = delivery_list.count()      
+        total = delivery_list.count()
 
     paginator = Paginator(delivery_list, 25)  # 25 produits par page
     page_number = request.GET.get('page')
@@ -99,6 +99,12 @@ def validate_delivery(request, id=None, *args, **kwargs):
         receipt, created = Receipt.objects.get_or_create(name='receipt')
         logger.debug(f'{str(delivery.date_time)}')
         iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
+        df = pd.DataFrame.from_dict(
+            [p.as_dict() for p in iproducts],
+            orient='columns'
+            )
+        file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_time)[:10]}.xlsx'
+        df.to_excel(file_path, index=False)
         if receipt.is_waiting:
             for iproduct in iproducts:
                 try:
@@ -124,13 +130,7 @@ def validate_delivery(request, id=None, *args, **kwargs):
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
-    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
-    df = pd.DataFrame.from_dict(
-        [t.iproduct.as_dict() for t in iproducts],
-        orient='columns'
-        )
     file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_time)[:10]}.xlsx'
-    df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
@@ -180,7 +180,7 @@ def receipt_view(request, *args, **kwargs):
 
     request.session["context"] = "receipt"
     context["temp"] = True
-   
+
     return render(request, "inventory/receipt.html", context)
 
 
@@ -251,7 +251,7 @@ def add_iproduct(request, delivery=None, *args, **kwargs):
         except Exception:
            messages.error(request, f'Erreur lors de l\'ajout.')
     if str(request.session['context']) == "delivery":
-        return redirect(reverse("delivery", args=[request.session['contextid']]))    
+        return redirect(reverse("delivery", args=[request.session['contextid']]))
     return redirect(reverse("inventory", args=[0]))
 
 #@login_required
