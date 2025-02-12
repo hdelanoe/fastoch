@@ -16,8 +16,10 @@ RUN python -m pip install --upgrade pip
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install os dependencies for our mini vm
+
+    # Install os dependencies for our mini vm
 RUN apt-get update && apt-get install -y \
+    gcc \
     # for postgres
     libpq-dev \
     # for Pillow
@@ -29,13 +31,13 @@ RUN apt-get update && apt-get install -y \
     # for paddle
     python3-matplotlib \
     # other
-    gcc \
     poppler-utils \
     libzbar0 \
     ffmpeg \
     libsm6 \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Create the mini vm's code directory
 RUN mkdir -p /code/staticfiles/theme/
@@ -92,7 +94,6 @@ RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 
 # whitenoise -> s3
-
 
 # set the Django default project name
 ARG PROJ_NAME="home"

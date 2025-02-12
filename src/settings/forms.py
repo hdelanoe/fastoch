@@ -2,7 +2,6 @@ from django import forms
 
 
 class SettingsForm(forms.Form):
-    erase_multicode = forms.Select()
     pagin = forms.IntegerField()
 
     def isvalid(self):

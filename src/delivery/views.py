@@ -22,22 +22,23 @@ from django.contrib import messages
 logger = logging.getLogger('fastoch')
 
 @login_required
-def delivery_list_view(request, *args, **kwargs):
+def delivery_list_view(request, query=None, *args, **kwargs):
     context = init_context()
-
-    query = request.GET.get('search', '')  # Récupère le texte de recherche
     delivery_list = context['delivery_list']
-    # Filtre les produits si une recherche est spécifiée
+
+    if not query:
+        query = request.GET.get('search', '')
+
     if query:
         delivery_list = delivery_list.filter(provider__name=query)
-    total = len(delivery_list)
+        total = len(delivery_list)
+    else:
+        total = delivery_list.count()
 
-    settings_value, created = Settings.objects.get_or_create(id=1)
-
-    paginator = Paginator(delivery_list, settings_value.pagin)  # settings_value.pagin produits par page
+    paginator = Paginator(delivery_list, 25)  # 25 produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
     context['columns'] = delivery_columns
     context['delivery_list'] = page_obj.object_list
@@ -99,6 +100,12 @@ def validate_delivery(request, id=None, *args, **kwargs):
         receipt, created = Receipt.objects.get_or_create(name='receipt')
         logger.debug(f'{str(delivery.date_time)}')
         iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
+        df = pd.DataFrame.from_dict(
+            [p.as_dict() for p in iproducts],
+            orient='columns'
+            )
+        file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_time)[:10]}.xlsx'
+        df.to_excel(file_path, index=False)
         if receipt.is_waiting:
             for iproduct in iproducts:
                 try:
@@ -124,13 +131,7 @@ def validate_delivery(request, id=None, *args, **kwargs):
 @login_required
 def export_delivery(request, id=None, *args, **kwargs):
     delivery = Delivery.objects.get(id=id)
-    iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
-    df = pd.DataFrame.from_dict(
-        [t.iproduct.as_dict() for t in iproducts],
-        orient='columns'
-        )
     file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_time)[:10]}.xlsx'
-    df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
