@@ -21,9 +21,7 @@ logger = logging.getLogger('fastoch')
 @login_required
 def settings_view(request, *args, **kwargs):
     context = init_context()
-    settings, created = Settings.objects.get_or_create(id=1)
     context['inventory_list'] = Inventory.objects.all()
-    context['erase_multicode'] = settings.erase_multicode
     return render(request, "settings/settings.html", context)
 
 @login_required
