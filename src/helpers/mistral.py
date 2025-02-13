@@ -94,21 +94,36 @@ class Mistral_Nemo_API():
 
                                 Instructions détaillées :
 
-                                    1. Correspondance des colonnes :
+                                    1. **Correspondance des colonnes** :
                                         code_art : Correspond aux colonnes intitulées "Code art.", "Réf.", ou "REF". Il s'agit d'une suite de lettres et/ou chiffres. Cette information peut être absente.
+                                        
                                         ean : Un entier de 13 chiffres.
-                                            Priorité à la colonne "EAN" ou "ean".
-                                            Si cette colonne contient plusieurs nombres, extraire uniquement celui de 13 chiffres.
-                                            Supprimer tout chiffre supplémentaire avant le EAN (ex. 6 3760099539351 → 3760099539351 ; 3339526272040 6 → 3339526272040).
-                                            Supprimer les .0 éventuels (ex. 3760099539535.0 → 3760099539535).
-                                            Si la colonne "EAN" est vide ou invalide, vérifier la colonne adjacente.
-                                            Ne jamais concaténer plusieurs nombres.
+                                            - Priorité à la colonne "EAN" ou "ean".
+                                            - Si cette colonne contient plusieurs nombres, extraire uniquement celui composé de 13 chiffres consécutifs.
+                                            - **Supprimer tout chiffre non inclus dans ces 13 chiffres au début ou à la fin**.
+
+                                                - Exemple :
+                                                    - ✅ 6 3760099539351 → 3760099539351
+                                                    - ✅ 3339526272040 6 → 3339526272040
+                                                    - ✅ 3760099539535.0 → 3760099539535
+
+                                            - Toujours vérifier si la colonne contient des caractères séparateurs (espaces, tabulations, points) et les supprimer avant extraction.
+                                            - Si la colonne "EAN" est vide ou invalide, vérifier la colonne adjacente.
+                                            - **Ne jamais concaténer plusieurs nombres**.
+                                        
                                         description : Correspond aux colonnes "Produit", "Désignation", ou "Description". Contient une phrase décrivant le produit.
+                                        
                                         quantity : Correspond aux colonnes "Qté totale", "Qté", "PCB", "Pièces", ou "Quantité". Il s'agit d'un nombre entier.
+                                        
                                         achat_ht : Correspond aux colonnes "PU HT", "Prix U. HT", ou "PU H.T.". Il s'agit d'un nombre décimal. Ne pas utiliser la colonne "Total HT".
 
                                   
-                                    2. Le retour doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.
+                                    2. **Gestion du format de sortie** :
+                                    - **Chaque ligne du fichier CSV correspond à un produit distinct et doit être incluse dans la liste JSON finale. Aucune ligne valide ne doit être omise.**
+                                    - **Le retour doit toujours être une liste JSON contenant tous les produits extraits, même s’il n’y a qu’un seul élément.**
+                                    - Si certaines informations sont manquantes, inclure tout de même l’élément dans la liste avec les champs disponibles.
+
+                                **Le retour doit contenir uniquement la liste JSON, sans texte supplémentaire ni explications.**
                                     '''
                         }
                     ]

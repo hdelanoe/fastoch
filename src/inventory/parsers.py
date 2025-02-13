@@ -116,7 +116,7 @@ def json_to_delivery(providername, json_data, operator=1):
     for jd in json_data:
         try:
             values=format_json_values(jd, provider, operator)
-            product=get_or_create_product(values)
+            product=get_or_create_product(values, provider)
             logger.debug(f'product {product} return by get_or_create')
             iproduct = iProduct.objects.create(product=product,
                                                quantity=values.get('quantity'),
@@ -145,14 +145,9 @@ def json_to_import(json_data, inventory):
     for jd in json_data:
         try:
             values = format_json_values(jd, provider)
-            product = get_or_create_product(values)
+            product = get_or_create_product(values, provider)
             if not product:
                 raise Exception('no products')
-
-            # Remove is_new from import
-            product.is_new = False
-            product.save()
-
 
             # Remove is_new from import
             product.is_new = False
@@ -251,10 +246,10 @@ def get_or_create_provider(providername):
         provider.save()
     return provider
 
-def get_or_create_product(values):
+def get_or_create_product(values, provider):
     settings, created = Settings.objects.get_or_create(id=1)
     logger.debug('get_or_create')
-    product = find_existant_product(values)
+    product = find_existant_product(values, provider.erase_multicode)
     logger.debug(f"Product returned from find_existant_product: {product}, type: {type(product)}")
     if product is None:
         logger.debug("Create object")
@@ -262,12 +257,13 @@ def get_or_create_product(values):
             description=values.get('description'),
             provider=values.get('provider'))
 
-    if  validate_ean(values.get('ean')):
+    if validate_ean(values.get('ean')):
         product.ean = values.get('ean')
-        if settings.erase_multicode is True:
+        if provider.erase_multicode:
             product.multicode = values.get('ean')
             product.multicode_generated = False
-    else:
+
+    if not validate_ean(values.get('ean')) or not provider.erase_multicode:
         if values.get('code_art') is not None:
             product.multicode = values.get('code_art')
             product.multicode_generated = False
@@ -288,13 +284,15 @@ def get_or_create_product(values):
     product.save()
     return product
 
-def find_existant_product(values):
+def find_existant_product(values, erase_multicode):
     ean = values.get('ean')
     code_art = values.get('code_art')
-    if validate_ean(ean):
+    if validate_ean(ean) and erase_multicode:
         result = find_ean(ean, code_art)
-    else:
-        result = find_multicode(code_art)
+        logger.debug(f"find_existant_product returned: {result}")
+        return result
+    
+    result = find_multicode(code_art)
 
     logger.debug(f"find_existant_product returned: {result}")
     return result

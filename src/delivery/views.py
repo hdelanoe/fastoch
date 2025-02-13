@@ -22,22 +22,23 @@ from django.contrib import messages
 logger = logging.getLogger('fastoch')
 
 @login_required
-def delivery_list_view(request, *args, **kwargs):
+def delivery_list_view(request, query=None, *args, **kwargs):
     context = init_context()
-
-    query = request.GET.get('search', '')  # Récupère le texte de recherche
     delivery_list = context['delivery_list']
-    # Filtre les produits si une recherche est spécifiée
+
+    if not query:
+        query = request.GET.get('search', '')
+
     if query:
         delivery_list = delivery_list.filter(provider__name=query)
-    total = len(delivery_list)
+        total = len(delivery_list)
+    else:
+        total = delivery_list.count()
 
-    settings_value, created = Settings.objects.get_or_create(id=1)
-
-    paginator = Paginator(delivery_list, settings_value.pagin)  # settings_value.pagin produits par page
+    paginator = Paginator(delivery_list, 25)  # 25 produits par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin
+    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
     context['columns'] = delivery_columns
     context['delivery_list'] = page_obj.object_list

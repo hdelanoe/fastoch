@@ -1,5 +1,5 @@
 <tr class="h-8">
-    <form action="{% url 'update_provider' id=provider.id %}" method="post">{% csrf_token %}
+    <form id="provider-form-{{ provider.id }}" action="{% url 'update_provider' id=provider.id %}" method="post">{% csrf_token %}
         <!-- Name -->
         <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
             <input size="32" min="1" max="32" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="name" type="text" name="name" value="{{provider.name}}" placeholder="{{provider.name}}" required="">
@@ -8,7 +8,11 @@
         <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
             <input size="4" min="1" max="4" class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-white hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="code" type="text" name="code" value="{{provider.code}}" placeholder="{{provider.code}}" required="">
         </td>
-        <input type="submit" value="submit" class="hidden"/>
+         <!-- Erase Multicode -->
+         <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <input type="checkbox" {% if provider.erase_multicode %}checked{% endif %} class="text-center text-sm text-gray-900 whitespace-nowrap dark:text-white rounded border-black hover:bg-gray-100 hover:border-gray-100 out-of-range:border-mate" id="erase_multicode" name="erase_multicode" value="{{provider.code}}">
+        </td>
+        <button class="'hidden"></button>
     </form>
     <!-- Action -->
     <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">
@@ -20,12 +24,34 @@
     </td>
 </tr>
 
-<script>
-    $('form').on('submit', function (e) {
-    e.preventDefault();
-
-    var first = $('.first').val();
-    var next = $(".next").val();
-    alert(first + " " + next);
-});
+<script type="text/javascript">
+    $(document).ready(function() {
+       $(document).off('submit', 'form[id^="provider-form-"]');
+       $(document).on('submit', 'form[id^="provider-form-"]', function(e) {
+       e.preventDefault();  // Empêche le rafraîchissement de la page
+       const form = $(this); // Récupère le formulaire actuel soumis
+       const formId = form.attr('id'); // ID du formulaire (ex: entry-form-1)
+       console.log(`Soumission du formulaire : ${formId}`); // Debugging
+           $.ajax({
+               type: 'POST',
+               url: form.attr('action'),
+               data: form.serialize(),
+               success: function (data) {
+                   console.log(`Mise à jour réussie pour : ${formId}`);
+                   $("#updateProviderMessage").show();
+                   setTimeout(function() { $("#updateProviderMessage").hide(); }, 5000);
+               },
+               error: function (xhr, status, error) {
+                   if (error == "Internal Server Error") {
+                       $("#updateWrongMessage").show();
+                       setTimeout(function() { $("#updateWrongMessage").hide(); }, 5000);
+                   } else {
+                       $("#updateErrorMessage").show();
+                       setTimeout(function() { $("#updateErrorMessage").hide(); }, 5000);        
+                   }
+                   console.error('Erreur : ', error);
+               }
+           });
+       });
+   });
 </script>

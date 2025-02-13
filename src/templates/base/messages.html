@@ -10,18 +10,22 @@
             <div class="flex items-center px-2 py-1 text-sm font-bold text-white bg-yellow-500"
                 role="alert">
                 <p>{{ message }}</p>
-            </div>    
+            </div>
             {% else %}
                 <div class="flex items-center px-2 py-1 text-sm font-bold text-white bg-blue-500"
                     role="alert">
                     <p>{{ message }}</p>
-            </div>  
-            {% endif %}                
+            </div>
+            {% endif %}
         {% endfor %}
     {% endif %}
     <div class="flex items-center px-2 py-1 text-sm font-bold text-black bg-gray-50"
     role="alert">
         <p id="updateMessage" style="display:none">Produit mis à jour</p>
+    </div>
+    <div class="flex items-center px-2 py-1 text-sm font-bold text-black bg-gray-50"
+    role="alert">
+        <p id="updateProviderMessage" style="display:none">Fournisseur mis à jour</p>
     </div>
     <div class="flex items-center px-2 py-1 text-sm font-bold text-red bg-gray-50" style="color: red"
     role="alert">
