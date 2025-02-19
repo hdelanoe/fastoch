@@ -17,7 +17,7 @@ def init_context():
     except Inventory.DoesNotExist:
         current_inventory = None
     try:
-        provider_list = Provider.objects.all()
+        provider_list = Provider.objects.all().order_by('name')
     except Provider.DoesNotExist:
         provider_list = None
     try:
@@ -25,8 +25,8 @@ def init_context():
     except Backup.DoesNotExist:
         backup_list = None    
     try:
-        delivery_list = Delivery.objects.all()[::-1]
-        delivery_has_validate_count = len(Delivery.objects.filter(is_validated=False)[::-1])
+        delivery_list = Delivery.objects.filter(is_validated=False).order_by('-date_time')
+        delivery_has_validate_count = len(delivery_list)
     except Delivery.DoesNotExist:
         delivery_list = None
     try:

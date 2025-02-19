@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.13.0-slim-bullseye
+ARG PYTHON_VERSION=3.10-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -10,14 +10,16 @@ RUN python -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 
 # Upgrade pip
-RUN pip install --upgrade pip
+RUN python -m pip install --upgrade pip
 
 # Set Python-related environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install os dependencies for our mini vm
+
+    # Install os dependencies for our mini vm
 RUN apt-get update && apt-get install -y \
+    gcc \
     # for postgres
     libpq-dev \
     # for Pillow
@@ -26,17 +28,16 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     # for nvm
     curl \
-    # for tesseract
-    tesseract-ocr \
-    libtesseract-dev \
+    # for paddle
+    python3-matplotlib \
     # other
-    gcc \
     poppler-utils \
     libzbar0 \
     ffmpeg \
     libsm6 \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Create the mini vm's code directory
 RUN mkdir -p /code/staticfiles/theme/
@@ -56,6 +57,7 @@ COPY requirements.txt /tmp/requirements.txt
 COPY ./src /code
 
 # Install the Python project requirements
+RUN python -m pip install --upgrade setuptools
 RUN pip install -r /tmp/requirements.txt
 
 # installe nvm (Gestionnaire de version node)
@@ -92,7 +94,6 @@ RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 
 # whitenoise -> s3
-
 
 # set the Django default project name
 ARG PROJ_NAME="home"

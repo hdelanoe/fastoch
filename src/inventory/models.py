@@ -21,10 +21,10 @@ class Product(models.Model):
 
     def get_format_achat_ht(self):
         return format(self.achat_ht, '.2f')
-    
+
     def __str__(self):
         return f'{self.multicode} {self.ean} {self.description} {self.achat_ht} {self.is_new} {self.has_changed} {self.multicode_generated}'
-    
+
 
 class iProduct(models.Model):
     container_name = models.CharField(max_length=32, null=True)
@@ -34,20 +34,20 @@ class iProduct(models.Model):
 
     def as_dict(self):
         return {
-            "NOM_FOURNISSEUR": self.product.provider,
+            "NOM_FOURNISSEUR": self.product.provider.name,
             "EAN": self.product.ean,
             "Code": self.product.multicode,
             "DEF": self.product.description,
             "STOCK": self.quantity,
             "PMPA": self.product.achat_ht,
         }
-    
+
     def as_receipt(self):
         return {
             "Code": self.product.multicode,
             "STOCK": self.quantity,
         }
-    
+
     def __str__(self):
         return f'{self.product.multicode} {self.product.provider.name} {self.product.ean} {self.product.description} { self.quantity} {self.product.achat_ht}'
 
@@ -58,6 +58,6 @@ class Inventory(Container):
 
     def __str__(self):
         return f'name:{self.name}'
-    
+
 class Receipt(Container):
-    is_waiting = models.BooleanField(default=True)    
+    is_waiting = models.BooleanField(default=True)
