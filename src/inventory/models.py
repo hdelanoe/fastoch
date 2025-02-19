@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from provider.models import Provider
 
@@ -25,7 +26,6 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.multicode} {self.ean} {self.description} {self.achat_ht} {self.is_new} {self.has_changed} {self.multicode_generated}'
 
-
 class iProduct(models.Model):
     container_name = models.CharField(max_length=32, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -50,6 +50,10 @@ class iProduct(models.Model):
 
     def __str__(self):
         return f'{self.product.multicode} {self.product.provider.name} {self.product.ean} {self.product.description} { self.quantity} {self.product.achat_ht}'
+
+class ProductDLC(models.Model):
+    iproduct = models.ForeignKey(iProduct, related_name='dates', on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now().date())
 
 
 class Inventory(Container):

@@ -15,9 +15,12 @@ import pandas as pd
 from inventory.models import Inventory, Receipt, Product, iProduct
 from .models import Delivery, delivery_columns
 from .forms import AddiProductForm
-from settings.models import Settings
 from home.views import init_context
 from django.contrib import messages
+
+from django.db.models import Min, ExpressionWrapper, DurationField
+from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
+from django.utils import timezone
 
 logger = logging.getLogger('fastoch')
 
@@ -151,8 +154,19 @@ def delete_delivery(request, id=None, *args, **kwargs):
 
 @login_required
 def receipt_view(request, *args, **kwargs):
+    today = timezone.now().date()
     context = init_context()
-    iproducts = iProduct.objects.filter(container_name=context["receipt"].name)
+    iproducts = iProduct.objects.filter(container_name=context["receipt"].name).annotate(
+        closest_date=Min('dates__date')
+    ).annotate(
+        date_diff=ExpressionWrapper(
+            (ExtractYear('closest_date') - ExtractYear(today)) * 365 +
+            (ExtractMonth('closest_date') - ExtractMonth(today)) * 30 +
+            (ExtractDay('closest_date') - ExtractDay(today)),
+            output_field=DurationField()
+        )
+    ).order_by('date_diff')
+
     query = request.GET.get('search', '')  # Récupère le texte de recherche
     # Filtre les produits si une recherche est spécifiée
     if query:

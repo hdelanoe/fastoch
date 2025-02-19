@@ -19,17 +19,29 @@ from .parsers import file_to_json, json_to_delivery, json_to_import, validate_ea
 from inventory.models import Inventory, Product, iProduct, Provider
 from backup.models import Backup
 from settings.models import Settings
-from delivery.views import receipt_view
+
+from django.db.models import Min, ExpressionWrapper, DurationField
+from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
+from django.utils import timezone
 
 from home.views import init_context
 
 logger = logging.getLogger('fastoch')
 
-
 @login_required
 def inventory_view(request, response=0, query=None, *args, **kwargs):
+    today = timezone.now().date()
     context = init_context()
-    iproducts = iProduct.objects.filter(container_name=context["inventory"].name)
+    iproducts = iProduct.objects.filter(container_name=context["inventory"].name).annotate(
+        closest_date=Min('dates__date')
+    ).annotate(
+        date_diff=ExpressionWrapper(
+            (ExtractYear('closest_date') - ExtractYear(today)) * 365 +
+            (ExtractMonth('closest_date') - ExtractMonth(today)) * 30 +
+            (ExtractDay('closest_date') - ExtractDay(today)),
+            output_field=DurationField()
+        )
+    ).order_by('date_diff')
 
     if not query:
         query = request.GET.get('search', '')  # Récupère le texte de recherche
