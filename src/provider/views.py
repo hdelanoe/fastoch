@@ -1,3 +1,5 @@
+import logging
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -9,41 +11,56 @@ from home.views import init_context
 from .models import Provider, provider_columns
 from .forms import ProviderForm
 
-@login_required
-def provider_view(request, *args, **kwargs):
-    context = init_context()
+logger = logging.getLogger('fastoch')
 
-    query = request.GET.get('search', '')  # Récupère le texte de recherche
+@login_required
+def provider_view(request, query=None, *args, **kwargs):
+    context = init_context()
     providers = context["provider_list"]
-    # Filtre les produits si une recherche est spécifiée
+    
+    if not query:
+        query = request.GET.get('search', '')
+
     if query:
         providers = providers.filter(name__icontains=query)
         total = len(providers)
     else:
         total = providers.count()
 
-    paginator = Paginator(providers, 25)  # 25 produits par page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)  
-    pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
+    #paginator = Paginator(providers, 25)  # 25 produits par page
+    #page_number = request.GET.get('page')
+    #page_obj = paginator.get_page(page_number)  
+    #pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
 
     context["columns"] = provider_columns
-    context["provider_list"] = page_obj.object_list
-    context["pages"] = page_obj
+    context["provider_list"] = providers
+    #context["pages"] = page_obj
     context["total"] = total
-    context["len"] = pagin
+    #context["len"] = pagin
     return render(request, "provider/provider.html", context) 
 
 @login_required
 def update_provider(request, id=None, *args, **kwargs):
     if request.method == 'POST':
-        provider = Provider.objects.get(id=id)
-        form = ProviderForm(request.POST)
-        provider.name = form.data['name']
-        provider.code = form.data['code']
-        provider.save()
-    messages.success(request, f'Le provider {provider.name} a bien été modifié.')    
-    return redirect(reverse("provider"))
+        try:
+            provider = Provider.objects.get(id=id)
+            print(provider)
+            form = ProviderForm(request.POST)
+            
+            if form.is_valid():  # ✅ Toujours valider le formulaire avant d'accéder à `cleaned_data`
+                provider.name = form.cleaned_data['name']
+                provider.code = form.cleaned_data['code']
+                provider.erase_multicode = form.cleaned_data['erase_multicode']  # ✅ Booléen correct
+                provider.save()
+
+                messages.success(request, f'Le provider {provider.name} a bien été modifié.')
+                return HttpResponse("success")
+            else:
+                logger(form.errors)  # ✅ Debug si le form est invalide
+
+        except Exception as e:
+            logger(f"Erreur :{e}")
+    raise Http404
 
 @login_required
 def delete_provider(request, id=None, *args, **kwargs):

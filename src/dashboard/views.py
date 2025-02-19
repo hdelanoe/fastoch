@@ -46,14 +46,14 @@ def add_product_from_photo(request):
             form = ImportForm(request.POST)
             uploaded_file = request.FILES['document']
             number = form.data['number']
-            container = form.data['container']
+            container = bool(form.data['container'])
             logger.debug(f'container : {container}')
             filename, file_extension = os.path.splitext(uploaded_file.name)
             fs = FileSystemStorage()
             file = fs.save(uploaded_file.name, uploaded_file)
             file_path = fs.path(file)
             logger.debug(f'file_path: {file_path}, type: {type(file_path)}')
-            if file_extension == ".png" or file_extension == ".heic":
+            if file_extension == ".png" or file_extension== ".jpeg" or file_extension== ".jpg" or file_extension == ".heic":
                 if file_extension == ".heic":
                     try:
                         png_path = convert_heic_to_png(filename, file_path)
@@ -73,7 +73,7 @@ def add_product_from_photo(request):
                         # Supprimer le fichier PNG temporaire s'il a été créé
                         if png_path and os.path.exists(png_path):
                             os.remove(png_path)
-                elif file_extension == ".png":
+                elif file_extension == ".png" or file_extension== ".jpeg" or file_extension== ".jpg":
                     barcode = bar_decoder.decode(file_path)
                 if barcode is None:
                     messages.warning(request, f'Aucun code-barres détecté.')
@@ -84,6 +84,7 @@ def add_product_from_photo(request):
                 if created:
                         product.multicode=product.ean
                         product.save()
+                        logger.debug("product created!")
                 iproduct, created = iProduct.objects.get_or_create(product=product)
                 iproduct.quantity = number
                 if container is True:
@@ -97,7 +98,7 @@ def add_product_from_photo(request):
                     iproduct.container_name = delivery.date_time
                     iproduct.save()
                     fs.delete(file_path)
-                    messages.success(request, f'produit {product.ean} mis à jour dans l\'inventaire !')
+                    messages.success(request, f'produit {product.ean} mis à jour dans la livraison !')
                     return redirect(reverse("delivery", args=[delivery.id]))
             else:
                 messages.error(request, f'extension {file_extension} non supportée.')
