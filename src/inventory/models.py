@@ -1,16 +1,18 @@
 from django.db import models
+from django.utils import timezone
 
 from provider.models import Provider
 
-class Container(models.Model):
-    name = models.CharField(max_length=32, default="My Container", unique=True)
+class Inventory(models.Model):
+    name = models.CharField(max_length=32, default="My Inventory", unique=True)
+    is_current = models.BooleanField(default=False)
+    is_waiting = models.BooleanField(default=True)
 
-    class Meta:
-        abstract = True
-
+    def __str__(self):
+        return f'name:{self.name}'
 
 class Product(models.Model):
-    provider = models.ForeignKey(Provider, on_delete=models.SET_NULL, blank=True, null=True)
+    provider = models.ForeignKey(Provider, on_delete=models.SET_NULL, related_name='products', blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     multicode = models.CharField(max_length=13, unique=True, blank=True, null=True)
     description = models.CharField(max_length=64, blank=True, null=True)
@@ -25,10 +27,9 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.multicode} {self.ean} {self.description} {self.achat_ht} {self.is_new} {self.has_changed} {self.multicode_generated}'
 
-
 class iProduct(models.Model):
-    container_name = models.CharField(max_length=32, null=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    container = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='iproducts', null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='iproducts')
     quantity = models.IntegerField(default=0)
 
 
@@ -51,13 +52,6 @@ class iProduct(models.Model):
     def __str__(self):
         return f'{self.product.multicode} {self.product.provider.name} {self.product.ean} {self.product.description} { self.quantity} {self.product.achat_ht}'
 
-
-class Inventory(Container):
-    last_response =  models.TextField(default="Comment puis-je vous aider ?")
-    is_current = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f'name:{self.name}'
-
-class Receipt(Container):
-    is_waiting = models.BooleanField(default=True)
+class DLC(models.Model):
+    iproduct = models.ForeignKey(iProduct, related_name='dates', on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now().date())

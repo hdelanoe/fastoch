@@ -6,7 +6,7 @@ import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-from inventory.models import Product, iProduct
+from inventory.models import Product, DLC, iProduct
 from provider.models import Provider
 from delivery.models import Delivery
 from settings.models import Settings
@@ -47,7 +47,7 @@ def file_to_json(uploaded_file, file_extension):
                         os.remove(csv_path)
                     except Exception as e :
                         logger.warning(f"Error while analyzing table{count} : {e}")
-                        return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
+                        #return_obj['error_list'] = "Erreur lors de la lecture du .pdf"
                     #text += helpers.preprocesser.tesseract(png_path)
                     #path = fs.path(png_path)
                     #image_content.append(format_content_from_image_path(path))
@@ -123,6 +123,8 @@ def json_to_delivery(providername, json_data, operator=1):
                                                container_name=str(delivery.date_time))
             iproduct.save()
             logger.debug(f'iproduct from {product.description} created !')
+            dlc=DLC.objects.create(iproduct=iproduct, date='2025-10-03')
+            dlc.save()
             item_count += 1
         except (Exception, UnboundLocalError) as e:
             return_obj['error_list'].append(f"product {values.get('description')} : {e}")

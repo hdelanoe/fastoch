@@ -19,7 +19,7 @@ logger = logging.getLogger('fastoch')
 def dashboard_view(request):
     context = init_context()
     request.session['context'] = 'dashboard'
-    if not context["inventory"] :
+    if not context["inventory_list"] :
         return render(request, "dashboard/dashboard_new_inventory.html", context)
     return render(request, "dashboard/dashboard.html", context)
 
@@ -31,7 +31,10 @@ def create_inventory(request):
             if not inventories:
                 Inventory.objects.create(
                     name=request.POST.get('name', "My inventory"),
-                    is_current=True)
+                    is_current=True, is_waiting=False)
+                Inventory.objects.create(
+                    name="reception",
+                    is_current=False, is_waiting=True)
             else:
                 Inventory.objects.create(name=request.POST.get('name', "My inventory"))
             messages.success(request, "Your inventory has been created.")
