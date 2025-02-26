@@ -29,10 +29,10 @@ from home.views import init_context
 logger = logging.getLogger('fastoch')
 
 @login_required
-def inventory_view(request, response=0, query=None, *args, **kwargs):
+def inventory_view(request, name=None, query=None, *args, **kwargs):
     today = timezone.now().date()
     context = init_context()
-    iproducts = iProduct.objects.filter(container_name=context["inventory"].name).annotate(
+    iproducts = iProduct.objects.filter(container_name=name).annotate(
         closest_date=Min('dates__date')
     ).annotate(
         date_diff=ExpressionWrapper(
@@ -63,7 +63,6 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin
 
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
-    context["response"] = response
     context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total

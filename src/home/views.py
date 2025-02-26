@@ -1,10 +1,11 @@
 import pathlib
 from django.shortcuts import redirect
 
-from inventory.models import Inventory, Receipt, iProduct
-from backup.models import Backup
+from inventory.models import Inventory
 from provider.models import Provider
-from delivery.models import Delivery
+
+from backup.models import Backup
+
 
 this_dir = pathlib.Path(__file__).resolve().parent
 
@@ -13,47 +14,19 @@ def home_view(request, *args, **kwargs):
 
 def init_context():
     try:
-        current_inventory = Inventory.objects.get(is_current=True)
-    except Inventory.DoesNotExist:
-        current_inventory = None
-    if current_inventory:
-        try:
-            inventory_list_count = iProduct.objects.filter(container_name=current_inventory.name).count()
-        except:
-            inventory_list_count = None
-    else:
-        waiting_list_count = None    
+        inventory_list = Inventory.objects.all().order_by('is_current')
+    except:
+        inventory_list = None
     try:
         provider_list = Provider.objects.all().order_by('name')
-    except Provider.DoesNotExist:
+    except:
         provider_list = None
     try:
         backup_list = Backup.objects.all()
     except Backup.DoesNotExist:
         backup_list = None    
-    try:
-        delivery_list = Delivery.objects.filter(is_validated=False).order_by('-date_time')
-        delivery_has_validate_count = len(delivery_list)
-    except Delivery.DoesNotExist:
-        delivery_list = None
-    try:
-        receipt = Receipt.objects.first()
-    except Receipt.DoesNotExist:
-        receipt = None
-    if receipt:
-        try:
-            waiting_list_count = iProduct.objects.filter(container_name=receipt.name).count()
-        except:
-            waiting_list_count = None
-    else:
-        waiting_list_count = None        
     return {
-        "backup_list": backup_list,
+        "inventory_list": inventory_list,
         "provider_list": provider_list,
-        "delivery_list": delivery_list,
-        "inventory": current_inventory,
-        "receipt": receipt,
-        "waiting_list_count": waiting_list_count,
-        "inventory_list_count": inventory_list_count,
-        "delivery_has_validate_count": delivery_has_validate_count,
+        "backup_list": backup_list,
     }

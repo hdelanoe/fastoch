@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 
 from inventory.forms import ImportForm
-from inventory.models import Inventory, Receipt, Product, iProduct
+from inventory.models import Inventory, Product, iProduct
 from delivery.models import Delivery
 from helpers.pyzbar import bar_decoder
 from helpers.preprocesser import convert_heic_to_png
@@ -19,7 +19,7 @@ logger = logging.getLogger('fastoch')
 def dashboard_view(request):
     context = init_context()
     request.session['context'] = 'dashboard'
-    if not context["inventory"] :
+    if not context["inventory_list"] :
         return render(request, "dashboard/dashboard_new_inventory.html", context)
     return render(request, "dashboard/dashboard.html", context)
 
@@ -31,13 +31,15 @@ def create_inventory(request):
             if not inventories:
                 Inventory.objects.create(
                     name=request.POST.get('name', "My inventory"),
-                    is_current=True)
+                    is_current=True, is_waiting=False)
+                Inventory.objects.create(
+                    name="reception",
+                    is_current=False, is_waiting=True)
             else:
                 Inventory.objects.create(name=request.POST.get('name', "My inventory"))
             messages.success(request, "Your inventory has been created.")
         except Inventory.DoesNotExist:
             messages.error(request, "Error while create your inventory.")
-        Receipt.objects.create(name='receipt')    
     return redirect(reverse("dashboard"))
 
 @login_required

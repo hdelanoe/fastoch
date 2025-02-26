@@ -12,7 +12,7 @@ from django.http import Http404, HttpResponse
 
 
 import pandas as pd
-from inventory.models import Inventory, Receipt, Product, iProduct
+from inventory.models import Inventory, Product, iProduct
 from .models import Delivery, delivery_columns
 from .forms import AddiProductForm
 from home.views import init_context
@@ -100,7 +100,7 @@ def delivery_view(request, id=None, *args, **kwargs):
 def validate_delivery(request, id=None, *args, **kwargs):
     try:
         delivery = Delivery.objects.get(id=id)
-        receipt, created = Receipt.objects.get_or_create(name='receipt')
+        reception, created = Inventory.objects.get_or_create(name='reception')
         logger.debug(f'{str(delivery.date_time)}')
         iproducts = iProduct.objects.filter(container_name=str(delivery.date_time))
         df = pd.DataFrame.from_dict(
@@ -109,18 +109,18 @@ def validate_delivery(request, id=None, *args, **kwargs):
             )
         file_path = f'{settings.MEDIA_ROOT}/delivery{delivery.id}_{str(delivery.date_time)[:10]}.xlsx'
         df.to_excel(file_path, index=False)
-        if receipt.is_waiting:
+        if reception.is_waiting:
             for iproduct in iproducts:
                 try:
                     already = iProduct.objects.get(product=iproduct.product,
-                                                container_name=receipt.name)
+                                                container_name=reception.name)
                     already.quantity += iproduct.quantity
                     already.save()
                     iproduct.delete()
                 except:
-                    iproduct.container_name=receipt.name
+                    iproduct.container_name=reception.name
                     iproduct.save()
-            receipt.save()
+            reception.save()
             delivery.is_validated = True
             delivery.save()
             messages.success(request, f'Livraison validée et ajoutée aux réceptions.')
@@ -152,56 +152,10 @@ def delete_delivery(request, id=None, *args, **kwargs):
     messages.success(request, f'la livraison a bien été supprimé.')
     return redirect(reverse("delivery_list"))
 
-@login_required
-def receipt_view(request, *args, **kwargs):
-    today = timezone.now().date()
-    context = init_context()
-    iproducts = iProduct.objects.filter(container_name=context["receipt"].name).annotate(
-        closest_date=Min('dates__date')
-    ).annotate(
-        date_diff=ExpressionWrapper(
-            (ExtractYear('closest_date') - ExtractYear(today)) * 365 +
-            (ExtractMonth('closest_date') - ExtractMonth(today)) * 30 +
-            (ExtractDay('closest_date') - ExtractDay(today)),
-            output_field=DurationField()
-        )
-    ).order_by('date_diff')
-
-    query = request.GET.get('search', '')  # Récupère le texte de recherche
-    # Filtre les produits si une recherche est spécifiée
-    if query:
-        iproducts_desc = iproducts.filter(product__description__icontains=query)
-        iproducts_prov = iproducts.filter(product__provider__name=query)
-        iproducts_code = iproducts.filter(product__multicode__icontains=query)
-        iproducts = list(chain(iproducts_desc, iproducts_prov, iproducts_code))
-        total = len(iproducts)
-    else:
-        total = iproducts.count()
-
-
-    # Disable paginator
-    #paginator = Paginator(iproducts, 25)  # 25 produits par page
-    #page_number = request.GET.get('page')
-    #page_obj = paginator.get_page(page_number)
-    #pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*25
-
-    #context["pages"] = page_obj
-    #context["len"] = pagin
-    context["total"] = total
-
-
-    context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
-    context["iproducts"] = iproducts
-
-    request.session["context"] = "receipt"
-    context["temp"] = True
-
-    return render(request, "inventory/receipt.html", context)
-
 
 @login_required
 def export_receipt(*args, **kwargs):
-    receipt = Receipt.objects.first()
+    receipt = Inventory.objects.first()
     iproducts = iProduct.objects.filter(container_name=receipt.name)
     df = pd.DataFrame.from_dict(
         [p.as_receipt() for p in iproducts],

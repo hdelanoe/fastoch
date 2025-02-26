@@ -6,7 +6,7 @@ import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-from inventory.models import Product, ProductDLC, iProduct
+from inventory.models import Product, DLC, iProduct
 from provider.models import Provider
 from delivery.models import Delivery
 from settings.models import Settings
@@ -123,7 +123,7 @@ def json_to_delivery(providername, json_data, operator=1):
                                                container_name=str(delivery.date_time))
             iproduct.save()
             logger.debug(f'iproduct from {product.description} created !')
-            dlc=ProductDLC.objects.create(iproduct=iproduct, date='2025-10-03')
+            dlc=DLC.objects.create(iproduct=iproduct, date='2025-10-03')
             dlc.save()
             item_count += 1
         except (Exception, UnboundLocalError) as e:
