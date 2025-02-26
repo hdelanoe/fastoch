@@ -32,7 +32,8 @@ logger = logging.getLogger('fastoch')
 def inventory_view(request, name=None, query=None, *args, **kwargs):
     today = timezone.now().date()
     context = init_context()
-    iproducts = iProduct.objects.filter(container_name=name).annotate(
+    inventory = Inventory.objects.get(name=name)
+    iproducts = inventory.iproducts.annotate(
         closest_date=Min('dates__date')
     ).annotate(
         date_diff=ExpressionWrapper(
@@ -67,7 +68,8 @@ def inventory_view(request, name=None, query=None, *args, **kwargs):
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
-
+    
+    context["inventory"] = inventory
     request.session["context"] = "inventory"
     request.session["query"] = query
     context["temp"] =False
