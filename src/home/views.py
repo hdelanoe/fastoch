@@ -16,6 +16,13 @@ def init_context():
         current_inventory = Inventory.objects.get(is_current=True)
     except Inventory.DoesNotExist:
         current_inventory = None
+    if current_inventory:
+        try:
+            inventory_list_count = iProduct.objects.filter(container_name=current_inventory.name).count()
+        except:
+            inventory_list_count = None
+    else:
+        waiting_list_count = None    
     try:
         provider_list = Provider.objects.all().order_by('name')
     except Provider.DoesNotExist:
@@ -47,5 +54,6 @@ def init_context():
         "inventory": current_inventory,
         "receipt": receipt,
         "waiting_list_count": waiting_list_count,
+        "inventory_list_count": inventory_list_count,
         "delivery_has_validate_count": delivery_has_validate_count,
     }

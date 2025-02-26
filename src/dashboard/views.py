@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 
 from inventory.forms import ImportForm
-from inventory.models import Inventory, Product, iProduct
+from inventory.models import Inventory, Receipt, Product, iProduct
 from delivery.models import Delivery
 from helpers.pyzbar import bar_decoder
 from helpers.preprocesser import convert_heic_to_png
@@ -37,6 +37,7 @@ def create_inventory(request):
             messages.success(request, "Your inventory has been created.")
         except Inventory.DoesNotExist:
             messages.error(request, "Error while create your inventory.")
+        Receipt.objects.create(name='receipt')    
     return redirect(reverse("dashboard"))
 
 @login_required
