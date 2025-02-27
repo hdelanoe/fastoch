@@ -94,8 +94,6 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
 
-RUN chmod -R 755 /code/staticfiles
-RUN chmod -R 755 /code/local-cdn
 
 # whitenoise -> s3
 

@@ -46,16 +46,13 @@ DEBUG = config('DJANGO_DEBUG', cast=bool, default=False)
 BASE_URL = config('BASE_URL', default=None)
 
 ALLOWED_HOSTS = [
-    '.railway.app',
-    'fastoch-test.up.railway.app',
+    '.railway.app'
 ]
 
 if DEBUG:
     ALLOWED_HOSTS += [
         '127.0.0.1',
         'localhost',
-        'fastoch-test.up.railway.app',
-
     ]
 
 
@@ -128,67 +125,62 @@ os.makedirs(LOG_DIR, exist_ok=True)  # Crée le répertoire logs s'il n'existe p
 LOG_FILE_PATH = LOG_DIR / "fastoch.log"
 
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
+    "version": 1,  # Version de la configuration de logging
+    "disable_existing_loggers": False,  # Ne pas désactiver les loggers par défaut de Django
     "formatters": {
-        "verbose": {
+        "verbose": {  # Format détaillé pour les messages de log
             "format": "{levelname} {asctime} {name} {message}",
-            "style": "{",
+            "style": "{",  # Utilise les accolades `{}` pour le style
         },
-        "simple": {
+        "simple": {  # Format simplifié (pour la console par exemple)
             "format": "{levelname}: {message}",
             "style": "{",
         },
     },
     "handlers": {
-        "console": {
+        "console": {  # Handler pour afficher les logs dans la console
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "simple",
+            "formatter": "simple",  # Utilise le format simple
         },
-        "file": {
+         "file": {
             "level": "DEBUG",
             "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": LOG_FILE_PATH,
-            "when": "midnight",
-            "interval": 1,
-            "backupCount": 7,
+            "when": "midnight",       # Rotation quotidienne
+            "interval": 1,            # Tous les jours
+            "backupCount": 7,         # Conserver 7 fichiers
             "formatter": "verbose",
         },
     },
     "loggers": {
-        "django": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True,
+        "fastoch": {  # Logger pour l'application Fastoch
+            "handlers": ["console", "file"],  # Envoie les logs à la console et dans le fichier
+            "level": "DEBUG",  # Niveau minimal pour ce logger
+            "propagate": True,  # Propagation des logs aux autres loggers parents
         },
-        "fastoch": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
+
     },
+    # Optionnel : loggers pour les bases de données
+    # 'loggers': {
+    #     'django.db.backends': {  # Logs pour les requêtes SQL exécutées
+    #         'level': 'DEBUG',
+    #         'handlers': ['console'],
+    #         'propagate': False,
+    #     },
+    # },
 }
-
-
-if not DEBUG:
-    LOGGING['loggers']['django'] = {
-        'handlers': ['file'],
-        'level': 'ERROR',
-        'propagate': False,
-    }
-
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
 DATABASE_URL = config("DATABASE_URL", default=None)
@@ -230,7 +222,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django Allauth Config
-ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED=True
 LOGIN_REDIRECT_URL='/'
 
@@ -259,7 +251,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_BASE_DIR = [BASE_DIR / "staticfiles"]
+STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
@@ -285,8 +277,6 @@ STORAGES = {
     },
 }
 
-WHITENOISE_LOG_FILE = BASE_DIR / "whitenoise.log"
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -294,19 +284,10 @@ WHITENOISE_LOG_FILE = BASE_DIR / "whitenoise.log"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Security settings
-SESSION_COOKIE_DOMAIN = ".railway.app"
-CSRF_COOKIE_DOMAIN = ".railway.app"
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 3600
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_REFERRER_POLICY = "same-origin"
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
@@ -333,7 +314,6 @@ INVENTORY_COLUMNS_NAME = {
     "description": "DEF",
     "quantity": "STOCK",
     "achat_ht": "PMPA",
-    "dlc": "DLC",
 }
 
 DELIVERY_COLUMNS_NAME = {
