@@ -46,8 +46,8 @@ DEBUG = config('DJANGO_DEBUG', cast=bool, default=False)
 BASE_URL = config('BASE_URL', default=None)
 
 ALLOWED_HOSTS = [
-    '.railway.app'
-    'fastoch-test.up.railway.app'
+    '.railway.app',
+    'fastoch-test.up.railway.app',
 ]
 
 if DEBUG:
@@ -295,6 +295,8 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Security settings
+SESSION_COOKIE_DOMAIN = ".railway.app"
+CSRF_COOKIE_DOMAIN = ".railway.app"
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_HTTPONLY = True
