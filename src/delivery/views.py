@@ -158,7 +158,7 @@ def export_receipt(*args, **kwargs):
     receipt = Inventory.objects.first()
     iproducts = iProduct.objects.filter(container_name=receipt.name)
     df = pd.DataFrame.from_dict(
-        [p.as_receipt() for p in iproducts],
+        [p.as_dict() for p in iproducts],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/{receipt.name}_{str(receipt.name)[:10]}.xlsx'

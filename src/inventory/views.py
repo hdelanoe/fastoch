@@ -10,7 +10,7 @@ from django.http import Http404,HttpResponseBadRequest, HttpResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Codestral_Mamba
@@ -75,6 +75,22 @@ def inventory_view(request, name=None, query=None, *args, **kwargs):
     context["temp"] =False
 
     return render(request, "inventory/inventory.html", context)
+
+@login_required
+def move_iproducts(request, id):
+    if request.method == 'POST':
+        source_inventory = get_object_or_404(Inventory, id=id)
+        target_inventory = get_object_or_404(Inventory, id=request.POST.get('target_inventory'))
+
+        # Déplacer tous les iproducts vers l'inventaire cible
+        iproducts_to_move = source_inventory.iproducts.all()
+        for iproduct in iproducts_to_move:
+            iproduct.inventory = target_inventory
+            iproduct.save()
+
+        # Rediriger vers la page de l'inventaire cible après le déplacement
+        return redirect('inventory', name=target_inventory.name)
+
 
 @login_required
 def move_from_file(request, *args, **kwargs):
@@ -273,10 +289,10 @@ def import_inventory(request, *args, **kwargs):
 @login_required
 def export_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(is_current=True)
-    iproducts=iProduct.objects.filter(container_name=inventory.name)
+    iproducts= inventory.iproducts.all()
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_receipt() for p in iproducts],
+        [p.as_dict() for p in iproducts],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
@@ -307,7 +323,7 @@ def delete_inventory(request, id=None, *args, **kwargs):
     return redirect(reverse("dashboard"))
 
 def save_backup(inventory, type=Backup.BackupType.AUTO):
-    iproducts=iProduct.objects.filter(container_name=inventory.name)
+    iproducts=inventory.iproducts.all()
     backup = Backup(
         inventory=inventory,
         iproducts_backup = pd.DataFrame([x.as_dict() for x in iproducts]).to_json(orient='table'),

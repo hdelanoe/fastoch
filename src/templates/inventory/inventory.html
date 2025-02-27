@@ -22,6 +22,18 @@
                 value="{{ request.GET.search|default:'' }}"
             />
         </form>
+        <form method="post" action="{% url 'move_iproducts' id=inventory.id %}" class="flex items-center justify-center">
+            {% csrf_token %}
+            <select name="target_inventory" id="target_inventory" class="mr-2 flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" style="max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <option value="" disabled selected>-- Déplacer vers un inventaire --</option>
+                {% for inv in inventory_list %}
+                    <option value="{{ inv.id }}" title="{{ inv.name }}">{{ inv.name }}</option> <!-- L'attribut title permet d'afficher le nom complet au survol -->
+                {% endfor %}
+            </select>
+            <button type="submit" class="mr-2 flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                Déplacer
+            </button>
+        </form>
         <form action="{% url 'export_inventory' id=inventory.id %}">
             <button type="submit" class="mr-2 flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                 <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="3" stroke="currentColor" aria-hidden="true">
