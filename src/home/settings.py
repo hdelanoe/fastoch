@@ -47,6 +47,7 @@ BASE_URL = config('BASE_URL', default=None)
 
 ALLOWED_HOSTS = [
     '.railway.app'
+    'fastoch-test.up.railway.app'
 ]
 
 if DEBUG:
@@ -170,6 +171,14 @@ LOGGING = {
     #     },
     # },
 }
+
+if not DEBUG:
+    LOGGING['loggers']['django'] = {
+        'handlers': ['file'],
+        'level': 'ERROR',
+        'propagate': False,
+    }
+
 
 
 # Database
