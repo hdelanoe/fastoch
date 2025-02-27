@@ -24,6 +24,7 @@ def dashboard_view(request):
             name="Inventaire", is_current=True, is_waiting=False)
         Inventory.objects.create(
             name="Reception", is_current=False, is_waiting=True)
+        return redirect(reverse("dashboard"))
     return render(request, "dashboard/dashboard.html", context)
 
 @login_required
