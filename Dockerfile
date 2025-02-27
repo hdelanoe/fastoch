@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y \
 # Create the mini vm's code directory
 RUN mkdir -p /code/staticfiles/theme/
 RUN mkdir -p /code/staticfiles/tw/
+RUN chmod -R 777 /code/staticfiles
 
 # Create log directory
 RUN mkdir -p /code/logs
