@@ -175,12 +175,12 @@ LOGGING = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': BASE_DIR / 'db.sqlite3',
+#    }
+#}
 
 CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
 DATABASE_URL = config("DATABASE_URL", default=None)
@@ -222,7 +222,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django Allauth Config
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_EMAIL_REQUIRED=True
 LOGIN_REDIRECT_URL='/'
 
@@ -314,6 +314,7 @@ INVENTORY_COLUMNS_NAME = {
     "description": "DEF",
     "quantity": "STOCK",
     "achat_ht": "PMPA",
+    "dlc": "DLC",
 }
 
 DELIVERY_COLUMNS_NAME = {

@@ -61,6 +61,12 @@
             id="achat_ht-{{ iproduct.id }}" type="text" name="achat_ht" value="{{iproduct.product.get_format_achat_ht}}" placeholder="{{iproduct.product.get_format_achat_ht}}" required=""
             style="text-align: right; padding: 4px;">€
         </td>
+        {% if not delivery %}
+        <!-- Date -->
+        <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            {{ iproduct.closest_date }}
+        </td>
+        {% endif %}
         <button class="'hidden"></button>
     </form>
     <!-- Action -->
