@@ -28,22 +28,6 @@ def dashboard_view(request):
     return render(request, "dashboard/dashboard.html", context)
 
 @login_required
-def create_inventory(request):
-    if request.method=='POST':
-        try:
-            inventories=Inventory.objects.all()
-            if not inventories:
-                Inventory.objects.create(
-                    name=request.POST.get('name', "My inventory"),
-                    is_current=True, is_waiting=False)
-            else:
-                Inventory.objects.create(name=request.POST.get('name', "My inventory"))
-            messages.success(request, "Your inventory has been created.")
-        except Inventory.DoesNotExist:
-            messages.error(request, "Error while create your inventory.")
-    return redirect(reverse("dashboard"))
-
-@login_required
 def add_product_from_photo(request):
     if request.method == 'POST':
         try:

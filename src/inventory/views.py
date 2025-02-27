@@ -32,7 +32,11 @@ logger = logging.getLogger('fastoch')
 def inventory_view(request, name=None, query=None, *args, **kwargs):
     today = timezone.now().date()
     context = init_context()
-    inventory = Inventory.objects.get(name=name)
+    try:
+        inventory = Inventory.objects.get(name=name)
+    except Inventory.DoesNotExist:
+        messages.error(request, f"Aucun inventaire trouvé avec le nom '{name}'.")
+        return redirect(reverse("dashboard"))
     iproducts = inventory.iproducts.annotate(
         closest_date=Min('dates__date')
     ).annotate(
@@ -246,13 +250,28 @@ def ask_question(request, id=None, *args, **kwargs):
     print(inventory.last_response)
     return redirect(reverse("inventory", args=[1]))
 
-
 @login_required
 def import_inventory(request, *args, **kwargs):
+    logger.debug(f'REQUEST : {request}')
     if request.method == 'POST':
         try:
-            uploaded_file = request.FILES['document']
             name = request.POST['name']
+            if 'file' in request.FILES:
+                uploaded_file = request.FILES['file']
+            else :
+                try:
+                    inventories=Inventory.objects.all()
+                    if not inventories:
+                        Inventory.objects.create(
+                            name=name,
+                            is_current=True, is_waiting=False)
+                    else:
+                        Inventory.objects.create(name=name)    
+                    messages.success(request, "Your inventory has been created.")
+                    return redirect(reverse("inventory", args=[name]))    
+                except Inventory.DoesNotExist:
+                    messages.error(request, "Error while create your inventory.")
+                    return redirect(reverse("dashboard"))
             filename, file_extension = os.path.splitext(uploaded_file.name)
             logger.debug(f"start parse {filename}")
             if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
@@ -275,7 +294,7 @@ def import_inventory(request, *args, **kwargs):
                         logger.error(error)
                         messages.error(request, error)
                 messages.warning(return_obj['report'])
-                return redirect(reverse("inventory", args=[0]))
+                return redirect(reverse("inventory", args=[name]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as ex:
@@ -315,9 +334,9 @@ def backup_inventory(request, id=None, *args, **kwargs):
 def delete_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     # watchout #
-    for product in inventory.products.all():
+    for iproduct in inventory.iproducts.all():
         logger.info(inventory.products.all().count())
-        product.delete()
+        iproduct.delete()
     inventory.delete()
     messages.success(request, "Your inventory has been deleted.")
     return redirect(reverse("dashboard"))

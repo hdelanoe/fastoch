@@ -10,8 +10,5 @@ urlpatterns = [
     path('<str:id>/export_delivery', delivery_views.export_delivery, name='export_delivery'),
     path('<str:id>/delete_delivery', delivery_views.delete_delivery, name='delete_delivery'),
     
-    path('export_receipt', delivery_views.export_receipt, name='export_receipt'),
-    path('empty_receipt', delivery_views.empty_receipt, name='empty_receipt'),
-
     path('add_iproduct/<int:delivery>', delivery_views.add_iproduct, name='add_iproduct'),
 ]

@@ -154,38 +154,6 @@ def delete_delivery(request, id=None, *args, **kwargs):
 
 
 @login_required
-def export_receipt(*args, **kwargs):
-    receipt = Inventory.objects.first()
-    iproducts = iProduct.objects.filter(container_name=receipt.name)
-    df = pd.DataFrame.from_dict(
-        [p.as_dict() for p in iproducts],
-        orient='columns'
-        )
-    file_path = f'{settings.MEDIA_ROOT}/{receipt.name}_{str(receipt.name)[:10]}.xlsx'
-    df.to_excel(file_path, index=False)
-    receipt.is_waiting=False
-    receipt.save()
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-            return response
-    raise Http404
-
-@login_required
-def empty_receipt(request, *args, **kwargs):
-    receipt = Receipt.objects.first()
-    inventory = Inventory.objects.get(is_current=True)
-    iproducts = iProduct.objects.filter(container_name=receipt.name)
-    for p in iproducts:
-        p.container_name=inventory.name
-        p.save()
-    receipt.is_waiting=True
-    receipt.save()
-    messages.success(request, 'Tout les produits ont été transferés dans l\'inventaire.')
-    return redirect(reverse("receipt"))
-
-@login_required
 def add_iproduct(request, delivery=None, *args, **kwargs):
     if request.method == 'POST':
         form = AddiProductForm(request.POST)

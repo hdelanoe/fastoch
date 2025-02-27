@@ -45,7 +45,7 @@
               <span class="ml-3">Dashboard</span>
             </a>
           </li>
-          <li>
+          <!--<li>
             <button type="button" 
             data-modal-target="move_from_file"
             data-modal-toggle="move_from_file" 
@@ -56,8 +56,8 @@
               </svg>
               <span class="flex-1 ml-3 text-left whitespace-nowrap"
                 >Enregistrer une livraison</span>
-          </li>
-          <li>
+          </li>-->
+          <!--<li>
             <button type="button" 
             data-modal-target="new_photo_product"
             data-modal-toggle="new_photo_product" 
@@ -68,7 +68,7 @@
               </svg>
               <span class="flex-1 ml-3 text-left whitespace-nowrap"
                 >Enregistrer un produit</span>
-          </li>
+          </li>-->  
           <!--<li>
             <button
               type="button"
@@ -159,7 +159,20 @@
                 </span>
                 </a>
             </li>
-           {% endfor %} 
+          {% endfor %}
+          <!-- Bouton Créer un Inventaire -->
+          <li>
+            <button 
+                class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group" 
+                type="button"
+                    data-modal-target="import_inventory"
+                    data-modal-toggle="import_inventory">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                <span class="ml-3">Ajouter un inventaire</span>
+            </button>
+          </li> 
            <!--Livraisons--> 
            <!--<li>
             <a
