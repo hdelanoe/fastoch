@@ -135,7 +135,7 @@
           class="pt-5 mt-5 space-y-2 border-t border-gray-200 dark:border-gray-700"
         >
           <!--Inventory-->
-          {{ for inventory in inventory}} 
+          {% for inventory in inventory_list %}
             <li>
               <a
                   href="{% url 'inventory' name=inventory.name %}"
@@ -159,6 +159,7 @@
                 </span>
                 </a>
             </li>
+           {% endfor %} 
            <!--Livraisons--> 
            <!--<li>
             <a

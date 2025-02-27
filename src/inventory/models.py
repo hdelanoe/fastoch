@@ -28,10 +28,9 @@ class Product(models.Model):
         return f'{self.multicode} {self.ean} {self.description} {self.achat_ht} {self.is_new} {self.has_changed} {self.multicode_generated}'
 
 class iProduct(models.Model):
-    container = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='iproducts', null=True, blank=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='iproducts')
     quantity = models.IntegerField(default=0)
-
+    inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='iproducts', null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='iproducts')
 
     def as_dict(self):
         return {
