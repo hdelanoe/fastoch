@@ -93,12 +93,15 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # such as:
 RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
+RUN chmod -R 755 ./staticfiles/
 
 
 # whitenoise -> s3
 
 # set the Django default project name
 ARG PROJ_NAME="home"
+
+CMD python manage.py collectstatic --noinput && gunicorn myproject.wsgi --bind 0.0.0.0:$RUN_PORT
 
 # create a bash script to run the Django project
 # this script will execute at runtime when
@@ -107,6 +110,7 @@ RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
     printf "python manage.py makemigrations --no-input\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
+    printf "python manage.py collectstatic --noinput" >> ./paracord_runner.sh && \
     printf "python manage.py createsuperuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --timeout 0 --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 

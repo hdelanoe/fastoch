@@ -242,6 +242,7 @@ STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     STATICFILES_BASE_DIR,
+    BASE_DIR / "static/allauth_ui",
     STATICFILES_VENDOR_DIR,
 ]
 
