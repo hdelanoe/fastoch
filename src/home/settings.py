@@ -231,20 +231,27 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+# Définir l'URL de base pour les fichiers statiques
+STATIC_URL = "/static/"
 
-STATIC_URL = "static/"
+# Répertoire où se trouvent les fichiers statiques (avant collecte)
 STATICFILES_BASE_DIR = BASE_DIR / "static"
-STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
+
+# Répertoire où se trouvent les fichiers statiques externes (vendors)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
+# Répertoire où Django va collecter tous les fichiers statiques (en production)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Ajouter dynamiquement les répertoires statiques à collecter
 STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR,
-    BASE_DIR / "static/allauth_ui",
-    STATICFILES_VENDOR_DIR,
+    STATICFILES_BASE_DIR,  # Répertoire de base des fichiers statiques
+    STATICFILES_VENDOR_DIR,  # Répertoire des fichiers statiques externes
 ]
+
+# Optionnel : Si le dossier 'allauth_ui' existe, on l'ajoute aussi
+if (BASE_DIR / "static/allauth_ui").exists():
+    STATICFILES_DIRS.append(BASE_DIR / "static/allauth_ui")
 
 
 #if not DEBUG:

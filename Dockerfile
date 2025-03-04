@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Create the mini vm's code directory
+RUN mkdir -p /code/staticfiles/
 RUN mkdir -p /code/staticfiles/theme/
 RUN mkdir -p /code/staticfiles/tw/
 
@@ -93,7 +93,6 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # such as:
 RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
-RUN chmod -R 755 ./staticfiles/
 
 
 # whitenoise -> s3
