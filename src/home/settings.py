@@ -239,14 +239,10 @@ STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
-# source(s) for python manage.py collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR
+    os.path.join(BASE_DIR, 'static'),
 ]
-
-# output for python manage.py collectstatic
-# local cdn
-STATIC_ROOT = BASE_DIR / "local-cdn"
 
 
 #if not DEBUG:
