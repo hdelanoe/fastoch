@@ -1,3 +1,4 @@
+import json
 from django.db import models
 from django.utils import timezone
 
@@ -10,6 +11,10 @@ class Inventory(models.Model):
 
     def __str__(self):
         return f'name:{self.name}'
+    
+    def export_to_json(self):
+        data = [iproduct.as_dict() for iproduct in self.iproducts.all()]
+        return json.dumps(data, indent=4, ensure_ascii=False)
 
 class Product(models.Model):
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
@@ -32,6 +37,22 @@ class iProduct(models.Model):
     quantity = models.IntegerField(default=0)
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='iproducts', null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='iproducts')
+
+    def get_closest_dlc(self):
+        today = timezone.now().date()  # Date d'aujourd'hui
+
+        # Chercher les DLC futures
+        future_dlcs = self.dates.filter(date__gte=today).order_by('date')
+        
+        if future_dlcs.exists():
+            return future_dlcs.first().date  # La plus proche des DLC futures
+        else:
+            # Si aucune DLC future, prendre la plus proche parmi les passées
+            past_dlcs = self.dates.filter(date__lt=today).order_by('-date')
+            if past_dlcs.exists():
+                return past_dlcs.first().date  # La plus proche parmi les DLC passées
+            else:
+                return None  # Aucune DLC trouvée
 
     def as_dict(self):
         return {
