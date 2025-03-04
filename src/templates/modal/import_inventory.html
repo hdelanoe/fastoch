@@ -19,6 +19,12 @@
             </div>
             <!-- Modal body -->
             <div class="p-4 md:p-5">
+                <form method="post" action="{% url 'import_inventory_json' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label for="json_file">Choisir un fichier JSON:</label>
+                    <input type="file" name="json_file" required>
+                    <button type="submit" class="btn btn-primary">Importer l'inventaire</button>
+                </form>
                 <form action="{% url 'import_inventory' %}" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="space-y-4">
