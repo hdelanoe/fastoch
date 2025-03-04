@@ -101,8 +101,6 @@ RUN chmod -R 755 ./staticfiles/
 # set the Django default project name
 ARG PROJ_NAME="home"
 
-CMD python manage.py collectstatic --noinput && gunicorn myproject.wsgi --bind 0.0.0.0:$RUN_PORT
-
 # create a bash script to run the Django project
 # this script will execute at runtime when
 # the container starts and the database is available
