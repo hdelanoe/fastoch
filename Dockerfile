@@ -39,9 +39,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-RUN mkdir -p /code/staticfiles && chmod -R 755 /code/staticfiles
-RUN mkdir -p /code/staticfiles/theme/
-RUN mkdir -p /code/staticfiles/tw/
+RUN mkdir -p /code/staticfiles && chmod -R 777 /code/staticfiles
+RUN mkdir -p /code/staticfiles/theme/ && chmod -R 777 /code/staticfiles/theme/
+RUN mkdir -p /code/staticfiles/tw/ && chmod -R 777 /code/staticfiles/tw/
 
 
 # Create log directory
@@ -93,6 +93,8 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # such as:
 RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput --verbosity 3
+# Affiche le contenu du dossier pour voir si les fichiers ont bien été copiés
+RUN ls -la /code/staticfiles
 
 
 # whitenoise -> s3
