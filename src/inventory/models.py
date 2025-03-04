@@ -12,7 +12,6 @@ class Inventory(models.Model):
         return f'name:{self.name}'
 
 class Product(models.Model):
-    provider = models.ForeignKey(Provider, on_delete=models.SET_NULL, related_name='products', blank=True, null=True)
     ean = models.BigIntegerField(unique=True, blank=True, null=True)
     multicode = models.CharField(max_length=13, unique=True, blank=True, null=True)
     description = models.CharField(max_length=64, blank=True, null=True)
@@ -20,6 +19,8 @@ class Product(models.Model):
     is_new=models.BooleanField(default=True)
     has_changed=models.BooleanField(default=False)
     multicode_generated=models.BooleanField(default=False)
+    provider = models.ForeignKey(Provider, on_delete=models.SET_NULL, related_name='products', blank=True, null=True)
+
 
     def get_format_achat_ht(self):
         return format(self.achat_ht, '.2f')
