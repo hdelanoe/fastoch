@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-RUN mkdir -p /code/staticfiles/
+RUN mkdir -p /code/staticfiles && chmod -R 755 /code/staticfiles
 RUN mkdir -p /code/staticfiles/theme/
 RUN mkdir -p /code/staticfiles/tw/
 
@@ -92,7 +92,7 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # run any other commands that do not need the database
 # such as:
 RUN python manage.py vendor_pull
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --verbosity 3
 
 
 # whitenoise -> s3
