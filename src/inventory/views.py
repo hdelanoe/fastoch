@@ -1,12 +1,14 @@
 import re
 import os
 import logging
+import json
 
 import pandas as pd
 from itertools import chain
 
 from django.conf import settings
-from django.http import Http404,HttpResponseBadRequest, HttpResponse
+from django.http import Http404,HttpResponseBadRequest, HttpResponse, JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -16,7 +18,7 @@ from django.contrib import messages
 from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, EntryForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import, validate_ean
-from inventory.models import Inventory, Product, iProduct, Provider
+from inventory.models import DLC, Inventory, Product, iProduct, Provider
 from backup.models import Backup
 from settings.models import Settings
 
@@ -238,7 +240,7 @@ def delete_iproduct(request, id=None, *args, **kwargs):
          return redirect(reverse("receipt"))
     return redirect(reverse("inventory", args=[0]))
 
-@login_required
+
 def ask_question(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     if request.method == 'POST':
@@ -249,6 +251,64 @@ def ask_question(request, id=None, *args, **kwargs):
         inventory.save()
     print(inventory.last_response)
     return redirect(reverse("inventory", args=[1]))
+
+@login_required
+def import_inventory_json(request):
+    if request.method == 'POST' and request.FILES['json_file']:
+        # Charger le fichier JSON depuis le formulaire
+        json_file = request.FILES['json_file']
+        try:
+            data = json.load(json_file)  # Charger le fichier JSON
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON file"}, status=400)
+        
+        # Créer ou récupérer l'inventaire
+        inventory, created = Inventory.objects.get_or_create(name="Imported Inventory")
+        
+        # Traitement des données
+        for item in data:
+            try:
+                # Créer ou récupérer le produit
+                product, created = Product.objects.get_or_create(
+                    ean=item['EAN'],
+                    multicode=item['Code'],
+                    defaults={
+                        'description': item['DEF'],
+                        'achat_ht': item['PMPA'],
+                        'is_new': True,
+                        'has_changed': False
+                    }
+                )
+                # Créer l'iProduct
+                iproduct, created = iProduct.objects.get_or_create(
+                    inventory=inventory,
+                    product=product,
+                    defaults={'quantity': item['STOCK']}
+                )
+                if 'DLC' in item:
+                    dlc_date = item['DLC']
+                    if isinstance(dlc_date, str):
+                        
+                        # Vérifier que DLC est une chaîne de caractères
+                        try:
+                            # Essayer de convertir la date en format YYYY-MM-DD
+                            dlc_date_parsed = timezone.datetime.strptime(dlc_date, "%Y-%m-%d").date()
+                            
+                            # Créer ou récupérer la DLC
+                            DLC.objects.get_or_create(iproduct=iproduct, date=dlc_date_parsed)
+                        except ValueError:
+                            return JsonResponse({"error": f"Invalid date format for DLC: {dlc_date}"}, status=400)
+                    else:
+                        return JsonResponse({"error": f"Invalid type for DLC: {dlc_date}, expected a string representing a date."}, status=400)
+
+            except KeyError as e:
+                return JsonResponse({"error": f"Missing key {str(e)} in the JSON data"}, status=400)
+            except ObjectDoesNotExist:
+                return JsonResponse({"error": "A referenced object does not exist"}, status=400)
+
+        return redirect(reverse("inventory", args=[inventory.name]))
+
+    return render(request, 'dashboard.html')
 
 @login_required
 def import_inventory(request, *args, **kwargs):
@@ -293,7 +353,7 @@ def import_inventory(request, *args, **kwargs):
                     for error in error_list:
                         logger.error(error)
                         messages.error(request, error)
-                messages.warning(return_obj['report'])
+                #messages.warning(return_obj['report'])
                 return redirect(reverse("inventory", args=[name]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
@@ -323,6 +383,28 @@ def export_inventory(request, id=None, *args, **kwargs):
             return response
     raise Http404
 
+def export_inventory_json(request, id):
+    try:
+        inventory = Inventory.objects.get(id=id)
+        data = []
+
+        for iproduct in inventory.iproducts.all():
+            product_data = iproduct.as_dict()  # Récupérer les infos de l'iProduct
+            
+            # Ajouter la DLC la plus proche (future ou passée)
+            closest_dlc = iproduct.get_closest_dlc()
+            if closest_dlc:
+                product_data['DLC'] = str(closest_dlc)  # Ajouter la date de la DLC
+            else:
+                product_data['DLC'] = None  # Aucune DLC disponible
+
+            data.append(product_data)
+
+        return JsonResponse(data, safe=False, json_dumps_params={'indent': 4, 'ensure_ascii': False})
+
+    except Inventory.DoesNotExist:
+        return JsonResponse({"error": "Inventory not found"}, status=404)
+
 @login_required
 def backup_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
@@ -335,7 +417,7 @@ def delete_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     # watchout #
     for iproduct in inventory.iproducts.all():
-        logger.info(inventory.products.all().count())
+        logger.info(inventory.iproducts.all().count())
         iproduct.delete()
     inventory.delete()
     messages.success(request, "Your inventory has been deleted.")

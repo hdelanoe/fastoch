@@ -6,6 +6,7 @@ import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.utils import timezone
 from inventory.models import Product, DLC, iProduct
 from provider.models import Provider
 from delivery.models import Delivery
@@ -123,7 +124,7 @@ def json_to_delivery(providername, json_data, operator=1):
                                                container_name=str(delivery.date_time))
             iproduct.save()
             logger.debug(f'iproduct from {product.description} created !')
-            dlc=DLC.objects.create(iproduct=iproduct, date='2025-10-03')
+            dlc=DLC.objects.create(iproduct=iproduct, date=timezone.now().date())
             dlc.save()
             item_count += 1
         except (Exception, UnboundLocalError) as e:
@@ -159,10 +160,12 @@ def json_to_import(json_data, inventory):
             item_count += 1
             logger.debug(f'product {product.description} saved ! {item_count}/{len(json_data)}')
 
-            iproduct, created = iProduct.objects.get_or_create(container_name=inventory.name,
+            iproduct, created = iProduct.objects.get_or_create(inventory=inventory,
                                                       product=product)
             iproduct.quantity+=values.get('quantity')
             iproduct.save()
+            dlc=DLC.objects.create(iproduct=iproduct, date=timezone.now().date())
+            dlc.save()
             saved_item += 1
         except ValueError as ex:
              return_obj['error_list'].append(f"Erreur lors de l\'import de {values.get('description')} : {ex}\n")
