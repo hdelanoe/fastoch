@@ -206,7 +206,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django Allauth Config
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_EMAIL_REQUIRED=True
 LOGIN_REDIRECT_URL='/'
 
@@ -231,22 +231,27 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+# Définir l'URL de base pour les fichiers statiques
+STATIC_URL = "/static/"
 
-STATIC_URL = "static/"
-STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
-STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
+# Répertoire où se trouvent les fichiers statiques (avant collecte)
+STATICFILES_BASE_DIR = BASE_DIR / "static"
+
+# Répertoire où se trouvent les fichiers statiques externes (vendors)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
-# source(s) for python manage.py collectstatic
+# Répertoire où Django va collecter tous les fichiers statiques (en production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Ajouter dynamiquement les répertoires statiques à collecter
 STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR
+    STATICFILES_BASE_DIR,  # Répertoire de base des fichiers statiques
+    STATICFILES_VENDOR_DIR,  # Répertoire des fichiers statiques externes
 ]
 
-# output for python manage.py collectstatic
-# local cdn
-STATIC_ROOT = BASE_DIR / "local-cdn"
+# Optionnel : Si le dossier 'allauth_ui' existe, on l'ajoute aussi
+if (BASE_DIR / "static/allauth_ui").exists():
+    STATICFILES_DIRS.append(BASE_DIR / "static/allauth_ui")
 
 
 #if not DEBUG:
@@ -279,6 +284,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://tarrabio-staging.up.railway.app',
     'https://tarrabio-prod.up.railway.app',
     'https://fastoch-test.up.railway.app',
+    'https://fastoch-master.up.railway.app',
     ]
 
 KESIA2_COLUMNS_NAME = {
@@ -298,7 +304,6 @@ INVENTORY_COLUMNS_NAME = {
     "description": "DEF",
     "quantity": "STOCK",
     "achat_ht": "PMPA",
-    "dlc": "DLC",
 }
 
 DELIVERY_COLUMNS_NAME = {

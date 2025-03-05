@@ -39,9 +39,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Create the mini vm's code directory
-RUN mkdir -p /code/staticfiles/theme/
-RUN mkdir -p /code/staticfiles/tw/
+RUN mkdir -p /code/staticfiles && chmod -R 777 /code/staticfiles
+RUN mkdir -p /code/staticfiles/theme/ && chmod -R 777 /code/staticfiles/theme/
+RUN mkdir -p /code/staticfiles/tw/ && chmod -R 777 /code/staticfiles/tw/
+
 
 # Create log directory
 RUN mkdir -p /code/logs
@@ -91,7 +92,10 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # run any other commands that do not need the database
 # such as:
 RUN python manage.py vendor_pull
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --verbosity 3
+# Affiche le contenu du dossier pour voir si les fichiers ont bien été copiés
+RUN ls -la /code/staticfiles
+
 
 # whitenoise -> s3
 
@@ -105,6 +109,7 @@ RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
     printf "python manage.py makemigrations --no-input\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
+    printf "python manage.py collectstatic --noinput\n" >> ./paracord_runner.sh && \
     printf "python manage.py createsuperuser --no-input --username \$DJANGO_SUPERUSER_USERNAME --email \$DJANGO_SUPERUSER_EMAIL\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --timeout 0 --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
