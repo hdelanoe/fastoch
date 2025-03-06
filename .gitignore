@@ -1,7 +1,6 @@
 
-src/staticfiles/vendors/
-src/staticfiles/theme/
-local-cdn/
+src/static/
+src/staticfiles/
 node_modules/
 media/
 logs/

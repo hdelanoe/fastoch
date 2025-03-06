@@ -1,35 +1,54 @@
 import re
 import os
 import logging
+import json
 
 import pandas as pd
 from itertools import chain
 
 from django.conf import settings
-from django.http import Http404,HttpResponseBadRequest, HttpResponse
+from django.http import Http404,HttpResponseBadRequest, HttpResponse, JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 
 from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, EntryForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import, validate_ean
-from inventory.models import Inventory, Product, iProduct, Provider
+from inventory.models import DLC, Inventory, Product, iProduct, Provider
 from backup.models import Backup
 from settings.models import Settings
-from delivery.views import receipt_view
+
+from django.db.models import Min, ExpressionWrapper, DurationField
+from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
+from django.utils import timezone
 
 from home.views import init_context
 
 logger = logging.getLogger('fastoch')
 
-
 @login_required
-def inventory_view(request, response=0, query=None, *args, **kwargs):
+def inventory_view(request, name=None, query=None, *args, **kwargs):
+    today = timezone.now().date()
     context = init_context()
-    iproducts = iProduct.objects.filter(container_name=context["inventory"].name)
+    try:
+        inventory = Inventory.objects.get(name=name)
+    except Inventory.DoesNotExist:
+        messages.error(request, f"Aucun inventaire trouvé avec le nom '{name}'.")
+        return redirect(reverse("dashboard"))
+    iproducts = inventory.iproducts.annotate(
+        closest_date=Min('dates__date')
+    ).annotate(
+        date_diff=ExpressionWrapper(
+            (ExtractYear('closest_date') - ExtractYear(today)) * 365 +
+            (ExtractMonth('closest_date') - ExtractMonth(today)) * 30 +
+            (ExtractDay('closest_date') - ExtractDay(today)),
+            output_field=DurationField()
+        )
+    ).order_by('date_diff')
 
     if not query:
         query = request.GET.get('search', '')  # Récupère le texte de recherche
@@ -51,17 +70,33 @@ def inventory_view(request, response=0, query=None, *args, **kwargs):
     pagin = int(len(page_obj.object_list)) + (page_obj.number-1)*settings_value.pagin
 
     context["columns"] = settings.INVENTORY_COLUMNS_NAME.values()
-    context["response"] = response
     context["iproducts"] = page_obj.object_list
     context["pages"] = page_obj
     context["total"] = total
     context["len"] = pagin
-
+    
+    context["inventory"] = inventory
     request.session["context"] = "inventory"
     request.session["query"] = query
     context["temp"] =False
 
     return render(request, "inventory/inventory.html", context)
+
+@login_required
+def move_iproducts(request, id):
+    if request.method == 'POST':
+        source_inventory = get_object_or_404(Inventory, id=id)
+        target_inventory = get_object_or_404(Inventory, id=request.POST.get('target_inventory'))
+
+        # Déplacer tous les iproducts vers l'inventaire cible
+        iproducts_to_move = source_inventory.iproducts.all()
+        for iproduct in iproducts_to_move:
+            iproduct.inventory = target_inventory
+            iproduct.save()
+
+        # Rediriger vers la page de l'inventaire cible après le déplacement
+        return redirect('inventory', name=target_inventory.name)
+
 
 @login_required
 def move_from_file(request, *args, **kwargs):
@@ -205,7 +240,7 @@ def delete_iproduct(request, id=None, *args, **kwargs):
          return redirect(reverse("receipt"))
     return redirect(reverse("inventory", args=[0]))
 
-@login_required
+
 def ask_question(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     if request.method == 'POST':
@@ -217,13 +252,86 @@ def ask_question(request, id=None, *args, **kwargs):
     print(inventory.last_response)
     return redirect(reverse("inventory", args=[1]))
 
+@login_required
+def import_inventory_json(request):
+    if request.method == 'POST' and request.FILES['json_file']:
+        # Charger le fichier JSON depuis le formulaire
+        json_file = request.FILES['json_file']
+        try:
+            data = json.load(json_file)  # Charger le fichier JSON
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON file"}, status=400)
+        
+        # Créer ou récupérer l'inventaire
+        inventory, created = Inventory.objects.get_or_create(name="Imported Inventory")
+        
+        # Traitement des données
+        for item in data:
+            try:
+                # Créer ou récupérer le produit
+                product, created = Product.objects.get_or_create(
+                    ean=item['EAN'],
+                    multicode=item['Code'],
+                    defaults={
+                        'description': item['DEF'],
+                        'achat_ht': item['PMPA'],
+                        'is_new': True,
+                        'has_changed': False
+                    }
+                )
+                # Créer l'iProduct
+                iproduct, created = iProduct.objects.get_or_create(
+                    inventory=inventory,
+                    product=product,
+                    defaults={'quantity': item['STOCK']}
+                )
+                if 'DLC' in item:
+                    dlc_date = item['DLC']
+                    if isinstance(dlc_date, str):
+                        
+                        # Vérifier que DLC est une chaîne de caractères
+                        try:
+                            # Essayer de convertir la date en format YYYY-MM-DD
+                            dlc_date_parsed = timezone.datetime.strptime(dlc_date, "%Y-%m-%d").date()
+                            
+                            # Créer ou récupérer la DLC
+                            DLC.objects.get_or_create(iproduct=iproduct, date=dlc_date_parsed)
+                        except ValueError:
+                            return JsonResponse({"error": f"Invalid date format for DLC: {dlc_date}"}, status=400)
+                    else:
+                        return JsonResponse({"error": f"Invalid type for DLC: {dlc_date}, expected a string representing a date."}, status=400)
+
+            except KeyError as e:
+                return JsonResponse({"error": f"Missing key {str(e)} in the JSON data"}, status=400)
+            except ObjectDoesNotExist:
+                return JsonResponse({"error": "A referenced object does not exist"}, status=400)
+
+        return redirect(reverse("inventory", args=[inventory.name]))
+
+    return render(request, 'dashboard.html')
 
 @login_required
 def import_inventory(request, *args, **kwargs):
+    logger.debug(f'REQUEST : {request}')
     if request.method == 'POST':
         try:
-            uploaded_file = request.FILES['document']
             name = request.POST['name']
+            if 'file' in request.FILES:
+                uploaded_file = request.FILES['file']
+            else :
+                try:
+                    inventories=Inventory.objects.all()
+                    if not inventories:
+                        Inventory.objects.create(
+                            name=name,
+                            is_current=True, is_waiting=False)
+                    else:
+                        Inventory.objects.create(name=name)    
+                    messages.success(request, "Your inventory has been created.")
+                    return redirect(reverse("inventory", args=[name]))    
+                except Inventory.DoesNotExist:
+                    messages.error(request, "Error while create your inventory.")
+                    return redirect(reverse("dashboard"))
             filename, file_extension = os.path.splitext(uploaded_file.name)
             logger.debug(f"start parse {filename}")
             if file_extension == ".xml" or file_extension == ".xlsx" or file_extension == ".xls" or file_extension == ".csv":
@@ -245,8 +353,8 @@ def import_inventory(request, *args, **kwargs):
                     for error in error_list:
                         logger.error(error)
                         messages.error(request, error)
-                messages.warning(return_obj['report'])
-                return redirect(reverse("inventory", args=[0]))
+                #messages.warning(return_obj['report'])
+                return redirect(reverse("inventory", args=[name]))
             else:
                 messages.error(request, f'Les fichiers de type {file_extension} ne sont pas pris en charge.')
         except Exception as ex:
@@ -260,10 +368,10 @@ def import_inventory(request, *args, **kwargs):
 @login_required
 def export_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(is_current=True)
-    iproducts=iProduct.objects.filter(container_name=inventory.name)
+    iproducts= inventory.iproducts.all()
     backup = save_backup(inventory)
     df = pd.DataFrame.from_dict(
-        [p.as_receipt() for p in iproducts],
+        [p.as_dict() for p in iproducts],
         orient='columns'
         )
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
@@ -274,6 +382,28 @@ def export_inventory(request, id=None, *args, **kwargs):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
+
+def export_inventory_json(request, id):
+    try:
+        inventory = Inventory.objects.get(id=id)
+        data = []
+
+        for iproduct in inventory.iproducts.all():
+            product_data = iproduct.as_dict()  # Récupérer les infos de l'iProduct
+            
+            # Ajouter la DLC la plus proche (future ou passée)
+            closest_dlc = iproduct.get_closest_dlc()
+            if closest_dlc:
+                product_data['DLC'] = str(closest_dlc)  # Ajouter la date de la DLC
+            else:
+                product_data['DLC'] = None  # Aucune DLC disponible
+
+            data.append(product_data)
+
+        return JsonResponse(data, safe=False, json_dumps_params={'indent': 4, 'ensure_ascii': False})
+
+    except Inventory.DoesNotExist:
+        return JsonResponse({"error": "Inventory not found"}, status=404)
 
 @login_required
 def backup_inventory(request, id=None, *args, **kwargs):
@@ -286,15 +416,15 @@ def backup_inventory(request, id=None, *args, **kwargs):
 def delete_inventory(request, id=None, *args, **kwargs):
     inventory = Inventory.objects.get(id=id)
     # watchout #
-    for product in inventory.products.all():
-        logger.info(inventory.products.all().count())
-        product.delete()
+    for iproduct in inventory.iproducts.all():
+        logger.info(inventory.iproducts.all().count())
+        iproduct.delete()
     inventory.delete()
     messages.success(request, "Your inventory has been deleted.")
     return redirect(reverse("dashboard"))
 
 def save_backup(inventory, type=Backup.BackupType.AUTO):
-    iproducts=iProduct.objects.filter(container_name=inventory.name)
+    iproducts=inventory.iproducts.all()
     backup = Backup(
         inventory=inventory,
         iproducts_backup = pd.DataFrame([x.as_dict() for x in iproducts]).to_json(orient='table'),

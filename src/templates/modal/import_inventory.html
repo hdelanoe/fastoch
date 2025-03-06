@@ -19,17 +19,22 @@
             </div>
             <!-- Modal body -->
             <div class="p-4 md:p-5">
-                <form action="{% url 'import_inventory' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <form method="post" action="{% url 'import_inventory_json' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label for="json_file">Choisir un fichier JSON:</label>
+                    <input type="file" name="json_file" required>
+                    <button type="submit" class="btn btn-primary">Importer l'inventaire</button>
+                </form>
+                <form action="{% url 'import_inventory' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
                     <div class="space-y-4">
                         <div>
                             <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
-                            <input id="name" type="text" name="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" value="My Inventory" placeholder="My Inventory" required="">
+                            <input id="name" type="text" name="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="My Inventory" required>
                         </div>
-                    </div>
-                    <div class="space-y-4 ">
                         <div>
-                            <label for="document" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fichier</label>
-                            <input id="document" type="file" name="document" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <label for="file" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fichier</label>
+                            <input id="file" type="file" name="file" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                         </div>
                     </div>
                     <div class="justify-center flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">

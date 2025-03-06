@@ -5,7 +5,21 @@
 {% block body_title %}TABLEAU DE BORD{% endblock body_title %}
 
 {% block body_table %} 
-<div class="grid grid-rows-[max-content_1fr] gap-4 mb-4"> 
+<div class="grid grid-rows-[max-content_1fr] gap-4 mb-4">
+    <div class="flex items-center justify-center">
+        {% for inventory in inventory_list %}
+            <div>
+                <a href="{% url 'inventory' name=inventory.name %}">
+                    <button type="button"
+                        class="mr-2 flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white m-4 px-4 lg:px-12">
+                        <div>
+                            <h2 class="justify-self-stretch my-4 tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white"> {{inventory.name}}</h2>
+                        </div>    
+                    </button>
+                </a>
+            </div>
+        {% endfor %}    
+    </div> 
     <div class="flex items-center justify-center">
         <div class="mr-2 flex flex-col items-center shadow-md h-min border-2 border-gray-300 rounded-lg dark:border-gray-600 bg-white m-4 px-4 lg:px-12">
             <div>

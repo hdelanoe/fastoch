@@ -19,25 +19,13 @@ logger = logging.getLogger('fastoch')
 def dashboard_view(request):
     context = init_context()
     request.session['context'] = 'dashboard'
-    if not context["inventory"] :
-        return render(request, "dashboard/dashboard_new_inventory.html", context)
+    if not context["inventory_list"] :
+        Inventory.objects.create(
+            name="Inventaire", is_current=True, is_waiting=False)
+        Inventory.objects.create(
+            name="Reception", is_current=False, is_waiting=True)
+        return redirect(reverse("dashboard"))
     return render(request, "dashboard/dashboard.html", context)
-
-@login_required
-def create_inventory(request):
-    if request.method=='POST':
-        try:
-            inventories=Inventory.objects.all()
-            if not inventories:
-                Inventory.objects.create(
-                    name=request.POST.get('name', "My inventory"),
-                    is_current=True)
-            else:
-                Inventory.objects.create(name=request.POST.get('name', "My inventory"))
-            messages.success(request, "Your inventory has been created.")
-        except Inventory.DoesNotExist:
-            messages.error(request, "Error while create your inventory.")
-    return redirect(reverse("dashboard"))
 
 @login_required
 def add_product_from_photo(request):
