@@ -304,6 +304,7 @@ INVENTORY_COLUMNS_NAME = {
     "description": "DEF",
     "quantity": "STOCK",
     "achat_ht": "PMPA",
+    "dlc": "DLC",
 }
 
 DELIVERY_COLUMNS_NAME = {
