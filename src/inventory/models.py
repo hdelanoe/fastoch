@@ -35,24 +35,9 @@ class Product(models.Model):
 
 class iProduct(models.Model):
     quantity = models.IntegerField(default=0)
+    dlc = models.DateField(default=timezone.now().date(), null=True, blank=True)
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='iproducts', null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='iproducts')
-
-    def get_closest_dlc(self):
-        today = timezone.now().date()  # Date d'aujourd'hui
-
-        # Chercher les DLC futures
-        future_dlcs = self.dates.filter(date__gte=today).order_by('date')
-        
-        if future_dlcs.exists():
-            return future_dlcs.first().date  # La plus proche des DLC futures
-        else:
-            # Si aucune DLC future, prendre la plus proche parmi les passées
-            past_dlcs = self.dates.filter(date__lt=today).order_by('-date')
-            if past_dlcs.exists():
-                return past_dlcs.first().date  # La plus proche parmi les DLC passées
-            else:
-                return None  # Aucune DLC trouvée
 
     def as_dict(self):
         return {
@@ -72,7 +57,3 @@ class iProduct(models.Model):
 
     def __str__(self):
         return f'{self.product.multicode} {self.product.provider.name} {self.product.ean} {self.product.description} { self.quantity} {self.product.achat_ht}'
-
-class DLC(models.Model):
-    iproduct = models.ForeignKey(iProduct, related_name='dates', on_delete=models.CASCADE)
-    date = models.DateField(default=timezone.now().date())
