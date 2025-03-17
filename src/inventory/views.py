@@ -18,12 +18,11 @@ from django.contrib import messages
 from helpers.mistral import Codestral_Mamba
 from .forms import ImportForm, EntryForm, QuestionForm
 from .parsers import file_to_json, json_to_delivery, json_to_import, validate_ean
-from inventory.models import DLC, Inventory, Product, iProduct, Provider
+from inventory.models import Inventory, Product, iProduct, Provider
 from backup.models import Backup
 from settings.models import Settings
 
-from django.db.models import Min, ExpressionWrapper, DurationField
-from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
+from django.db.models import F, ExpressionWrapper, DurationField
 from django.utils import timezone
 
 from home.views import init_context
@@ -40,13 +39,9 @@ def inventory_view(request, name=None, query=None, *args, **kwargs):
         messages.error(request, f"Aucun inventaire trouvé avec le nom '{name}'.")
         return redirect(reverse("dashboard"))
     iproducts = inventory.iproducts.annotate(
-        closest_date=Min('dates__date')
-    ).annotate(
-        date_diff=ExpressionWrapper(
-            (ExtractYear('closest_date') - ExtractYear(today)) * 365 +
-            (ExtractMonth('closest_date') - ExtractMonth(today)) * 30 +
-            (ExtractDay('closest_date') - ExtractDay(today)),
-            output_field=DurationField()
+    date_diff=ExpressionWrapper(
+        F('dlc') - today,
+        output_field=DurationField()
         )
     ).order_by('date_diff')
 
@@ -295,7 +290,7 @@ def import_inventory_json(request):
                             dlc_date_parsed = timezone.datetime.strptime(dlc_date, "%Y-%m-%d").date()
                             
                             # Créer ou récupérer la DLC
-                            DLC.objects.get_or_create(iproduct=iproduct, date=dlc_date_parsed)
+                            iproduct.dlc=dlc_date_parsed
                         except ValueError:
                             return JsonResponse({"error": f"Invalid date format for DLC: {dlc_date}"}, status=400)
                     else:
@@ -392,9 +387,9 @@ def export_inventory_json(request, id):
             product_data = iproduct.as_dict()  # Récupérer les infos de l'iProduct
             
             # Ajouter la DLC la plus proche (future ou passée)
-            closest_dlc = iproduct.get_closest_dlc()
-            if closest_dlc:
-                product_data['DLC'] = str(closest_dlc)  # Ajouter la date de la DLC
+            dlc = iproduct.dlc
+            if dlc:
+                product_data['DLC'] = str(dlc)  # Ajouter la date de la DLC
             else:
                 product_data['DLC'] = None  # Aucune DLC disponible
 
