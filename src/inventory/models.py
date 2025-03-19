@@ -47,12 +47,30 @@ class iProduct(models.Model):
             "DEF": self.product.description,
             "STOCK": self.quantity,
             "PMPA": self.product.achat_ht,
+            "Prix HT": self.product.achat_ht,
+        }
+    
+    def as_inventory(self):
+        return {
+            "EAN": self.product.ean,
+            "Code": self.product.multicode,
+            "IDART": self.product.multicode,
+            "DEF": self.product.description,
+            "STOCK": self.quantity,
+            "PMPA": self.product.achat_ht,
+            "Prix HT": self.product.achat_ht,
         }
 
-    def as_receipt(self):
+    def as_reception(self):
         return {
             "Code": self.product.multicode,
             "STOCK": self.quantity,
+        }
+    
+    def as_price(self):
+        return {
+            "IDART": self.product.multicode,
+            "Prix HT": self.product.achat_ht,
         }
 
     def __str__(self):

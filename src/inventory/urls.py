@@ -10,14 +10,14 @@ urlpatterns = [
     path('import_inventory_json/', inventory_views.import_inventory_json, name='import_inventory_json'),
     path('import_inventory/', inventory_views.import_inventory, name='import_inventory'),
     path('<str:id>/move_iproducts', inventory_views.move_iproducts, name='move_iproducts'),
-    path('export_inventory_json/<str:id>/', inventory_views.export_inventory_json, name='export_inventory_json'),
-    path('<str:id>/export_inventory', inventory_views.export_inventory, name='export_inventory'),
+    path('<str:id>/export_xls/<str:export_type>', inventory_views.export_xls, name='export_xls'),
+    path('<str:id>/export_json', inventory_views.export_json, name='export_json'),
     path('<str:id>/backup_inventory', inventory_views.backup_inventory, name='backup_inventory'),
     path('<str:id>/delete_inventory', inventory_views.delete_inventory, name='delete_inventory'),
 
     path('update_product/<int:iproduct>/<int:product>', inventory_views.update_product, name='update_product'),
     #path('delete_product/<int:product>', inventory_views.delete_product, name='delete_product'),
 
-    path('<int:id>/delete_iproduct', inventory_views.delete_iproduct, name='delete_iproduct'),
+    path('<str:inventory_name>/delete_iproduct/<int:id>', inventory_views.delete_iproduct, name='delete_iproduct'),
 
 ]

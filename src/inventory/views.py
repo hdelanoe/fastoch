@@ -126,7 +126,7 @@ def move_from_file(request, *args, **kwargs):
             messages.error(request, f'error while saving {e}')
     if str(request.session['context']) == "delivery":
         return redirect(reverse("delivery", args=[request.session['contextid']]))
-    return redirect(reverse("inventory", args=[0]))
+    return redirect('inventory', name=inventory.name)
 
 
 
@@ -224,7 +224,7 @@ def update_product(request, iproduct=None, product=None, *args, **kwargs):
 #    return redirect(reverse("inventory", args=[0]))
 
 @login_required
-def delete_iproduct(request, id=None, *args, **kwargs):
+def delete_iproduct(request, inventory_name=None, id=None, *args, **kwargs):
     if request.method == 'POST':
         iproduct = iProduct.objects.get(id=id)
         iproduct.delete()
@@ -233,7 +233,7 @@ def delete_iproduct(request, id=None, *args, **kwargs):
         return redirect(reverse("delivery", args=[request.session['contextid']]))
     elif str(request.session['context']) == "receipt":
          return redirect(reverse("receipt"))
-    return redirect(reverse("inventory", args=[0]))
+    return redirect('inventory', name=inventory_name)
 
 
 def ask_question(request, id=None, *args, **kwargs):
@@ -245,7 +245,7 @@ def ask_question(request, id=None, *args, **kwargs):
         inventory.last_response = api.chat(form.data['question'], df)
         inventory.save()
     print(inventory.last_response)
-    return redirect(reverse("inventory", args=[1]))
+    return redirect('inventory', name=inventory.name)
 
 @login_required
 def import_inventory_json(request):
@@ -361,14 +361,25 @@ def import_inventory(request, *args, **kwargs):
 
 
 @login_required
-def export_inventory(request, id=None, *args, **kwargs):
+def export_xls(request, id=None, export_type=None, *args, **kwargs):
     inventory = Inventory.objects.get(is_current=True)
     iproducts= inventory.iproducts.all()
     backup = save_backup(inventory)
-    df = pd.DataFrame.from_dict(
-        [p.as_dict() for p in iproducts],
-        orient='columns'
-        )
+    if export_type=='inventory':
+        df = pd.DataFrame.from_dict(
+            [p.as_inventory() for p in iproducts],
+            orient='columns'
+            )
+    elif export_type=='reception':
+         df = pd.DataFrame.from_dict(
+            [p.as_reception() for p in iproducts],
+            orient='columns'
+            )
+    elif export_type=='price':
+         df = pd.DataFrame.from_dict(
+            [p.as_price() for p in iproducts],
+            orient='columns'
+            )        
     file_path = f'{settings.MEDIA_ROOT}/{inventory.name}_{str(backup.date_creation)[:10]}.xlsx'
     df.to_excel(file_path, index=False)
     if os.path.exists(file_path):
@@ -378,7 +389,7 @@ def export_inventory(request, id=None, *args, **kwargs):
             return response
     raise Http404
 
-def export_inventory_json(request, id):
+def export_json(request, id):
     try:
         inventory = Inventory.objects.get(id=id)
         data = []

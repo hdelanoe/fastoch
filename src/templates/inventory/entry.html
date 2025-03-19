@@ -71,7 +71,7 @@
     </form>
     <!-- Action -->
     <td class="px-2 py-1 truncate font-medium text-gray-900 whitespace-nowrap dark:text-white">
-        <form action="{% url 'delete_iproduct' id=iproduct.id %}" method="post">{% csrf_token %}
+        <form action="{% url 'delete_iproduct' inventory_name=inventory.name id=iproduct.id %}" method="post">{% csrf_token %}
             <button class="bg-red-500 hover:bg-red-700 text-white font-bold px-2 py-1 rounded">
                 X
             </button>
